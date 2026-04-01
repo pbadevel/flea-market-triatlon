@@ -1,0 +1,34 @@
+{
+  "include": ["**/*.ts", "**/*.tsx", "eslint.config.js", "prettier.config.js", "vite.config.js"],
+  
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "types": ["node", "vite/client"],
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": false,
+    "noEmit": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+
+    "noPropertyAccessFromIndexSignature": false,
+    "baseUrl": ".",
+
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+  }
+}

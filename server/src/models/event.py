@@ -1,0 +1,38 @@
+from typing import List, Optional, TYPE_CHECKING
+from datetime import datetime
+from sqlalchemy import BigInteger, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from src.kit.database.models import RecordModel
+
+if TYPE_CHECKING:
+    from src.models import StudentCard, Checkin, Media
+
+
+class Event(RecordModel):
+
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ended_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # Добавлено
+    location: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # Добавлено
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    max_reg: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    category: Mapped[str] = mapped_column(String, default='')
+    price: Mapped[str] = mapped_column(String, default='Бесплатно')
+    age_restriction: Mapped[str] = mapped_column(String, default='18+')
+    features: Mapped[str] = mapped_column(String, nullable=False) # a,b,c,d
+    
+    # Связь с Media
+    media: Mapped[List['Media']] = relationship(
+        'Media',
+        back_populates='event_rel',
+        foreign_keys='Media.event_id'
+    )
+    
+    # Связь с регистрациями
+    checkins: Mapped[List['Checkin']] = relationship(
+        'Checkin',
+        back_populates='event',
+        foreign_keys='Checkin.event_id'
+    )

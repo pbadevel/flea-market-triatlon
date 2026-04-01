@@ -1,0 +1,60 @@
+[project]
+name = "rolls"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "aiohttp>=3.13.2",
+  "alembic>=1.16.5",
+  "apscheduler",
+  "asyncpg>=0.30.0",
+  "fastapi>=0.116.1",
+  "httpx[http2]>=0.28.1",
+  "psycopg2-binary>=2.9.11",
+  "py3xui>=0.5.4",
+  "pydantic>=2.11.7",
+  "pydantic-settings>=2.10.1",
+  "pyjwt>=2.10.1",
+  "python-telegram-bot>=22.5",
+  "pytoniq-core>=0.1.44",
+  "pytz>=2025.2",
+  "pyxui-async==1.0.2",
+  "redis>=6.4.0",
+  "sqlalchemy[asyncio]>=2.0.43",
+  "structlog>=25.4.0",
+  "taskipy>=1.14.1",
+  "uvicorn>=0.35.0",
+  "websockets>=15.0.1",
+  "yookassa>=3.8.0",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "T20", "B039"]
+ignore = ["F841"]
+
+[tool.ruff.lint.per-file-ignores]
+"migrations/*" = ["F401"]
+
+[tool.pytest.ini_options]
+pythonpath = "."
+asyncio_mode = "strict"
+
+[tool.taskipy.tasks]
+api = { cmd = "uvicorn src.app:app --reload --workers 1 --host localhost --port 8000", help = "run api service" }
+init_db = { cmd = "uv run -m src.create_database", help = "creating database" }
+init_data = { cmd = "uv run -m scripts.get_init_data", help = "get telegram mini app init_data" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.1.0",
+]
