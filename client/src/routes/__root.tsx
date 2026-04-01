@@ -24,7 +24,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1.0, user-scalable=no",
       },
       ...seo({
-        title: "SupaCase",
+        title: "PBA SITE",
         description: "Best NFT Gift cases",
       }),
     ],
