@@ -17,14 +17,14 @@ export function HeroBanner() {
             <h1 className="mb-2 text-4xl font-bold tracking-tight md:text-5xl">
               TB <span className="text-cyan-400">SALE</span>
             </h1>
-            <p className="text-sm uppercase tracking-wider text-cyan-600 dark:text-white">
+            <p className="text-sm uppercase tracking-wider text-(--sea-ink)">
               ЛАБОРАТОРИЯ СПОРТИВНОЙ ЭЛЕКТРОНИКИ
             </p>
           </div>
           
           <ul className="space-y-3">
             {advantages.map((item, index) => (
-              <li key={index} className="flex items-center gap-3 text-base dark:text-white md:text-lg">
+              <li key={index} className="flex items-center gap-3 text-base text-(--sea-ink) md:text-lg">
                 <span className="h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400" />
                 <span>{item}</span>
               </li>
