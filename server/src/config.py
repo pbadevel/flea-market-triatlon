@@ -26,11 +26,11 @@ class Settings(BaseSettings):
     USER_SESSION_TTL: timedelta = timedelta(days=31)
 
     # Database
-    POSTGRES_USER: str = "rolls"
-    POSTGRES_PWD: str = "rolls"  # password
+    POSTGRES_USER: str = "baraholka"
+    POSTGRES_PWD: str = "baraholka"  # password
     POSTGRES_HOST: str = "127.0.0.1"
     POSTGRES_PORT: int = 5432
-    POSTGRES_DATABASE: str = "rolls_development"
+    POSTGRES_DATABASE: str = "baraholka_db"
     DATABASE_POOL_SIZE: int = 5
     DATABASE_POOL_RECYCLE_SECONDS: int = 600  # 10 minutes
     DATABASE_COMMAND_TIMEOUT_SECONDS: float = 30.0
@@ -40,19 +40,13 @@ class Settings(BaseSettings):
     # TOKENS
     
     # Bot
-    BOT_TOKEN: SecretStr
-    TMA_URL: str
-    WEBHOOK_PATH: str
-    WEBHOOK_URL: str
+    BOT_TOKEN: str = "8192224436:AAGeom4u2DmXbqWO-iNGBVqzbHJzGpcXf9M"
+    TMA_URL: str = "af"
+    WEBHOOK_PATH: str = "ada"
+    WEBHOOK_URL: str = "adad"
     webhook_secret_token: SecretStr | None = None
 
-    # CryptoBot
-    CRYPTO_BOT_TOKEN: SecretStr
-
-    # Yookassa
-    YOOKASSA_SHOP_ID: SecretStr
-    YOOKASSA_SECRET_KEY: SecretStr
-
+  
 
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100

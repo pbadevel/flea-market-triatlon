@@ -1,10 +1,11 @@
 [project]
-name = "rolls"
+name = "flea-market"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+  "aiofiles>=25.1.0",
   "aiohttp>=3.13.2",
   "alembic>=1.16.5",
   "apscheduler",
@@ -50,6 +51,9 @@ asyncio_mode = "strict"
 
 [tool.taskipy.tasks]
 api = { cmd = "uvicorn src.app:app --reload --workers 1 --host localhost --port 8000", help = "run api service" }
+
+migrate_tg = { cmd = "uv run -m scripts.migrate_photos", help = "downloading photos" }
+
 init_db = { cmd = "uv run -m src.create_database", help = "creating database" }
 init_data = { cmd = "uv run -m scripts.get_init_data", help = "get telegram mini app init_data" }
 

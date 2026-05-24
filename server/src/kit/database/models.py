@@ -58,38 +58,3 @@ class RecordModel(IDModel, TimestampedModel):
             id_value = insp.identity[0]
             return f"{self.__class__.__name__}(id={id_value!r})"
         return f"{self.__class__.__name__}(id=None)"
-
-
-
-'''
-
-INSERT INTO vless_servers (
-    server_ip,
-    admin_port,
-    login,
-    password,
-    secret_path,
-    country,
-    city,
-    flag,
-    load,
-    ping,
-    id,
-    created_at,
-    updated_at
-) VALUES (
-    '31.97.232.22',           -- server_ip из Access URL
-    2053,                     -- admin_port из данных
-    '77BYWIRmMX',             -- login из Username
-    'EiEAeCxloD',             -- password из Password
-    '/17X6nhDqDEEDV1imYm',     -- secret_path из WebBasePath
-    'USA',         -- страна по IP
-    'Phoenix',                 -- город по IP
-    '🇺🇸',                    -- флаг Великобритании
-    35,                       -- примерная нагрузка
-    45,                        -- примерный пинг
-    0,
-    now(),
-    null
-);
-'''

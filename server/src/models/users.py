@@ -1,43 +1,31 @@
-from typing import List, Optional, TYPE_CHECKING
-from sqlalchemy import BigInteger, Enum, String
+from datetime import datetime
+from typing import TYPE_CHECKING, List
+from sqlalchemy import BigInteger, Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from src.config import settings
-from src.enums import UserRole
 from src.kit.database.models import RecordModel
 
 if TYPE_CHECKING:
-    from src.models import StudentCard, Checkin
-
+    from .ad import Ad
+    from .interaction import Review
 
 class User(RecordModel):
-    
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    first_name: Mapped[str]
-    last_name: Mapped[str | None]
-    username: Mapped[str | None]
-    is_premium: Mapped[bool] = mapped_column(default=False)
-    avatar: Mapped[str | None] = mapped_column(default=None)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.USER)
-    timezone: Mapped[str] = mapped_column(
-        String(64), nullable=False, default=settings.default_timezone
-    )
+    tg_user_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    username: Mapped[str | None] = mapped_column(String, nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_moderator: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_trusted_seller: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    agreed_to_terms: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    agreed_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    subscribed_to_channel: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    subscribed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
-    student_card: Mapped[Optional['StudentCard']] = relationship(
-        'StudentCard', 
-        back_populates='user', 
-        foreign_keys='StudentCard.owner_id',
-        uselist=False
-    )
-    
-    checkins: Mapped[List['Checkin']] = relationship(
-        'Checkin', 
-        back_populates='user',
-        foreign_keys='Checkin.owner_id'
-    )
+    ads: Mapped[List["Ad"]] = relationship("Ad", back_populates="seller", foreign_keys="Ad.seller_user_id")
+    reviews_received: Mapped[List["Review"]] = relationship("Review", back_populates="reviewed_user", foreign_keys="Review.reviewed_user_id")
+    reviews_given: Mapped[List["Review"]] = relationship("Review", back_populates="reviewer", foreign_keys="Review.reviewer_user_id")
 
-    @property
-    def full_name(self) -> str:
-        if self.last_name:
-            return f"{self.first_name} {self.last_name}"
-        return self.first_name
+class Blacklist(RecordModel):
+    """Забаненные пользователи."""
+    __tablename__ = "blacklist" # pyright: ignore # явное имя, чтобы не стало "blacklists" по авто-правилу
+    tg_user_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
