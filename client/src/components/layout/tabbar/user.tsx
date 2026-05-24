@@ -16,12 +16,12 @@ export const UserTabbar = () => {
       value: "Home",
       icon: <HomeIcon />,
     },
-    {
-      to: "/search",
-      name: "Поиск",
-      value: "Search",
-      icon: <SearchIcon />,
-    },
+    // {
+    //   to: "/search",
+    //   name: "Поиск",
+    //   value: "Search",
+    //   icon: <SearchIcon />,
+    // },
     {
       to: "/basket",
       name: "Корзина",

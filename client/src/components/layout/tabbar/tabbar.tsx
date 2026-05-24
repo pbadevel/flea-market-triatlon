@@ -13,7 +13,7 @@ export const Tabbar: React.FC<{
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 w-screen border-t-blue-300 border-t backdrop-blur-xl lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 w-screen border-t-blue-300 border-t backdrop-blur-xl bg-(--bg-base) lg:hidden">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-around px-2">
         {tabs.map((tab) => (
           <Link
