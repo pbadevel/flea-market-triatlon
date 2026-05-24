@@ -3,15 +3,17 @@ from contextlib import asynccontextmanager
 from typing import TypedDict
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.routing import APIRoute
+from fastapi.middleware.cors import CORSMiddleware
 
 
 from src.api import router
 from src.config import settings
 
-from src.bot.setup import setup_bot_application
-from src.bot.application import application as bot_application
-from src.bot.endpoints import router as tg_router
+# from src.bot.setup import setup_bot_application
+# from src.bot.application import application as bot_application
+# from src.bot.endpoints import router as tg_router
 
 
 from src.exception_handlers import add_exception_handlers
@@ -98,9 +100,20 @@ def create_app() -> FastAPI:
         app.add_middleware(AsyncSessionMiddleware)
     app.add_middleware(LogCorrelationIdMiddleware)
 
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173", "http://localhost:3000"], # Add your frontend URL
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+
     add_exception_handlers(app)
 
-    app.include_router(tg_router)
+    # app.include_router(tg_router)
     app.include_router(router)
     app.include_router(health_router)
 
