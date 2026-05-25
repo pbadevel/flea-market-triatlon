@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from sqlalchemy import select, func
-from sqlalchemy.orm import joinedload
-from src.models import Ad, AdStatus, AdPhoto
+from sqlalchemy.orm import joinedload, selectinload
+from src.models import Ad, AdStatus, User, Review
 from src.kit.database.service import database_service
 from src.schemas.ads import AdOut
 from typing import Optional
@@ -24,8 +24,6 @@ async def list_ads(
 ):
     async with database_service.get_session() as db:
         stmt = select(Ad).where(Ad.status == AdStatus.approved)
-        
-        stmt = stmt.options(joinedload(Ad.photos))
         
         # Фильтры
         if category:
@@ -50,14 +48,25 @@ async def list_ads(
                 Ad.description.ilike(f"%{search}%")
             )
         
-        # Пагинация
+        # Считаем общее количество до применения пагинации
         total = await db.scalar(select(func.count()).select_from(stmt.subquery()))
+        
+        # Применяем пагинацию и сортировку
         stmt = stmt.offset((page - 1) * limit).limit(limit).order_by(Ad.created_at.desc())
+        
+        # ✅ Исправляем загрузку связей:
+        # 1. Для списков (Ad.photos) ВСЕГДА используем selectinload, чтобы не ломать LIMIT/OFFSET
+        # 2. Для продавца используем joinedload + подгружаем его отзывы и автора отзыва вложенным options
+        stmt = stmt.options(
+            selectinload(Ad.photos),
+            joinedload(Ad.seller).selectinload(User.reviews_received).options(
+                joinedload(Review.reviewer)
+            )
+        )
         
         result = await db.execute(stmt)
         ads = result.scalars().unique().all()
         
-        # ✅ Сериализуем с фото
         return {
             "data": [AdOut.from_orm_with_photos(ad) for ad in ads],
             "total": total,
