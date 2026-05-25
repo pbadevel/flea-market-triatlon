@@ -1,10 +1,176 @@
 // src/components/features/product-detail.tsx
 import { useParams } from '@tanstack/react-router'
-import { ArrowLeft, Heart, Share2, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Heart, Share2, ShoppingCart, Star, User, CheckCircle, Shield } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { productQueryOptions } from '@/lib/queries/ads'
+import { useState } from 'react'
+import { Review, Seller } from '@/types/products'
 
+
+// Компонент карусели изображений
+function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  if (!images.length) return null
+
+  const next = () => setCurrentIndex((i) => (i + 1) % images.length)
+  const prev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length)
+
+  return (
+    <div className="space-y-4">
+      {/* Main image */}
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-50">
+        <img
+          src={images[currentIndex]}
+          alt={`${alt} ${currentIndex + 1}`}
+          className="h-full w-full object-cover"
+        />
+        
+        {/* Navigation buttons */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-(--sea-ink) shadow hover:bg-white"
+              aria-label="Предыдущее фото"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-(--sea-ink) shadow hover:bg-white"
+              aria-label="Следующее фото"
+            >
+              <ArrowLeft className="size-5 rotate-180" />
+            </button>
+          </>
+        )}
+        
+        {/* Counter */}
+        {images.length > 1 && (
+          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white">
+            {currentIndex + 1} / {images.length}
+          </div>
+        )}
+      </div>
+
+      {/* Thumbnails */}
+      {images.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {images.map((img, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`shrink-0 aspect-square w-16 overflow-hidden rounded border-2 transition ${
+                currentIndex === idx
+                  ? 'border-(--palm)'
+                  : 'border-(--line) hover:border-(--palm)/50'
+              }`}
+            >
+              <img
+                src={img}
+                alt={`${alt} thumb ${idx + 1}`}
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Компонент рейтинга
+function StarRating({ rating, count }: { rating: number; count?: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`size-4 ${
+              star <= Math.round(rating)
+                ? 'fill-yellow-400 text-yellow-400'
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-sm font-medium text-(--sea-ink)">{rating.toFixed(1)}</span>
+      {count !== undefined && (
+        <span className="text-sm text-(--sea-ink-soft)">({count})</span>
+      )}
+    </div>
+  )
+}
+
+// Компонент карточки отзыва
+function ReviewCard({ review }: { review: Review }) {
+  return (
+    <div className="rounded-lg border border-(--line) p-4">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-medium text-(--sea-ink)">
+            {review.reviewer_username || `Пользователь #${review.reviewer_tg_id}`}
+          </p>
+          <StarRating rating={review.rating} />
+        </div>
+        <span className="text-xs text-(--sea-ink-soft)">
+          {new Date(review.created_at).toLocaleDateString('ru-RU')}
+        </span>
+      </div>
+      {review.comment && (
+        <p className="mt-2 text-sm text-(--sea-ink-soft)">{review.comment}</p>
+      )}
+    </div>
+  )
+}
+
+// Компонент информации о продавце
+function SellerInfo({ seller }: { seller: Seller }) {
+  return (
+    <div className="rounded-lg border border-(--line) p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex size-12 items-center justify-center rounded-full bg-(--link-bg-hover)">
+          <User className="size-6 text-(--sea-ink-soft)" />
+        </div>
+        <div className="flex-1">
+          <p className="font-medium text-(--sea-ink)">
+            {seller.username || `${seller.first_name || ''} ${seller.last_name || ''}`.trim() || 'Продавец'}
+          </p>
+          <StarRating rating={seller.rating} count={seller.review_count} />
+        </div>
+      </div>
+
+      {/* Badges */}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {seller.is_trusted_seller && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+            <CheckCircle className="size-3" />
+            Проверенный продавец
+          </span>
+        )}
+        {seller.is_moderator && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+            <Shield className="size-3" />
+            Модератор
+          </span>
+        )}
+      </div>
+
+      {/* Reviews */}
+      {seller.reviews.length > 0 && (
+        <div className="mt-4 space-y-3">
+          <h4 className="text-sm font-semibold text-(--sea-ink)">Отзывы</h4>
+          {seller.reviews.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function ProductDetail() {
   const { productId } = useParams({ from: '/product/$productId' })
@@ -13,8 +179,6 @@ export function ProductDetail() {
     productQueryOptions(productId)
   )
 
-  console.log(product)
-  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -66,31 +230,11 @@ export function ProductDetail() {
       <div className="page-wrap py-8">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-lg bg-gray-50">
-              <img
-                src={product.cover_url}
-                alt={product.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            {/* Thumbnails if multiple photos */}
-            {product.photos && product.photos.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto">
-                {product.photos.map((photo, index) => (
-                  <button
-                    key={index}
-                    className="shrink-0 aspect-square w-16 overflow-hidden rounded border border-(--line) hover:border-(--palm)"
-                  >
-                    <img
-                      src={photo}
-                      alt={`${product.title} ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+          <div>
+            <ImageCarousel 
+              images={product.image_urls} 
+              alt={product.title} 
+            />
           </div>
 
           {/* Info */}
@@ -139,69 +283,61 @@ export function ProductDetail() {
             </div>
 
             {/* Seller Info */}
-            {product.seller_name && (
-              <div className="rounded-lg border border-(--line) p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-(--sea-ink-soft)">Продавец</p>
-                    <p className="font-medium text-(--sea-ink)">{product.seller_name}</p>
-                  </div>
-                  {product.seller_rating && (
-                    <div className="text-sm text-(--sea-ink-soft)">
-                      ★ {product.seller_rating}/5
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {product.seller && <SellerInfo seller={product.seller} />}
 
             {/* Description */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-(--sea-ink)">
-                Описание
-              </h2>
-              <p className="text-(--sea-ink-soft) leading-relaxed whitespace-pre-wrap">
-                {product.description || 'Описание товара будет добавлено позже.'}
-              </p>
-            </div>
-
-            {/* Specifications */}
-            {product.specifications && Object.keys(product.specifications).length > 0 && (
+            {product.description && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-(--sea-ink)">
-                  Характеристики
+                  Описание
                 </h2>
-                <div className="rounded-lg border border-(--line) divide-y divide-(--line)">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex py-3">
-                      <span className="w-1/3 text-(--sea-ink-soft)">{key}</span>
-                      <span className="w-2/3 font-medium text-(--sea-ink)">
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-(--sea-ink-soft) leading-relaxed whitespace-pre-wrap">
+                  {product.description}
+                </p>
               </div>
             )}
 
-            {/* Meta Info */}
-            <div className="rounded-lg bg-(--link-bg-hover) p-4 text-sm text-(--sea-ink-soft)">
-              <div className="flex justify-between">
-                <span>Артикул:</span>
-                <span className="font-medium text-(--sea-ink)">#{product.id}</span>
-              </div>
-              <div className="flex justify-between mt-2">
-                <span>Добавлено:</span>
-                <span className="font-medium text-(--sea-ink)">
-                  {new Date(product.created_at).toLocaleDateString('ru-RU')}
-                </span>
-              </div>
-              {product.category && (
-                <div className="flex justify-between mt-2">
-                  <span>Категория:</span>
+            {/* Specifications */}
+            <div className="rounded-lg bg-(--link-bg-hover) p-4 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex justify-between">
+                  <span className="text-(--sea-ink-soft)">Артикул:</span>
+                  <span className="font-medium text-(--sea-ink)">#{product.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-(--sea-ink-soft)">Категория:</span>
                   <span className="font-medium text-(--sea-ink)">{product.category}</span>
                 </div>
-              )}
+                {product.subcategory && (
+                  <div className="flex justify-between">
+                    <span className="text-(--sea-ink-soft)">Подкатегория:</span>
+                    <span className="font-medium text-(--sea-ink)">{product.subcategory}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-(--sea-ink-soft)">Город:</span>
+                  <span className="font-medium text-(--sea-ink)">{product.city}</span>
+                </div>
+                {product.size && (
+                  <div className="flex justify-between">
+                    <span className="text-(--sea-ink-soft)">Размер:</span>
+                    <span className="font-medium text-(--sea-ink)">{product.size}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-(--sea-ink-soft)">Состояние:</span>
+                  <span className="font-medium text-(--sea-ink)">
+                    {product.condition === 'new' ? 'Новое' : 
+                     product.condition === 'used' ? 'Б/У' : product.condition}
+                  </span>
+                </div>
+                <div className="flex justify-between col-span-2">
+                  <span className="text-(--sea-ink-soft)">Добавлено:</span>
+                  <span className="font-medium text-(--sea-ink)">
+                    {new Date(product.created_at).toLocaleDateString('ru-RU')}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

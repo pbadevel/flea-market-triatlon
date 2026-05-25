@@ -1,6 +1,7 @@
-import { Ad, AdFilters, AdsResponse, FilterConfig } from '@/types/ad';
+import { AdFilters, AdsResponse, FilterConfig } from '@/types/ad';
 import { apiRequest } from './api-request';
 import { ADS_LIST_ENDPOINT, FILTER_ENDPOINT, PRODUCT_ENDPOINT } from './endpoints';
+import { Product } from '@/types/products';
 
 
 export const fetchAds = async (filters: AdFilters = {}): Promise<AdsResponse> => {
@@ -21,8 +22,10 @@ export const fetchAds = async (filters: AdFilters = {}): Promise<AdsResponse> =>
   return apiRequest<AdsResponse>(url, { method: 'GET' });
 };
 
-export const fetchProduct = async (productId: string | number): Promise<Ad> => {
-  return apiRequest<Ad>(`${PRODUCT_ENDPOINT}/${productId}`, { method: 'GET' });
+
+
+export const fetchProduct = async (productId: string | number): Promise<Product> => {
+  return apiRequest<Product>(`${PRODUCT_ENDPOINT}/${productId}`, { method: 'GET' });
 };
 
 export const fetchFilters = async (): Promise<FilterConfig> => {
