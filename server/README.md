@@ -1,4 +1,4 @@
-
+UPDATE ads SET country = 'Россия' WHERE city IN ('Москва', 'Самара', 'Воронеж') AND country IS NULL;
 
 UPDATE ads SET country = 'russia' WHERE country = 'Россия';
 UPDATE ads SET country = 'belarus' WHERE country = 'Беларусь';
