@@ -11,10 +11,10 @@ router = APIRouter(prefix="/ads", tags=["ads"])
 
 @router.get("")
 async def list_ads(
-    category: Optional[str] = Query(None),
-    subcategory: Optional[str] = Query(None),
-    country: Optional[str] = Query(None),
-    city: Optional[str] = Query(None),
+    category: list[str] | None = Query(None),
+    subcategory: list[str] | None = Query(None),
+    country: list[str] | None = Query(None),
+    city: list[str] | None = Query(None),
     condition: Optional[str] = Query(None),
     ad_type: Optional[str] = Query(None),
     min_price: Optional[int] = Query(None),
@@ -34,15 +34,21 @@ async def list_ads(
             )
         )
         
-        # Filters
+        # Filters (multiple values = OR within group, AND across groups)
+        category_filters: list = []
         if category:
-            stmt = stmt.where(Ad.category == category)
+            category_filters.append(Ad.category.in_(category))
         if subcategory:
-            stmt = stmt.where(Ad.subcategory == subcategory)
-        if country:
-            stmt = stmt.where(Ad.country == country)
+            category_filters.append(Ad.subcategory.in_(subcategory))
+        if category_filters:
+            stmt = stmt.where(or_(*category_filters))
+
+        # City is matched exactly as stored in DB. When cities are chosen, they
+        # take precedence — many legacy ads have city set but country empty.
         if city:
-            stmt = stmt.where(Ad.city == city)
+            stmt = stmt.where(Ad.city.in_(city))
+        elif country:
+            stmt = stmt.where(Ad.country.in_(country))
         if condition:
             stmt = stmt.where(Ad.condition == condition)
         if ad_type:

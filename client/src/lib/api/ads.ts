@@ -9,10 +9,10 @@ export const fetchAds = async (filters: AdFilters = {}): Promise<AdsResponse> =>
   
   if (filters.page) params.append('page', filters.page.toString());
   if (filters.limit) params.append('limit', filters.limit.toString());
-  if (filters.category) params.append('category', filters.category);
-  if (filters.subcategory) params.append('subcategory', filters.subcategory);
-  if (filters.country) params.append('country', filters.country);
-  if (filters.city) params.append('city', filters.city);
+  filters.categories?.forEach((value) => params.append('category', value));
+  filters.subcategories?.forEach((value) => params.append('subcategory', value));
+  filters.countries?.forEach((value) => params.append('country', value));
+  filters.cities?.forEach((value) => params.append('city', value));
   if (filters.condition) params.append('condition', filters.condition);
   if (filters.ad_type) params.append('ad_type', filters.ad_type);
   if (filters.minPrice) params.append('min_price', filters.minPrice.toString());

@@ -13,7 +13,6 @@ export function Bestsellers() {
   const [filters, setFilters] = useState<AdFilters>({
     page: 1,
     limit: 20,
-    country: undefined,
     sort: 'created_at_desc',
   });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -66,7 +65,19 @@ export function Bestsellers() {
             className="flex items-center gap-1.5 rounded-lg border border-(--line) bg-white px-3 py-1.5 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover)"
           >
             <Filter className="size-4" />
-            Фильтры{filters && Object.values(filters).some(v => v) && ` (${Object.values(filters).filter(v => v).length})`}
+            Фильтры
+            {(() => {
+              const n =
+                (filters.categories?.length ?? 0) +
+                (filters.subcategories?.length ?? 0) +
+                (filters.countries?.length ?? 0) +
+                (filters.cities?.length ?? 0) +
+                (filters.condition ? 1 : 0) +
+                (filters.ad_type ? 1 : 0) +
+                (filters.minPrice !== undefined ? 1 : 0) +
+                (filters.maxPrice !== undefined ? 1 : 0);
+              return n > 0 ? ` (${n})` : '';
+            })()}
           </button>
         </div>
 

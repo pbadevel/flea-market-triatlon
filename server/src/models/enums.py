@@ -9,10 +9,9 @@ class AdStatus(enum.StrEnum):
 
 class AdCondition(enum.StrEnum):
     new = "Новое"
-    excellent = "Отличное"
-    good = "Хорошее"
-    used = "Есть следы использования"
-
+    used = "Б/У"
+    unknown = "Не указано"
+    
 class Category(enum.StrEnum):
     swim = "swim"
     bike = "bike"

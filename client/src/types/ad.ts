@@ -36,10 +36,12 @@ export type SortOption = 'created_at_desc' | 'created_at_asc' | 'price_asc' | 'p
 export interface AdFilters {
   page?: number;
   limit?: number;
-  category?: string;
-  subcategory?: string;
-  country?: string;
-  city?: string;
+  /** Whole categories (all items in category) */
+  categories?: string[];
+  /** Specific subcategory keys from filter config */
+  subcategories?: string[];
+  countries?: string[];
+  cities?: string[];
   condition?: 'new' | 'used' | 'unknown';
   ad_type?: 'sale' | 'rent';
   minPrice?: number;
