@@ -6,14 +6,16 @@ export const adsQueryOptions = (filters: AdFilters = {}) =>
   queryOptions({
     queryKey: ['ads', filters],
     queryFn: () => fetchAds(filters),
-    staleTime: 5 * 60 * 1000, // 5 минут
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
 export const filtersQueryOptions = () =>
   queryOptions({
     queryKey: ['filters'],
     queryFn: fetchFilters,
-    staleTime: 60 * 60 * 1000, // 1 час
+    staleTime: 60 * 60 * 1000,
+    gcTime: 2 * 60 * 60 * 1000,
   });
 
 export const productQueryOptions = (productId: string | number) =>

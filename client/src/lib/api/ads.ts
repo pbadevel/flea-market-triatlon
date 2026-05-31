@@ -13,9 +13,13 @@ export const fetchAds = async (filters: AdFilters = {}): Promise<AdsResponse> =>
   if (filters.subcategory) params.append('subcategory', filters.subcategory);
   if (filters.country) params.append('country', filters.country);
   if (filters.city) params.append('city', filters.city);
-  if (filters.minPrice) params.append('minPrice', filters.minPrice.toString());
-  if (filters.maxPrice) params.append('maxPrice', filters.maxPrice.toString());
+  if (filters.condition) params.append('condition', filters.condition);
+  if (filters.ad_type) params.append('ad_type', filters.ad_type);
+  if (filters.minPrice) params.append('min_price', filters.minPrice.toString());
+  if (filters.maxPrice) params.append('max_price', filters.maxPrice.toString());
   if (filters.search) params.append('search', filters.search);
+  if (filters.sort) params.append('sort', filters.sort);
+
 
   const url = params.toString() ? `${ADS_LIST_ENDPOINT}?${params.toString()}` : ADS_LIST_ENDPOINT;
   

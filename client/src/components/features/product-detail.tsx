@@ -328,7 +328,8 @@ export function ProductDetail() {
                   <span className="text-(--sea-ink-soft)">Состояние:</span>
                   <span className="font-medium text-(--sea-ink)">
                     {product.condition === 'new' ? 'Новое' : 
-                     product.condition === 'used' ? 'Б/У' : product.condition}
+                     product.condition === 'used' ? 'Б/У' : 
+                     product.condition === 'unknown' ? 'Не указано' : product.condition}
                   </span>
                 </div>
                 <div className="flex justify-between col-span-2">

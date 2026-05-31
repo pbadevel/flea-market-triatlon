@@ -49,12 +49,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         {/* <MobileCatalogProvider> */}
-          <CountryProvider>
+          {/* <CountryProvider> */}
             <Header />
               {children}
             <UserTabbar />
             <Footer />
-          </CountryProvider>
+          {/* </CountryProvider> */}
           {/* <MobileCatalog/> */}
         {/* </MobileCatalogProvider> */}
         <Scripts />

@@ -8,12 +8,13 @@ export interface Ad {
   discount?: number;
   cover_url: string;
   description?: string;
-  category?: string;
+  category: string;
   subcategory?: string;
   country?: string;
   city?: string;
-  condition?: string;
-  ad_type?: string;
+  condition: 'new' | 'used' | 'unknown';
+  ad_type: 'sale' | 'rent';
+  size?: string;
   seller_id?: number;
   seller_name?: string;
   seller_rating?: number;
@@ -23,6 +24,15 @@ export interface Ad {
   specifications?: Record<string, string>;
 }
 
+export interface AdsResponse {
+  data: Ad[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export type SortOption = 'created_at_desc' | 'created_at_asc' | 'price_asc' | 'price_desc';
+
 export interface AdFilters {
   page?: number;
   limit?: number;
@@ -30,17 +40,47 @@ export interface AdFilters {
   subcategory?: string;
   country?: string;
   city?: string;
+  condition?: 'new' | 'used' | 'unknown';
+  ad_type?: 'sale' | 'rent';
   minPrice?: number;
   maxPrice?: number;
   search?: string;
+  sort?: SortOption;
 }
 
+export interface FilterOption {
+  key: string;
+  label: string;
+  count?: number;
+}
 
-export interface AdsResponse {
-  data: Ad[];
-  total: number;
-  page: number;
-  limit: number;
+export interface FilterGroup {
+  name: string;
+  items: FilterOption[];
+}
+
+export interface CategoryFilter {
+  key: string;
+  label: string;
+  groups?: FilterGroup[];
+  items?: FilterOption[];
+  default_tags?: string[];
+}
+
+export interface GeoItem {
+  key: string;
+  name: string;
+  flag?: string;
+  cities?: string[];
+}
+
+export interface FilterConfig {
+  categories: CategoryFilter[];
+  countries: GeoItem[];
+  conditions: { key: string; label: string }[];
+  ad_types: { key: string; label: string }[];
+  sizes: string[];
+  default_cities: string[];
 }
 
 export interface SubcategoryItem {
@@ -54,26 +94,3 @@ export interface SubcategoryGroup {
   items: SubcategoryItem[];
 }
 
-export interface CategoryFilter {
-  key: string;
-  label: string;
-  groups?: SubcategoryGroup[] | null;
-  items?: SubcategoryItem[] | null;
-  default_tags?: string[];
-}
-
-export interface GeoItem {
-  key: string;
-  name: string;
-  flag?: string | null;
-  cities?: string[];
-}
-
-export interface FilterConfig {
-  categories: CategoryFilter[];
-  countries: GeoItem[];
-  default_cities: string[];
-  conditions: { key: string; label: string }[];
-  sizes: string[];
-  ad_types: { key: string; label: string }[];
-}

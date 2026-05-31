@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // ✅ Добавили 'all' в тип
-export type Country = 'all' | 'ru' | 'kz' | 'kg';
+export type Country = 'all' | 'ru' | 'kz' | 'kg' | 'by' | 'cy' | 'sg';
+
 
 interface CountryContextType {
   country: Country;
@@ -11,11 +12,14 @@ interface CountryContextType {
 
 const CountryContext = createContext<CountryContextType | undefined>(undefined);
 
-const countries: Record<Country, { name: string; flag: string; count?: number }> = {
+const countries: Record<Country, { name: string; flag: string }> = {
   all: { name: 'Все', flag: '' },
   ru: { name: 'Россия', flag: '🇷🇺' },
   kz: { name: 'Казахстан', flag: '🇰🇿' },
   kg: { name: 'Кыргызстан', flag: '🇰🇬' },
+  by: { name: 'Беларусь', flag: '🇧🇾' },
+  cy: { name: 'Кипр', flag: '🇨🇾' },
+  sg: { name: 'Singapore', flag: '🇸🇬' },
 };
 
 export function CountryProvider({ children }: { children: ReactNode }) {
@@ -34,7 +38,6 @@ export function CountryProvider({ children }: { children: ReactNode }) {
 
   const setCountry = (newCountry: Country) => {
     setCountryState(newCountry);
-    console.log(`Country changed to: ${countries[newCountry].name}`);
   };
 
   return (
