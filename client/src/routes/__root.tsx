@@ -53,7 +53,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <Header />
               {children}
             <UserTabbar />
-            <Footer />
+            {/* <Footer /> */}
           {/* </CountryProvider> */}
           {/* <MobileCatalog/> */}
         {/* </MobileCatalogProvider> */}
