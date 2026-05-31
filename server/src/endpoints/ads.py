@@ -1,7 +1,8 @@
+# src/api/endpoints/ads.py
 from fastapi import APIRouter, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import joinedload, selectinload
-from src.models import Ad, AdStatus, User, Review
+from src.models import Ad, AdStatus, Review, User
 from src.kit.database.service import database_service
 from src.schemas.ads import AdOut
 from typing import Optional
@@ -19,13 +20,21 @@ async def list_ads(
     min_price: Optional[int] = Query(None),
     max_price: Optional[int] = Query(None),
     search: Optional[str] = Query(None),
+    sort: Optional[str] = Query('created_at_desc'),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
 ):
     async with database_service.get_session() as db:
         stmt = select(Ad).where(Ad.status == AdStatus.approved)
         
-        # Фильтры
+        stmt = stmt.options(
+            selectinload(Ad.photos),
+            joinedload(Ad.seller).selectinload(User.reviews_received).options(
+                joinedload(Review.reviewer)
+            )
+        )
+        
+        # Filters
         if category:
             stmt = stmt.where(Ad.category == category)
         if subcategory:
@@ -48,24 +57,23 @@ async def list_ads(
                 Ad.description.ilike(f"%{search}%")
             )
         
-        # Считаем общее количество до применения пагинации
+        # Sorting
+        if sort == 'price_asc':
+            stmt = stmt.order_by(Ad.price.asc())
+        elif sort == 'price_desc':
+            stmt = stmt.order_by(Ad.price.desc())
+        elif sort == 'created_at_asc':
+            stmt = stmt.order_by(Ad.created_at.asc())
+        else:  # created_at_desc (default)
+            stmt = stmt.order_by(Ad.created_at.desc())
+        
+        # Pagination
         total = await db.scalar(select(func.count()).select_from(stmt.subquery()))
-        
-        # Применяем пагинацию и сортировку
-        stmt = stmt.offset((page - 1) * limit).limit(limit).order_by(Ad.created_at.desc())
-        
-        # ✅ Исправляем загрузку связей:
-        # 1. Для списков (Ad.photos) ВСЕГДА используем selectinload, чтобы не ломать LIMIT/OFFSET
-        # 2. Для продавца используем joinedload + подгружаем его отзывы и автора отзыва вложенным options
-        stmt = stmt.options(
-            selectinload(Ad.photos),
-            joinedload(Ad.seller).selectinload(User.reviews_received).options(
-                joinedload(Review.reviewer)
-            )
-        )
+        stmt = stmt.offset((page - 1) * limit).limit(limit)
         
         result = await db.execute(stmt)
         ads = result.scalars().unique().all()
+
         
         return {
             "data": [AdOut.from_orm_with_photos(ad) for ad in ads],

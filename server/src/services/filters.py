@@ -68,12 +68,15 @@ CATEGORIES_DATA: dict[str, Any] = {
 }
 
 GEO_COUNTRIES = [
+    {"key": "russia", "name": "Россия", "flag": "🇷🇺", "cities": ["Москва", "Санкт-Петербург", "Екатеринбург", "Новосибирск", "Казань", "Нижний Новгород", "Самара", "Ростов-на-Дону", "Краснодар", "Сочи", "Уфа", "Челябинск", "Пермь", "Тюмень", "Омск", "Воронеж", "Красноярск", "Ижевск", "Калининград", "Владивосток"]},
     {"key": "belarus", "name": "Беларусь", "flag": "🇧🇾", "cities": ["Минск", "Гомель", "Витебск", "Могилёв"]},
     {"key": "kazakhstan", "name": "Казахстан", "flag": "🇰🇿", "cities": ["Алматы", "Астана", "Шымкент", "Караганда"]},
     {"key": "armenia", "name": "Армения", "flag": "🇦🇲", "cities": ["Ереван", "Гюмри", "Ванадзор", "Вагаршапат"]},
     {"key": "georgia", "name": "Грузия", "flag": "🇬🇪", "cities": ["Тбилиси", "Кутаиси", "Батуми", "Рустави"]},
     {"key": "azerbaijan", "name": "Азербайджан", "flag": "🇦🇿", "cities": ["Баку", "Гянджа", "Сумгайыт", "Ленкорань"]},
     {"key": "uzbekistan", "name": "Узбекистан", "flag": "🇺🇿", "cities": ["Ташкент", "Самарканд", "Наманган", "Бухара"]},
+    {"key": "cyprus", "name": "Кипр", "flag": "🇨🇾", "cities": ["Лимасол", "Никосия"]},
+    {"key": "singapore", "name": "Singapore", "flag": "🇸🇬", "cities": ["Singapore"]},
 ]
 
 DEFAULT_CITIES = [
@@ -83,7 +86,7 @@ DEFAULT_CITIES = [
     "Красноярск", "Ижевск", "Калининград", "Владивосток"
 ]
 
-CONDITIONS = [{"key": "new", "label": "Новое"}, {"key": "used", "label": "Б/У"}]
+CONDITIONS = [{"key": "new", "label": "Новое"}, {"key": "used", "label": "Б/У"}, {"key": "unknown", "label": "Не указано"}]
 AD_TYPES = [{"key": "sale", "label": "Продажа"}, {"key": "rent", "label": "Аренда"}]
 SIZES = ["44", "46", "48", "50", "52", "54", "56", "58", "60"]
 
@@ -102,6 +105,8 @@ def get_filter_config() -> FilterConfig:
         ))
 
     countries = [GeoItem(**c) for c in GEO_COUNTRIES]
+
+    print(countries)
 
     return FilterConfig(
         categories=categories,

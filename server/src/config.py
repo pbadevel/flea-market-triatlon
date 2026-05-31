@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # User session
     USER_SESSION_TTL: timedelta = timedelta(days=31)
+    API_DOMAIN_URL: str
 
     # Database
     POSTGRES_USER: str = "baraholka"
@@ -54,7 +55,7 @@ class Settings(BaseSettings):
     default_timezone: str = "Asia/Omsk"
 
     model_config = SettingsConfigDict(
-        env_prefix="angar_",
+        env_prefix="",
         env_file_encoding="utf-8",
         case_sensitive=False,
         env_file=env_file,

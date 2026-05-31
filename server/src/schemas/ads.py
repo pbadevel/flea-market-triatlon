@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional
 from datetime import datetime
 from src.models import Ad, AdPhoto, User, Review
+from src.config import settings
 
 class AdPhotoOut(BaseModel):
     id: int
@@ -12,7 +13,7 @@ class AdPhotoOut(BaseModel):
     @property
     def url(self) -> Optional[str]:
         if self.storage_path:
-            return f"http://193.42.39.164/uploads/{self.storage_path}"
+            return f"{settings.API_DOMAIN_URL}/uploads/{self.storage_path}"
             # return f"http://localhost:8000/uploads/{self.storage_path}"
         if self.file_id:
             return f"https://t.me/file/{self.file_id}"
@@ -100,7 +101,7 @@ class AdOut(BaseModel):
     photos: list[AdPhotoOut] = Field(default_factory=list)
 
     @classmethod
-    def from_orm_with_photos(cls, ad: Ad, base_url: str = "http://193.42.39.164/uploads/") -> "AdOut":
+    def from_orm_with_photos(cls, ad: Ad, base_url: str = f"{settings.API_DOMAIN_URL}/uploads/") -> "AdOut":
         # Сортируем фото по позиции
 
         cover_url = None
