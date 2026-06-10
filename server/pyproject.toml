@@ -6,17 +6,20 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
   "aiofiles>=25.1.0",
+  "aiogram>=3.28.2",
   "aiohttp>=3.13.2",
   "alembic>=1.16.5",
   "apscheduler",
   "asyncpg>=0.30.0",
+  "bcrypt>=5.0.0",
   "fastapi>=0.116.1",
   "httpx[http2]>=0.28.1",
   "psycopg2-binary>=2.9.11",
   "py3xui>=0.5.4",
-  "pydantic>=2.11.7",
+  "pydantic[email]>=2.11.7",
   "pydantic-settings>=2.10.1",
   "pyjwt>=2.10.1",
+  "python-multipart>=0.0.32",
   "python-telegram-bot>=22.5",
   "pytoniq-core>=0.1.44",
   "pytz>=2025.2",
@@ -54,7 +57,7 @@ api = { cmd = "uvicorn src.app:app --reload --workers 1 --host localhost --port 
 
 migrate_tg = { cmd = "uv run -m scripts.migrate_photos", help = "downloading photos" }
 
-init_db = { cmd = "uv run -m src.create_database", help = "creating database" }
+init_db = { cmd = "uv run -m scripts.init_db", help = "creating database" }
 init_data = { cmd = "uv run -m scripts.get_init_data", help = "get telegram mini app init_data" }
 
 [dependency-groups]

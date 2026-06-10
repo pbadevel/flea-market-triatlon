@@ -13,7 +13,7 @@ from src.exceptions import ValueRequestError
 from src.scheduler import scheduler
 
 
-from src.services.user import user as user_service
+from src.services.user import user_service
 
 from src.logging import get_logger
 

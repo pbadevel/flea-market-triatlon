@@ -40,14 +40,15 @@ def get_user(user_session: UserSession | None = Depends(get_user_session)) -> Us
 class Authenticator:
     SCOPES_BY_ROLE = {
         UserRole.USER: {Scope.web_default},
-        UserRole.CONTROLLER: {Scope.web_default},
-        UserRole.ADMIN: {Scope.web_default, Scope.web_admin},
+        UserRole.MODERATOR: {Scope.web_default, Scope.web_moderator},
+        UserRole.ADMIN: {Scope.web_default, Scope.web_moderator, Scope.web_admin},
     }
 
     def __init__(self, scopes: set[Scope]):
         self.scopes = frozenset(scopes)
 
     def __call__(self, user: User = Depends(get_user)) -> User:
+
         if self.has_allowed_role(role=user.role) is False:
             raise Forbidden
 
@@ -68,3 +69,6 @@ WebUser = Annotated[User, Depends(WebUserAuthenticator)]
 
 WebAdminAuthenticator = Authenticator(scopes={Scope.web_admin})
 WebAdmin = Annotated[User, Depends(WebAdminAuthenticator)]
+
+WebModeratorAuthenticator = Authenticator(scopes={Scope.web_moderator})
+WebModerator = Annotated[User, Depends(WebModeratorAuthenticator)]

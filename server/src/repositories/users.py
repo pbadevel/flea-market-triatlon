@@ -3,9 +3,6 @@ from src.kit.repository.mixins import IDRepositoryMixin
 from src.models import User
 
 from sqlalchemy import select, func, or_, and_
-from sqlalchemy.orm import selectinload, contains_eager
-from sqlalchemy.sql.elements import ClauseElement
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List, Tuple
 
 
@@ -17,6 +14,26 @@ class UserRepository(BaseRepository[User], IDRepositoryMixin[User, int]):
         return (
             select(User)
         )
+    
+    async def get_by_email(self, email: str) -> User | None:
+        """Get user by uniq email"""
+        from src.models import UserCredentials
+        
+        stmt = (
+            self.get_base_stmt()
+            .join(UserCredentials, UserCredentials.user_id == User.id)
+            .where(UserCredentials.email == email)
+        )
+        return await self.get_one_or_none(stmt)
+    
+    async def get_users_by_ids(self, user_ids: List[int]) -> List[User]:
+        """Get multiple users by their IDs"""
+        stmt = self.get_base_stmt().where(User.id.in_(user_ids))
+        return await self.get_all(stmt)
+    
+    async def get_by_tg_id(self, tg_id: int) -> User | None :
+        stmt = self.get_base_stmt().where(User.tg_user_id==tg_id)
+        return await self.get_one_or_none(stmt)
 
     async def search_users(
         self,
@@ -61,9 +78,4 @@ class UserRepository(BaseRepository[User], IDRepositoryMixin[User, int]):
         
         # Use paginate with filters
         return await self.paginate(stmt, limit, page, filters)
-    
-    async def get_users_by_ids(self, user_ids: List[int]) -> List[User]:
-        """Get multiple users by their IDs"""
-        stmt = self.get_base_stmt().where(User.id.in_(user_ids))
-        return await self.get_all(stmt)
     

@@ -10,3 +10,5 @@ UPDATE ads SET ad_type = 'sale' WHERE ad_type='Продажа';
 UPDATE ads SET ad_type = 'rent' WHERE ad_type='Аренда';
 
 UPDATE ads SET condition = 'unknown' WHERE condition='Не указано';
+
+

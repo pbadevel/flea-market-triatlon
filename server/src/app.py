@@ -11,6 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api import router
 from src.config import settings
 
+# from src.bot.main import bot, dp, setup_bot, shutdown_bot
+# from src.bot.webhook import router as webhook_router
+from src.bot.main import setup_bot, shutdown_bot
+
+
 # from src.bot.setup import setup_bot_application
 # from src.bot.application import application as bot_application
 # from src.bot.endpoints import router as tg_router
@@ -54,6 +59,12 @@ async def lifespan(_: FastAPI) -> AsyncIterator[State]:
     scheduler.start()
     log.info("Scheduler started")
 
+     # Initialize Telegram bot (без webhook для тестов)
+    try:
+        await setup_bot()
+        log.info("Telegram bot initialized")
+    except Exception as e:
+        log.error("Error starting bot", exc_info=e)
     # try:
     #     await bot_application.initialize()
     #     log.info('Bot init')

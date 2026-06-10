@@ -3,12 +3,16 @@ from enum import StrEnum, IntEnum
 
 class UserRole(StrEnum):
     USER = "USER"
-    CONTROLLER = "CONTROLLER"
+    MODERATOR = "MODERATOR"
     ADMIN = "ADMIN"
 
 class MediaFor(StrEnum):
     EVENT = "EVENT"
     ACTION = "ACTION"
+
+class AdType(StrEnum):
+    rent = "rent"
+    sale = "sale"
 
 class QrType(StrEnum):
     event='event'

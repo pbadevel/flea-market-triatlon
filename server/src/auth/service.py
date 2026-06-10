@@ -1,8 +1,8 @@
 from fastapi import Request
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.schemas import MiniAppAuthResponse
+from src.auth.schemas import ServerAuthResponse
 from src.kit.crypto import generate_token
 from src.kit.utils import utc_now
 from src.logging import get_logger
@@ -28,15 +28,30 @@ class AuthService:
             session=session, user=user, user_agent=request.headers.get("User-Agent", "")
         )
 
-        return MiniAppAuthResponse(token=user_session.token, success=True, userId=str(user.id), role=user.role)
+        return ServerAuthResponse(token=user_session.token, success=True, role=user.role, userId=str(user.id))
 
     async def _create_user_session(
         self, session: AsyncSession, user: User, user_agent: str = ""
     ) -> UserSession:
-        user_session = UserSession(
-            token=generate_token(), user_agent=user_agent, user=user
+        stmt = select(UserSession).where(
+            and_(
+                UserSession.user_id == user.id,
+                UserSession.expires_at > utc_now(),
+            )
         )
-        session.add(user_session)
+        res = await session.execute(stmt)
+        old_session = res.unique().scalar_one_or_none()
+        
+        if old_session is None:
+            user_session = UserSession(
+                token=generate_token(), user_agent=user_agent, user=user
+            )
+            session.add(user_session)
+            await session.flush()
+            await session.commit()
+    
+        else:
+            user_session = old_session
 
         return user_session
 

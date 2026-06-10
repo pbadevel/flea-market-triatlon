@@ -8,14 +8,14 @@ from src.exceptions import Unauthorized
 from src.kit.openapi import APITag
 from src.postgres import get_db_session
 from src.routing import APIRouter
-from src.services.user import user as user_service
+from src.services.user import user_service
 
 from .service import auth as auth_service
 
-router = APIRouter(prefix="/auth", tags=["Auth", APITag.documented])
+router = APIRouter(prefix="/test-miniapp-auth", tags=["Auth", APITag.documented])
 
 
-@router.post("/tma")
+@router.post("")
 async def auth_telegram_miniapp(
     request: Request,
     init_data: str = Body(..., embed=True),

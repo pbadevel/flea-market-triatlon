@@ -129,31 +129,35 @@ class UserService:
 
         return user
     
+
     async def get_or_create_by_tg(
         self, session: AsyncSession, tg_user: TGUser
     ) -> User:
         repository = UserRepository.from_session(session)
 
-        # Сначала пытаемся найти существующего пользователя
-        user = await repository.get_by_id(id=tg_user.id)
+        # ИСПРАВЛЕНО: ищем по tg_user_id, а не по id
+        user = await repository.get_by_tg_id(tg_user.id)
 
         if user is None:
             try:
-                # Пытаемся создать пользователя
+                print(tg_user.id, tg_user.first_name, tg_user.last_name, tg_user.username)
+                
                 user = await repository.create(
                     obj=User(
-                        id=tg_user.id,
+                        tg_user_id=tg_user.id,  # Это поле, не primary key!
                         first_name=tg_user.first_name,
                         last_name=tg_user.last_name,
                         username=tg_user.username,
-                        is_premium=tg_user.is_premium,
-                        avatar="",
                     ),
-                    flush=True
+                    flush=True,
                 )
+
+                print(f"Created user: id={user.id}, tg_user_id={user.tg_user_id}")
             except IntegrityError:
                 await session.rollback()
-                user = await repository.get_by_id(id=tg_user.id)
+                # После rollback снова ищем по tg_user_id
+                user = await repository.get_by_tg_id(tg_user.id)
+                print(f"After rollback: {user}")
                 
                 if user is None:
                     raise BadRequest("Could not create or find user")
@@ -161,21 +165,21 @@ class UserService:
         return user
     
     async def resolve_from_tg_user(self, session: AsyncSession, tg_user: TGUser) -> User:
-
         if tg_user.is_bot:
             raise ValueError("Telegram user is bot.")
 
         repository = self.get_repository(session)
-        user = await repository.get_by_id(id=tg_user.id)
+        
+        # ИСПРАВЛЕНО: ищем по tg_user_id
+        user = await repository.get_by_tg_id(tg_user.id)
 
         if user is None:
             user = await repository.create(
                 User(
-                    id=tg_user.id,
+                    tg_user_id=tg_user.id,
                     first_name=tg_user.first_name,
                     last_name=tg_user.last_name,
                     username=tg_user.username,
-                    is_premium=tg_user.is_premium,
                 )
             )
 
@@ -194,4 +198,4 @@ class UserService:
         return UserRepository(session)
 
 
-user = UserService()
+user_service = UserService()

@@ -9,7 +9,7 @@ from src.postgres import get_db_session
 from src.routing import APIRouter
 from src.admin.stats.scheme import AdminInfoScheme, AdminAlertsInfo, AdminRevenueInfo, AdminUserInfo
 from src.exceptions import ValueRequestError
-from src.services.user import user as user_service
+from src.services.user import user_service
 
 from src.logging import get_logger
 

@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     
     # Bot
     BOT_TOKEN: str = "8192224436:AAGeom4u2DmXbqWO-iNGBVqzbHJzGpcXf9M"
+    TELEGRAM_CHANNEL_ID: int = -1002731869744 # t.me/testpba2
+    MODERATOR_CHAT_ID: int = 1060834219
+    BOT_USERNAME: str = ""
     TMA_URL: str = "af"
     WEBHOOK_PATH: str = "ada"
     WEBHOOK_URL: str = "adad"
