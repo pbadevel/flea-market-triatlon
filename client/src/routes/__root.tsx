@@ -6,9 +6,6 @@ import appCss from '@/styles.css?url'
 import { seo } from "@/lib/seo";
 import { queryClient } from '@/lib/query'
 import { UserTabbar } from '@/components/layout/tabbar'
-import { MobileCatalogProvider } from '@/components/features/mobile-catalog-provider'
-import { MobileCatalog } from '@/components/features/mobile-catalog-menu'
-import { CountryProvider } from '@/contexts/CountryContext'
 import { QueryClientProvider } from '@tanstack/react-query'
 
 
@@ -50,9 +47,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
         {/* <MobileCatalogProvider> */}
           {/* <CountryProvider> */}
-            <Header />
+           
               {children}
-            <UserTabbar />
+            
             {/* <Footer /> */}
           {/* </CountryProvider> */}
           {/* <MobileCatalog/> */}

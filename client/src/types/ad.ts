@@ -96,3 +96,38 @@ export interface SubcategoryGroup {
   items: SubcategoryItem[];
 }
 
+
+
+
+
+
+export interface MyAd {
+  id: number;
+  title: string;
+  price: number;
+  cover_url: string | null;
+  city: string;
+  country?: string;
+  category: string;
+  subcategory?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'sold' | 'removed';
+  rejection_reason?: string;
+  created_at: string;
+  channel_message_id?: number;
+}
+
+export interface AdCreateData {
+  title: string;
+  price: number;
+  city: string;
+  country?: string;
+  category: string;
+  subcategory?: string;
+  size?: string;
+  condition: string;
+  description?: string;
+  ad_type?: string;
+  delivery_method?: string;
+  contact_method?: string;
+  photos: File[];
+}

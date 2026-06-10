@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
-import { apiRequest } from "./api-request";
-import { FILTER_ENDPOINT } from "./endpoints";
+import { apiRequest } from "../api-request";
+import { FILTER_ENDPOINT } from "../endpoints";
 
 export interface FilterConfig {
   categories: { key: string; label: string; items: { key: string; label: string }[] }[];

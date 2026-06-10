@@ -9,68 +9,301 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProductProductIdRouteImport } from './routes/product.$productId'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AdminRouteImport } from './routes/_admin'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AppTestLoginRouteImport } from './routes/_app/test-login'
+import { Route as AppProductRouteImport } from './routes/_app/product'
+import { Route as AppMyAdsRouteImport } from './routes/_app/my-ads'
+import { Route as AppCreateAdRouteImport } from './routes/_app/create-ad'
+import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
+import { Route as AppProductProductIdRouteImport } from './routes/_app/product/$productId'
+import { Route as AdminAdminAdsAdIdRouteImport } from './routes/_admin/admin/ads/$adId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProductProductIdRoute = ProductProductIdRouteImport.update({
-  id: '/product/$productId',
-  path: '/product/$productId',
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/auth/register',
+  path: '/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppTestLoginRoute = AppTestLoginRouteImport.update({
+  id: '/test-login',
+  path: '/test-login',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProductRoute = AppProductRouteImport.update({
+  id: '/product',
+  path: '/product',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyAdsRoute = AppMyAdsRouteImport.update({
+  id: '/my-ads',
+  path: '/my-ads',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCreateAdRoute = AppCreateAdRouteImport.update({
+  id: '/create-ad',
+  path: '/create-ad',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminAdminIndexRoute = AdminAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppProductProductIdRoute = AppProductProductIdRouteImport.update({
+  id: '/$productId',
+  path: '/$productId',
+  getParentRoute: () => AppProductRoute,
+} as any)
+const AdminAdminAdsAdIdRoute = AdminAdminAdsAdIdRouteImport.update({
+  id: '/admin/ads/$adId',
+  path: '/admin/ads/$adId',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/product/$productId': typeof ProductProductIdRoute
+  '/': typeof AppIndexRoute
+  '/create-ad': typeof AppCreateAdRoute
+  '/my-ads': typeof AppMyAdsRoute
+  '/product': typeof AppProductRouteWithChildren
+  '/test-login': typeof AppTestLoginRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/product/$productId': typeof AppProductProductIdRoute
+  '/admin/': typeof AdminAdminIndexRoute
+  '/admin/ads/$adId': typeof AdminAdminAdsAdIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/product/$productId': typeof ProductProductIdRoute
+  '/': typeof AppIndexRoute
+  '/create-ad': typeof AppCreateAdRoute
+  '/my-ads': typeof AppMyAdsRoute
+  '/product': typeof AppProductRouteWithChildren
+  '/test-login': typeof AppTestLoginRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/product/$productId': typeof AppProductProductIdRoute
+  '/admin': typeof AdminAdminIndexRoute
+  '/admin/ads/$adId': typeof AdminAdminAdsAdIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/product/$productId': typeof ProductProductIdRoute
+  '/_admin': typeof AdminRouteWithChildren
+  '/_app': typeof AppRouteWithChildren
+  '/_app/create-ad': typeof AppCreateAdRoute
+  '/_app/my-ads': typeof AppMyAdsRoute
+  '/_app/product': typeof AppProductRouteWithChildren
+  '/_app/test-login': typeof AppTestLoginRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/product/$productId': typeof AppProductProductIdRoute
+  '/_admin/admin/': typeof AdminAdminIndexRoute
+  '/_admin/admin/ads/$adId': typeof AdminAdminAdsAdIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/product/$productId'
+  fullPaths:
+    | '/'
+    | '/create-ad'
+    | '/my-ads'
+    | '/product'
+    | '/test-login'
+    | '/auth/login'
+    | '/auth/register'
+    | '/product/$productId'
+    | '/admin/'
+    | '/admin/ads/$adId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/product/$productId'
-  id: '__root__' | '/' | '/product/$productId'
+  to:
+    | '/'
+    | '/create-ad'
+    | '/my-ads'
+    | '/product'
+    | '/test-login'
+    | '/auth/login'
+    | '/auth/register'
+    | '/product/$productId'
+    | '/admin'
+    | '/admin/ads/$adId'
+  id:
+    | '__root__'
+    | '/_admin'
+    | '/_app'
+    | '/_app/create-ad'
+    | '/_app/my-ads'
+    | '/_app/product'
+    | '/_app/test-login'
+    | '/auth/login'
+    | '/auth/register'
+    | '/_app/'
+    | '/_app/product/$productId'
+    | '/_admin/admin/'
+    | '/_admin/admin/ads/$adId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ProductProductIdRoute: typeof ProductProductIdRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/product/$productId': {
-      id: '/product/$productId'
-      path: '/product/$productId'
-      fullPath: '/product/$productId'
-      preLoaderRoute: typeof ProductProductIdRouteImport
+    '/_admin': {
+      id: '/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/test-login': {
+      id: '/_app/test-login'
+      path: '/test-login'
+      fullPath: '/test-login'
+      preLoaderRoute: typeof AppTestLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/product': {
+      id: '/_app/product'
+      path: '/product'
+      fullPath: '/product'
+      preLoaderRoute: typeof AppProductRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/my-ads': {
+      id: '/_app/my-ads'
+      path: '/my-ads'
+      fullPath: '/my-ads'
+      preLoaderRoute: typeof AppMyAdsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/create-ad': {
+      id: '/_app/create-ad'
+      path: '/create-ad'
+      fullPath: '/create-ad'
+      preLoaderRoute: typeof AppCreateAdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_admin/admin/': {
+      id: '/_admin/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminAdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_app/product/$productId': {
+      id: '/_app/product/$productId'
+      path: '/$productId'
+      fullPath: '/product/$productId'
+      preLoaderRoute: typeof AppProductProductIdRouteImport
+      parentRoute: typeof AppProductRoute
+    }
+    '/_admin/admin/ads/$adId': {
+      id: '/_admin/admin/ads/$adId'
+      path: '/admin/ads/$adId'
+      fullPath: '/admin/ads/$adId'
+      preLoaderRoute: typeof AdminAdminAdsAdIdRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAdminIndexRoute: typeof AdminAdminIndexRoute
+  AdminAdminAdsAdIdRoute: typeof AdminAdminAdsAdIdRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminIndexRoute: AdminAdminIndexRoute,
+  AdminAdminAdsAdIdRoute: AdminAdminAdsAdIdRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AppProductRouteChildren {
+  AppProductProductIdRoute: typeof AppProductProductIdRoute
+}
+
+const AppProductRouteChildren: AppProductRouteChildren = {
+  AppProductProductIdRoute: AppProductProductIdRoute,
+}
+
+const AppProductRouteWithChildren = AppProductRoute._addFileChildren(
+  AppProductRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppCreateAdRoute: typeof AppCreateAdRoute
+  AppMyAdsRoute: typeof AppMyAdsRoute
+  AppProductRoute: typeof AppProductRouteWithChildren
+  AppTestLoginRoute: typeof AppTestLoginRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCreateAdRoute: AppCreateAdRoute,
+  AppMyAdsRoute: AppMyAdsRoute,
+  AppProductRoute: AppProductRouteWithChildren,
+  AppTestLoginRoute: AppTestLoginRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ProductProductIdRoute: ProductProductIdRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

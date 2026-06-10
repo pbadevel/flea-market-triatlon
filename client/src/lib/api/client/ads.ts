@@ -1,6 +1,6 @@
-import { AdFilters, AdsResponse, FilterConfig } from '@/types/ad';
-import { apiRequest } from './api-request';
-import { ADS_LIST_ENDPOINT, FILTER_ENDPOINT, PRODUCT_ENDPOINT } from './endpoints';
+import { AdFilters, AdsResponse, FilterConfig, MyAd } from '@/types/ad';
+import { apiRequest } from '../api-request';
+import { ADS_LIST_ENDPOINT, CREATE_AD_ENDPOINT, FILTER_ENDPOINT, MY_ADS_ENDPOINT, PRODUCT_ENDPOINT } from '../endpoints';
 import { Product } from '@/types/products';
 
 
@@ -34,4 +34,30 @@ export const fetchProduct = async (productId: string | number): Promise<Product>
 
 export const fetchFilters = async (): Promise<FilterConfig> => {
   return apiRequest<FilterConfig>(FILTER_ENDPOINT, { method: 'GET' });
+};
+
+
+export const createAd = async (data: FormData, token: string): Promise<MyAd> => {
+  return apiRequest<MyAd>(CREATE_AD_ENDPOINT, {
+    method: 'POST',
+    token,
+    body: data,
+  });
+};
+
+export const fetchMyAds = async (
+  token: string,
+  filters: { status?: string; page?: number; limit?: number } = {}
+): Promise<{ data: MyAd[]; total: number; page: number; limit: number }> => {
+  const params = new URLSearchParams();
+  if (filters.status) params.append('status', filters.status);
+  if (filters.page) params.append('page', filters.page.toString());
+  if (filters.limit) params.append('limit', filters.limit.toString());
+
+  const url = params.toString() ? `${MY_ADS_ENDPOINT}?${params.toString()}` : MY_ADS_ENDPOINT;
+  
+  return apiRequest(url, {
+    method: 'GET',
+    token,
+  });
 };

@@ -65,15 +65,38 @@ export const apiRequest = async <T>(
     method: "GET",
   },
 ): Promise<T> => {
+  const isFormData = body instanceof FormData;
+  
   return await rawApiRequest(
     url,
     {
       method,
-      body: parseBody(body),
-      headers: token
-        ? { Authorization: `Bearer ${token}`, ...defaultHeaders, ...headers }
-        : { ...defaultHeaders, ...headers },
+      body: isFormData ? body : parseBody(body),
+      headers: isFormData
+        ? {
+            // Для FormData НЕ устанавливаем Content-Type - браузер сам добавит с boundary
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Accept: "application/json",
+            ...headers,
+          }
+        : {
+            // Для JSON используем стандартные заголовки
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...defaultHeaders,
+            ...headers,
+          },
     },
     timeout,
   );
+  // return await rawApiRequest(
+  //   url,
+  //   {
+  //     method,
+  //     body: parseBody(body),
+  //     headers: token
+  //       ? { Authorization: `Bearer ${token}`, ...defaultHeaders, ...headers }
+  //       : { ...defaultHeaders, ...headers },
+  //   },
+  //   timeout,
+  // );
 };

@@ -1,13 +1,14 @@
+// src/components/layout/user-tabbar.tsx
 import {
-  HeartIcon,
   HomeIcon,
-  SearchIcon,
+  PackageIcon,
+  PlusIcon,
   ShoppingCartIcon,
   UserCircle,
 } from "lucide-react";
-
 import { Tabbar } from "./tabbar";
 
+// УБРАТЬ проверку авторизации из Tabbar
 export const UserTabbar = () => {
   const tabs = [
     {
@@ -16,12 +17,18 @@ export const UserTabbar = () => {
       value: "Home",
       icon: <HomeIcon />,
     },
-    // {
-    //   to: "/search",
-    //   name: "Поиск",
-    //   value: "Search",
-    //   icon: <SearchIcon />,
-    // },
+    {
+      to: "/create-ad",
+      name: "Создать",
+      value: "CreateAd",
+      icon: <PlusIcon />,
+    },
+    {
+      to: "/my-ads",
+      name: "Мои",
+      value: "MyAds",
+      icon: <PackageIcon />,
+    },
     {
       to: "/basket",
       name: "Корзина",
@@ -29,15 +36,9 @@ export const UserTabbar = () => {
       icon: <ShoppingCartIcon />,
     },
     {
-      to: "/favorite",
-      name: "Избранное",
-      value: "favorite",
-      icon: <HeartIcon />,
-    },
-    {
       to: "/profile",
       name: "Профиль",
-      value: "Help",
+      value: "Profile",
       icon: <UserCircle />,
     },
   ];

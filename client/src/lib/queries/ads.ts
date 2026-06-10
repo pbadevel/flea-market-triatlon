@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { fetchAds, fetchFilters, fetchProduct } from '@/lib/api/ads';
+import { fetchAds, fetchFilters, fetchProduct } from '@/lib/api/client/ads';
 import { AdFilters } from '@/types/ad';
 
 export const adsQueryOptions = (filters: AdFilters = {}) =>

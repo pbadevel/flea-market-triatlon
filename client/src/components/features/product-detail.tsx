@@ -173,7 +173,7 @@ function SellerInfo({ seller }: { seller: Seller }) {
 }
 
 export function ProductDetail() {
-  const { productId } = useParams({ from: '/product/$productId' })
+  const { productId } = useParams({ from: '/_app/product/$productId' })
 
   const { data: product, isLoading, isError, error } = useQuery(
     productQueryOptions(productId)
