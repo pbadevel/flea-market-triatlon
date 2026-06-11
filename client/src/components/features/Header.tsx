@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Search, ShoppingCart, Heart, User, X } from "lucide-react";
+import { Search, ShoppingCart, Heart, User, X, Plus, BoxIcon } from "lucide-react";
 import { SearchMenu } from "./search-menu";
 import { useQuery } from "@tanstack/react-query";
 import { adsQueryOptions } from "@/lib/queries/ads";
@@ -119,11 +119,22 @@ export default function Header() {
               <User className="size-4.5" />
             
             </Link>
+            <Link 
+              to={"/my-ads"}
+              className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
+              
+              <BoxIcon className="size-4.5" />
+            
+            </Link>
+            <Link 
+              to={"/create-ad"}
+              className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
+              
+              <Plus className="size-4.5" />
+            
+            </Link>
             <button className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
               <Heart className="size-4.5" />
-            </button>
-            <button className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Корзина">
-              <ShoppingCart className="size-4.5" />
             </button>
             <div className="hidden sm:block ml-0.5">
               {/* <ThemeToggle /> */}
