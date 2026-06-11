@@ -66,7 +66,6 @@ async def register_email(
                 tg_user_id=tg_user_id,
                 first_name=data.first_name,
                 last_name=data.last_name,
-                username=data.email,  # Используем email как username
                 agreed_to_terms=True,
                 role=UserRole.USER,
             ),
