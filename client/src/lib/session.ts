@@ -13,6 +13,11 @@ export function useAppSession() {
   return useSession<SessionUser>({
     password: process.env.SESSION_PASSWORD!,
     maxAge: 60 * 60 * 24 * 7,
+    cookie: {
+      // Set to false for HTTP IP-address testing, true for HTTPS production
+      secure: false, // CHANGE IT WHEN PRODUCION
+      sameSite: "lax",
+    },
   });
 }
 
