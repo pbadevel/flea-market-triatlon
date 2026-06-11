@@ -52,6 +52,8 @@ export const testLoginFn = createServerFn().handler(async () => {
 
 export const verifySession = createServerFn().handler(async () => {
   const session = await useAppSession();
+
+  console.log("verifying", session)
   
   if (!session.data?.token) {
     throw redirect({ to: "/auth/login" });
