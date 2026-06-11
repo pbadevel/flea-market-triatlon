@@ -9,11 +9,13 @@ import { useState } from 'react'
 export const Route = createFileRoute('/_app/my-ads')({
   loader: async () => {
     // Резолвим сессию в loader
-    const token = await verifySession()
+    const session = await verifySession()
+
+    console.log("session in my ads")
     
     return {
-      isAuthenticated: !!token,
-      token: token ?? null,
+      isAuthenticated: !!session.token,
+      token: session.token ?? null,
     }
   },
   component: MyAdsPage,
@@ -29,7 +31,6 @@ function MyAdsPage() {
     enabled: !!token,
   })
 
-  console.log(token)
 
   if (!token) {
     return (

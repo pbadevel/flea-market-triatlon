@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AppTestLoginRouteImport } from './routes/_app/test-login'
+import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppProductRouteImport } from './routes/_app/product'
 import { Route as AppMyAdsRouteImport } from './routes/_app/my-ads'
 import { Route as AppCreateAdRouteImport } from './routes/_app/create-ad'
@@ -48,6 +49,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const AppTestLoginRoute = AppTestLoginRouteImport.update({
   id: '/test-login',
   path: '/test-login',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProductRoute = AppProductRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/create-ad': typeof AppCreateAdRoute
   '/my-ads': typeof AppMyAdsRoute
   '/product': typeof AppProductRouteWithChildren
+  '/profile': typeof AppProfileRoute
   '/test-login': typeof AppTestLoginRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/create-ad': typeof AppCreateAdRoute
   '/my-ads': typeof AppMyAdsRoute
   '/product': typeof AppProductRouteWithChildren
+  '/profile': typeof AppProfileRoute
   '/test-login': typeof AppTestLoginRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/_app/create-ad': typeof AppCreateAdRoute
   '/_app/my-ads': typeof AppMyAdsRoute
   '/_app/product': typeof AppProductRouteWithChildren
+  '/_app/profile': typeof AppProfileRoute
   '/_app/test-login': typeof AppTestLoginRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/create-ad'
     | '/my-ads'
     | '/product'
+    | '/profile'
     | '/test-login'
     | '/auth/login'
     | '/auth/register'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/create-ad'
     | '/my-ads'
     | '/product'
+    | '/profile'
     | '/test-login'
     | '/auth/login'
     | '/auth/register'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/_app/create-ad'
     | '/_app/my-ads'
     | '/_app/product'
+    | '/_app/profile'
     | '/_app/test-login'
     | '/auth/login'
     | '/auth/register'
@@ -210,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/test-login'
       fullPath: '/test-login'
       preLoaderRoute: typeof AppTestLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/product': {
@@ -285,6 +304,7 @@ interface AppRouteChildren {
   AppCreateAdRoute: typeof AppCreateAdRoute
   AppMyAdsRoute: typeof AppMyAdsRoute
   AppProductRoute: typeof AppProductRouteWithChildren
+  AppProfileRoute: typeof AppProfileRoute
   AppTestLoginRoute: typeof AppTestLoginRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -293,6 +313,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCreateAdRoute: AppCreateAdRoute,
   AppMyAdsRoute: AppMyAdsRoute,
   AppProductRoute: AppProductRouteWithChildren,
+  AppProfileRoute: AppProfileRoute,
   AppTestLoginRoute: AppTestLoginRoute,
   AppIndexRoute: AppIndexRoute,
 }

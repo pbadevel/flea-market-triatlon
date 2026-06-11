@@ -3,7 +3,6 @@ import {
   HomeIcon,
   PackageIcon,
   PlusIcon,
-  ShoppingCartIcon,
   UserCircle,
 } from "lucide-react";
 import { Tabbar } from "./tabbar";
@@ -28,12 +27,6 @@ export const UserTabbar = () => {
       name: "Мои",
       value: "MyAds",
       icon: <PackageIcon />,
-    },
-    {
-      to: "/basket",
-      name: "Корзина",
-      value: "Basket",
-      icon: <ShoppingCartIcon />,
     },
     {
       to: "/profile",

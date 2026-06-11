@@ -34,6 +34,7 @@ export const Route = createFileRoute('/_admin/admin/ads/$adId')({
   component: AdminAdPreviewPage,
 })
 
+
 function AdminAdPreviewPage() {
   const { token, adId } = Route.useLoaderData()
   const navigate = useNavigate()

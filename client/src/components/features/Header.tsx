@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { Search, ShoppingCart, Heart, User, X } from "lucide-react";
-import ThemeToggle from "@/components/features/ThemeToggle";
 import { SearchMenu } from "./search-menu";
 import { useQuery } from "@tanstack/react-query";
 import { adsQueryOptions } from "@/lib/queries/ads";
@@ -113,9 +112,13 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-0.5">
-            <button className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
+            <Link 
+              to={"/profile"}
+              className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
+              
               <User className="size-4.5" />
-            </button>
+            
+            </Link>
             <button className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
               <Heart className="size-4.5" />
             </button>
@@ -123,7 +126,7 @@ export default function Header() {
               <ShoppingCart className="size-4.5" />
             </button>
             <div className="hidden sm:block ml-0.5">
-              <ThemeToggle />
+              {/* <ThemeToggle /> */}
             </div>
           </div>
         </div>

@@ -11,11 +11,13 @@ import { verifySession } from '@/lib/session'
 export const Route = createFileRoute('/_app/create-ad')({
   loader: async () => {
     // Резолвим сессию в loader
-    const token = await verifySession()
+    const session = await verifySession()
+
+    console.log("session in create token")
     
     return {
-      isAuthenticated: !!token,
-      token: token ?? null,
+      isAuthenticated: !!session.token,
+      token: session.token ?? null,
     }
   },
   component: CreateAdPage,

@@ -14,6 +14,7 @@ export interface Ad {
   city?: string;
   condition: 'new' | 'used' | 'unknown';
   ad_type: 'sale' | 'rent';
+  contact_method: string;
   size?: string;
   seller_id?: number;
   seller_name?: string;
@@ -109,6 +110,7 @@ export interface MyAd {
   city: string;
   country?: string;
   category: string;
+  contact_method: string;
   subcategory?: string;
   status: 'pending' | 'approved' | 'rejected' | 'sold' | 'removed';
   rejection_reason?: string;
