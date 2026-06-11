@@ -15,11 +15,14 @@ class AuthService:
     async def authenticate(
         self, session: AsyncSession, token: str
     ) -> UserSession | None:
+        print(token)
         stmt = select(UserSession).where(
             UserSession.token == token, UserSession.expires_at > utc_now()
         )
         result = await session.execute(stmt)
-        return result.unique().scalar_one_or_none()
+        ans = result.unique().scalar_one_or_none()
+        print(ans)
+        return ans
 
     async def get_login_response(
         self, session: AsyncSession, user: User, request: Request

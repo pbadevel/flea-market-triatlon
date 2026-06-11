@@ -34,7 +34,12 @@ class UserRepository(BaseRepository[User], IDRepositoryMixin[User, int]):
     async def get_by_tg_id(self, tg_id: int) -> User | None :
         stmt = self.get_base_stmt().where(User.tg_user_id==tg_id)
         return await self.get_one_or_none(stmt)
-
+    
+    async def get_by_username(self, username: str) -> Optional[User]:
+        """Найти пользователя по username"""
+        stmt = self.get_base_stmt().where(User.username == username)
+        return await self.get_one_or_none(stmt)
+    
     async def search_users(
         self,
         search_term: Optional[str] = None,

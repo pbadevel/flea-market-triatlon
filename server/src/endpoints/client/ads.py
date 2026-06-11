@@ -6,7 +6,7 @@ from src.models import Ad, AdStatus, Review, User
 from src.auth.dependencies import WebUser, WebAdmin, get_user
 
 from src.kit.database.service import database_service
-from src.services import ad_service
+from src.services import ad_service, user_service
 
 from src.schemas.ads import AdOut, MyAdOut, AdCreate, AdPhotoCreate, AdModerate
 from datetime import datetime
@@ -96,7 +96,7 @@ async def list_ads(
 
 @router.post("", response_model=MyAdOut, status_code=201)
 async def create_ad(
-    user: Annotated[WebUser, Depends(get_user)],
+    user: WebUser,
     title: Annotated[str, Form()],
     price: Annotated[int, Form()],
     city: Annotated[str, Form()],
@@ -151,8 +151,8 @@ async def create_ad(
             contact_method=contact_method,
             photos=photo_data_list,  # Теперь это List[AdPhotoCreate]
         )
-        
-        ad = await ad_service.create_ad(session, user, ad_data)
+        fresh_user = await user_service.get_repository(session).get_by_id(user.id)
+        ad = await ad_service.create_ad(session, fresh_user, ad_data) # pyright: ignore
         
         # TODO: Отправить на модерацию через бота (прямой вызов API)
         # from src.bot.services import send_ad_to_moderation_api

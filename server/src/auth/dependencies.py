@@ -23,9 +23,10 @@ async def get_user_session(
     credentials: HTTPAuthorizationCredentials | None = Depends(user_session_scheme),
     session: AsyncSession = Depends(get_db_session),
 ) -> UserSession | None:
+    
     if credentials is None:
         return None
-
+    
     return await auth_service.authenticate(
         session=session, token=credentials.credentials
     )
