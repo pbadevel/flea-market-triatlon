@@ -1,5 +1,5 @@
 // src/routes/_app/profile.tsx
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
@@ -38,9 +38,19 @@ function ProfilePage() {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
 
+  const navigate = useNavigate();
+
   const handleLogout = async () => {
-    await logoutFn()
-  }
+    try {
+      const result = await logoutFn();
+      if (result.success) {
+        // Перенаправляем пользователя на главную на стороне клиента
+        await navigate({ to: "/" });
+      }
+    } catch (error) {
+      console.error("Ошибка при выходе:", error);
+    }
+  };
 
   
   const { data: profile, isLoading: profileLoading } = useQuery(

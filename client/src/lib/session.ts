@@ -29,7 +29,7 @@ export const logoutFn = createServerFn().handler(async () => {
     isAdmin: undefined,
     isModerator: undefined,
   });
-  throw redirect({ to: "/" });
+  return {success: true}
 });
 
 
