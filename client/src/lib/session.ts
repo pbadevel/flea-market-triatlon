@@ -22,6 +22,17 @@ export function useAppSession() {
 }
 
 
+export const logoutFn = createServerFn().handler(async () => {
+  const session = await useAppSession();
+  await session.update({
+    token: undefined,
+    isAdmin: undefined,
+    isModerator: undefined,
+  });
+  throw redirect({ to: "/" });
+});
+
+
 export const getSession = createServerFn().handler(async () => {
   const session = await useAppSession();
   return {

@@ -16,8 +16,9 @@ import {
   Shield,
   Star,
   MessageCircle,
+  LogOut,
 } from 'lucide-react'
-import { verifySession } from '@/lib/session'
+import { logoutFn, verifySession } from '@/lib/session'
 import { myProfileQueryOptions, myStatsQueryOptions } from '@/lib/queries/profile'
 import { updateMyProfile } from '@/lib/api/client/profile'
 import { fetchMyAds } from '@/lib/api/client/ads'
@@ -36,6 +37,11 @@ function ProfilePage() {
   const { token } = Route.useLoaderData()
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
+
+  const handleLogout = async () => {
+    await logoutFn()
+  }
+
   
   const { data: profile, isLoading: profileLoading } = useQuery(
     myProfileQueryOptions(token!),
@@ -100,6 +106,14 @@ function ProfilePage() {
         <div className="page-wrap">
           <div className="flex h-14 items-center justify-between">
             <h1 className="text-lg font-semibold text-(--sea-ink)">Профиль</h1>
+            <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-(--sea-ink-soft) hover:text-red-500 transition-colors"
+                  title="Выйти"
+                >
+                  <LogOut className="size-5" />
+                  <span className="text-sm">Выйти</span>
+                </button>
             <Link
               to="/"
               className="text-sm text-(--sea-ink-soft) hover:text-(--sea-ink)"
