@@ -1,6 +1,6 @@
 # src/api/endpoints/products.py
 from fastapi import APIRouter, HTTPException, Depends, Path
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import joinedload, defaultload
 from src.models import Ad, AdStatus, User, Review
 from src.schemas.ads import AdOut
@@ -20,7 +20,12 @@ async def get_product(
         # ✅ Загружаем ВСЁ явно: фото + продавец + отзывы продавца + ревьюеры отзывов
         stmt = (
             select(Ad)
-            .where(Ad.id == product_id, Ad.status == AdStatus.approved)
+            .where(Ad.id == product_id, or_(
+                    Ad.status == AdStatus.approved,
+                    Ad.status == AdStatus.pending,
+                    Ad.status == AdStatus.rejected,
+                )
+            )
             .options(
                 joinedload(Ad.photos),
                 # Загружаем продавца, затем его отзывы, и ВНУТРИ отзывов — автора (reviewer)
