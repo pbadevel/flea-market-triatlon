@@ -7,13 +7,7 @@ import {
   AUTH_REGISTER_EMAIL_ENDPOINT,
   AUTH_LOGIN_EMAIL_ENDPOINT,
 } from './endpoints';
-import type {
-  AuthResponse,
-  TelegramAuthInitResponse,
-  TelegramAuthStatusResponse,
-  EmailRegisterData,
-  EmailLoginData,
-} from '@/types/auth';
+
 import { useAppSession } from '../session';
 
 // Telegram Auth
@@ -27,7 +21,8 @@ export const initTelegramAuthFn = createServerFn().handler(async () => {
 export const checkTelegramAuthStatusFn = createServerFn()
   .inputValidator((data: { session_token: string }) => data)
   .handler(async ({ data }) => {
-    return await apiRequest<{
+
+    const response = await apiRequest<{
       status: "pending" | "completed" | "expired";
       token?: string;
       userId?: string;
@@ -36,6 +31,17 @@ export const checkTelegramAuthStatusFn = createServerFn()
       method: "POST",
       body: data,
     });
+
+    if (response.token && response.status === "completed") {
+      const session = await useAppSession();
+      await session.update({
+        token: response.token,
+        isAdmin: response.role === "ADMIN",
+        isModerator: response.role === "MODERATOR",
+      });
+    }
+    
+    return response
   });
 
 // Email Auth

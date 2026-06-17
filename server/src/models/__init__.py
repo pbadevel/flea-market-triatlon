@@ -6,6 +6,7 @@ from .user_sessions import UserSession
 from .system import DeleteMessage
 from .interaction import Review, ContactLog, DetailsLog
 from .ad import Ad, AdPhoto, AdEdit, AdEditPhoto, Tag
+from .category import CategoryModel, SubcategoryModel, SubcategoryGroup
 from .user_credentials import UserCredentials
 
 __all__ = [
@@ -14,5 +15,5 @@ __all__ = [
     "ad_tags",
     "User", "Blacklist", "UserSession", "UserCredentials",
     "DeleteMessage", "Review", "ContactLog", "DetailsLog",
-    "Ad", "AdPhoto", "AdEdit", "AdEditPhoto", "Tag",
+    "Ad", "AdPhoto", "AdEdit", "AdEditPhoto", "Tag", "CategoryModel", "SubcategoryModel", "SubcategoryGroup",
 ]

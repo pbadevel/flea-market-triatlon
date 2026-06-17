@@ -119,6 +119,8 @@ class AdService:
     ) -> str:
         """Upload photo and return storage path"""
         return await self.storage.save(file_bytes, extension)
-
+    
+    def get_repository(self, session: AsyncSession):
+        return AdRepository(session)
 
 ad_service = AdService()

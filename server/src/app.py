@@ -59,12 +59,13 @@ async def lifespan(_: FastAPI) -> AsyncIterator[State]:
     scheduler.start()
     log.info("Scheduler started")
 
-     # Initialize Telegram bot (без webhook для тестов)
-    try:
-        await setup_bot()
-        log.info("Telegram bot initialized")
-    except Exception as e:
-        log.error("Error starting bot", exc_info=e)
+     # Initialize Telegram bot
+    # try:
+        # await setup_bot()
+        # ONLY FOR WEBHOOK
+    #     log.info("Telegram bot initialized")
+    # except Exception as e:
+    #     log.error("Error starting bot", exc_info=e)
     # try:
     #     await bot_application.initialize()
     #     log.info('Bot init')
@@ -81,23 +82,6 @@ async def lifespan(_: FastAPI) -> AsyncIterator[State]:
     # Shutdown scheduler in thread pool
     scheduler.shutdown()
     log.info("API stopped")
-
-    #try:
-    #    await bot_application.initialize()
-    #    log.info('Bot init')
-    #    await bot_application.start()
-    #except Exception as e:
-    #    log.error("Error start bot", e=e)
-    #    await bot_application.shutdown()
-        
-    #await setup_bot_application(bot_application)
-
-
-
-    #yield State(async_engine=async_engine, async_sessionmaker=async_sessionmaker)
-
-    #scheduler.shutdown()
-    #log.info("API stopped")
 
 
 def create_app() -> FastAPI:

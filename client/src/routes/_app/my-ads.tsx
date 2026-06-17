@@ -1,10 +1,11 @@
 // src/routes/my-ads.tsx
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Plus, Eye, CheckCircle, XCircle, Clock } from 'lucide-react'
-import { fetchMyAds } from '@/lib/api/client/ads'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { ArrowLeft, Plus, Eye, CheckCircle, XCircle, Clock, Pencil, Trash2 } from 'lucide-react'
+import { deleteAd, fetchMyAds } from '@/lib/api/client/ads'
 import { verifySession } from '@/lib/session'
 import { useState } from 'react'
+import { queryClient } from '@/lib/query'
 
 export const Route = createFileRoute('/_app/my-ads')({
   loader: async () => {
@@ -30,6 +31,19 @@ function MyAdsPage() {
     queryFn: () => fetchMyAds(token!, { status: statusFilter || undefined }),
     enabled: !!token,
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: (adId: number) => deleteAd(token!, adId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-ads'] })
+    },
+  })
+
+  const handleDelete = (adId: number, title: string) => {
+    if (confirm(`Удалить объявление "${title}"?`)) {
+      deleteMutation.mutate(adId)
+    }
+  }
 
 
   if (!token) {
@@ -170,51 +184,96 @@ function MyAdsPage() {
         ) : (
           <div className="space-y-3">
             {data.data.map((ad) => (
-              <div
+              <Link
                 key={ad.id}
-                className="rounded-lg border border-(--line) bg-white p-4"
+                to="/product/$productId"
+                params={{ productId: String(ad.id) }}
+                className="flex rounded-lg border border-(--line) bg-white p-4 hover:bg-(--link-bg-hover) transition"
               >
-                <div className="flex gap-4">
-                  {ad.cover_url && (
-                    <img
-                      src={ad.cover_url}
-                      alt={ad.title}
-                      className="h-20 w-20 shrink-0 rounded-lg object-cover"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-medium text-(--sea-ink) line-clamp-2">
-                        {ad.title}
-                      </h3>
-                      {getStatusBadge(ad.status)}
-                    </div>
-                    <p className="mt-1 text-lg font-bold text-(--sea-ink)">
-                      {ad.price.toLocaleString()} ₽
-                    </p>
-                    <p className="mt-1 text-sm text-(--sea-ink-soft)">
-                      {ad.city} · {ad.category}
-                    </p>
-                    {ad.status === 'rejected' && ad.rejection_reason && (
-                      <p className="mt-2 text-sm text-red-600">
-                        Причина: {ad.rejection_reason}
-                      </p>
+                <div className="flex w-full justify-between items-start gap-4"> 
+                  
+                  {/* ЛЕВАЯ ЧАСТЬ: Картинка + Характеристики + Кнопки */}
+                  <div className="flex items-start flex-1 min-w-0">
+                    {ad.cover_url && (
+                      <img
+                        src={ad.cover_url}
+                        alt={ad.title}
+                        className="h-20 w-20 shrink-0 rounded-lg object-cover"
+                      />
                     )}
-                    <div className="mt-2 flex gap-2">
-                      {ad.status === 'approved' && (
-                        <Link
-                          to="/product/$productId"
-                          params={{ productId: String(ad.id) }}
-                          className="inline-flex items-center gap-1 text-sm text-(--palm) hover:underline"
-                        >
-                          <Eye className="size-3" />
-                          Просмотреть
-                        </Link>
+                    <div className="flex flex-col px-3 justify-start flex-1 min-w-0">
+                      <h3 className="font-medium text-(--sea-ink) line-clamp-1">{ad.title}</h3>
+                      <p className="mt-1 text-lg font-bold text-(--sea-ink)">
+                        {ad.price.toLocaleString()} ₽
+                      </p>
+                      <p className="mt-1 text-sm text-(--sea-ink-soft)">
+                        {ad.city} · {ad.category}
+                      </p>
+
+                      {/* Причина отклонения, если есть */}
+                      {ad.status === 'rejected' && ad.rejection_reason && (
+                        <p className="mt-2 text-sm text-red-600 font-medium">
+                          Причина: {ad.rejection_reason}
+                        </p>
                       )}
+
+                      {/* БЛОК КНОПОК УПРАВЛЕНИЯ */}
+                      <div className="flex gap-2 mt-3">
+                        {/* Кнопка "Просмотреть" для активных объявлений */}
+                        {ad.status === 'approved' && (
+                          <Link
+                            to="/product/$productId"
+                            params={{ productId: String(ad.id) }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 rounded-lg border border-(--line) px-3 py-1.5 text-xs font-medium text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+                          >
+                            <Eye className="size-3" />
+                            Просмотреть
+                          </Link>
+                        )}
+
+                        {/* Кнопка "Редактировать" */}
+                        {(ad.status === 'pending' || ad.status === 'rejected' || ad.status === 'approved') && (
+                          <Link
+                            to="/ads/$adId/edit"
+                            params={{ adId: String(ad.id) }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 rounded-lg border border-(--line) px-3 py-1.5 text-xs font-medium text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+                          >
+                            <Pencil className="size-3" />
+                            Редактировать
+                          </Link>
+                        )}
+
+                        {/* Кнопка "Удалить" */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDelete(ad.id, ad.title);
+                          }}
+                          disabled={deleteMutation?.isPending}
+                          className="flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition"
+                        >
+                          <Trash2 className="size-3" />
+                          Удалить
+                        </button>
+                      </div>
                     </div>
                   </div>
+
+                  {/* ПРАВАЯ ЧАСТЬ: Статус + Дата */}
+                  <div className="flex flex-col gap-2 items-end justify-between min-h-[108px] shrink-0">
+                    {/* Ваша функция отрисовки статуса */}
+                    {getStatusBadge(ad.status)}
+                    
+                    {/* Дата создания */}
+                    <span className="text-xs text-(--sea-ink-soft)">
+                      {new Date(ad.created_at).toLocaleDateString('ru-RU')}
+                    </span>
+                  </div>
+
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

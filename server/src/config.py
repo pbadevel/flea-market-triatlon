@@ -3,7 +3,7 @@ from datetime import timedelta
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import PostgresDsn, SecretStr
+from pydantic import PostgresDsn, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -41,21 +41,35 @@ class Settings(BaseSettings):
     # TOKENS
     
     # Bot
-    BOT_TOKEN: str = "8192224436:AAGeom4u2DmXbqWO-iNGBVqzbHJzGpcXf9M"
+    BOT_TOKEN: str = "8125064359:AAFff50933y2CWPLmr4RvA-TQn_xAmCiMWs"   # @BarakholkaWebRobot
     TELEGRAM_CHANNEL_ID: int = -1002731869744 # t.me/testpba2
-    MODERATOR_CHAT_ID: int = 1060834219
-    BOT_USERNAME: str = ""
-    TMA_URL: str = "af"
+    MODERATORS_CHAT_ID: int = -1004447243084 # https://t.me/+wEuhlR88kbA3NTBk
+    BOT_USERNAME: str = "BarakholkaWebRobot"
+    SITE_URL: str = "http://localhost:3000"
     WEBHOOK_PATH: str = "ada"
     WEBHOOK_URL: str = "adad"
     webhook_secret_token: SecretStr | None = None
+    SUPPORT_USERNAME: str = ""
+    ADMIN_IDS: list[int] = [1060834219]
+    DEVELOPER_IDS: list[int] = []
+
+    @field_validator("ADMIN_IDS", "DEVELOPER_IDS", mode="before")
+    @classmethod
+    def _parse_int_list(cls, v: object) -> list[int]:
+        if isinstance(v, list):
+            return [int(x) for x in v]
+        if isinstance(v, str):
+            if not v.strip():
+                return []
+            return [int(x.strip()) for x in v.split(",") if x.strip()]
+        return []
 
   
 
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100
 
-    default_timezone: str = "Asia/Omsk"
+    default_timezone: str = "Europe/Moscow"
 
     model_config = SettingsConfigDict(
         env_prefix="",

@@ -61,3 +61,37 @@ export const fetchMyAds = async (
     token,
   });
 };
+
+
+
+export const fetchAdForEdit = async (
+  token: string,
+  adId: number,
+): Promise<MyAd> => {
+  return apiRequest<MyAd>(`${PRODUCT_ENDPOINT}/${adId}`, {
+    method: 'GET',
+    token,
+  });
+};
+
+export const updateAd = async (
+  token: string,
+  adId: number,
+  data: FormData,
+): Promise<MyAd> => {
+  return apiRequest<MyAd>(`${ADS_LIST_ENDPOINT}/${adId}`, {
+    method: 'PUT',
+    token,
+    body: data,
+  });
+};
+
+export const deleteAd = async (
+  token: string,
+  adId: number,
+): Promise<{ status: string; message: string }> => {
+  return apiRequest(`${ADS_LIST_ENDPOINT}/${adId}`, {
+    method: 'DELETE',
+    token,
+  });
+};

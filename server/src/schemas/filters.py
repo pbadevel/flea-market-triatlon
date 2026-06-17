@@ -1,8 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Literal
 
-
-CategoryKey = Literal["swim", "bike", "run", "electronics", "slots"]
 
 class SubcategoryItem(BaseModel):
     key: str
@@ -16,8 +13,9 @@ class SubcategoryGroup(BaseModel):
 
 
 class CategoryFilter(BaseModel):
-    key: Literal["swim", "bike", "run", "electronics", "slots"]
+    key: str
     label: str
+    icon: str | None = None
     groups: list[SubcategoryGroup] | None = None
     items: list[SubcategoryItem] | None = None
     default_tags: list[str] = Field(default_factory=list)

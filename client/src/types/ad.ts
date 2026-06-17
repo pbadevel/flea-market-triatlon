@@ -6,7 +6,7 @@ export interface Ad {
   price: number;
   old_price?: number;
   discount?: number;
-  cover_url: string;
+  cover_url: string | null;
   description?: string;
   category: string;
   subcategory?: string;
@@ -62,13 +62,6 @@ export interface FilterGroup {
   items: FilterOption[];
 }
 
-export interface CategoryFilter {
-  key: string;
-  label: string;
-  groups?: FilterGroup[];
-  items?: FilterOption[];
-  default_tags?: string[];
-}
 
 export interface GeoItem {
   key: string;
@@ -77,36 +70,21 @@ export interface GeoItem {
   cities?: string[];
 }
 
-export interface FilterConfig {
-  categories: CategoryFilter[];
-  countries: GeoItem[];
-  conditions: { key: string; label: string }[];
-  ad_types: { key: string; label: string }[];
-  sizes: string[];
-  default_cities: string[];
-}
-
 export interface SubcategoryItem {
   key: string;
   label: string;
   requires_size?: boolean;
 }
 
-export interface SubcategoryGroup {
-  name: string;
-  items: SubcategoryItem[];
-}
 
 
 
 
 
-
-export interface MyAd {
+export interface MyAd extends Ad {
   id: number;
   title: string;
   price: number;
-  cover_url: string | null;
   city: string;
   country?: string;
   category: string;
@@ -132,4 +110,42 @@ export interface AdCreateData {
   delivery_method?: string;
   contact_method?: string;
   photos: File[];
+}
+
+
+
+
+
+export interface CategoryItem {
+  key: string;
+  label: string;
+  requires_size?: boolean;
+}
+
+export interface CategoryGroup {
+  name: string;
+  items: CategoryItem[];
+}
+
+export interface CategoryFilter {
+  key: string;
+  label: string;
+  groups?: CategoryGroup[];
+  items?: CategoryItem[];
+}
+
+export interface GeoCountry {
+  key: string;
+  name: string;
+  flag: string;
+  cities: string[];
+}
+
+export interface FilterConfig {
+  categories: CategoryFilter[];
+  countries: GeoCountry[];
+  default_cities: string[];
+  conditions: { key: string; label: string }[];
+  sizes: string[];
+  ad_types: { key: string; label: string }[];
 }

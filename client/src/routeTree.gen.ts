@@ -14,13 +14,16 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as AppTestLoginRouteImport } from './routes/_app/test-login'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppProductRouteImport } from './routes/_app/product'
 import { Route as AppMyAdsRouteImport } from './routes/_app/my-ads'
 import { Route as AppCreateAdRouteImport } from './routes/_app/create-ad'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as AppProductProductIdRouteImport } from './routes/_app/product/$productId'
+import { Route as AdminAdminUsersIndexRouteImport } from './routes/_admin/admin/users/index'
+import { Route as AdminAdminCategoriesIndexRouteImport } from './routes/_admin/admin/categories/index'
+import { Route as AppAdsAdIdEditRouteImport } from './routes/_app/ads/$adId/edit'
+import { Route as AdminAdminUsersUserIdRouteImport } from './routes/_admin/admin/users/$userId'
 import { Route as AdminAdminAdsAdIdRouteImport } from './routes/_admin/admin/ads/$adId'
 
 const AppRoute = AppRouteImport.update({
@@ -45,11 +48,6 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppTestLoginRoute = AppTestLoginRouteImport.update({
-  id: '/test-login',
-  path: '/test-login',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
@@ -81,6 +79,27 @@ const AppProductProductIdRoute = AppProductProductIdRouteImport.update({
   path: '/$productId',
   getParentRoute: () => AppProductRoute,
 } as any)
+const AdminAdminUsersIndexRoute = AdminAdminUsersIndexRouteImport.update({
+  id: '/admin/users/',
+  path: '/admin/users/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminCategoriesIndexRoute =
+  AdminAdminCategoriesIndexRouteImport.update({
+    id: '/admin/categories/',
+    path: '/admin/categories/',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AppAdsAdIdEditRoute = AppAdsAdIdEditRouteImport.update({
+  id: '/ads/$adId/edit',
+  path: '/ads/$adId/edit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminAdminUsersUserIdRoute = AdminAdminUsersUserIdRouteImport.update({
+  id: '/admin/users/$userId',
+  path: '/admin/users/$userId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdminAdsAdIdRoute = AdminAdminAdsAdIdRouteImport.update({
   id: '/admin/ads/$adId',
   path: '/admin/ads/$adId',
@@ -93,12 +112,15 @@ export interface FileRoutesByFullPath {
   '/my-ads': typeof AppMyAdsRoute
   '/product': typeof AppProductRouteWithChildren
   '/profile': typeof AppProfileRoute
-  '/test-login': typeof AppTestLoginRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/product/$productId': typeof AppProductProductIdRoute
   '/admin/': typeof AdminAdminIndexRoute
   '/admin/ads/$adId': typeof AdminAdminAdsAdIdRoute
+  '/admin/users/$userId': typeof AdminAdminUsersUserIdRoute
+  '/ads/$adId/edit': typeof AppAdsAdIdEditRoute
+  '/admin/categories/': typeof AdminAdminCategoriesIndexRoute
+  '/admin/users/': typeof AdminAdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
@@ -106,12 +128,15 @@ export interface FileRoutesByTo {
   '/my-ads': typeof AppMyAdsRoute
   '/product': typeof AppProductRouteWithChildren
   '/profile': typeof AppProfileRoute
-  '/test-login': typeof AppTestLoginRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/product/$productId': typeof AppProductProductIdRoute
   '/admin': typeof AdminAdminIndexRoute
   '/admin/ads/$adId': typeof AdminAdminAdsAdIdRoute
+  '/admin/users/$userId': typeof AdminAdminUsersUserIdRoute
+  '/ads/$adId/edit': typeof AppAdsAdIdEditRoute
+  '/admin/categories': typeof AdminAdminCategoriesIndexRoute
+  '/admin/users': typeof AdminAdminUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,13 +146,16 @@ export interface FileRoutesById {
   '/_app/my-ads': typeof AppMyAdsRoute
   '/_app/product': typeof AppProductRouteWithChildren
   '/_app/profile': typeof AppProfileRoute
-  '/_app/test-login': typeof AppTestLoginRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/_app/': typeof AppIndexRoute
   '/_app/product/$productId': typeof AppProductProductIdRoute
   '/_admin/admin/': typeof AdminAdminIndexRoute
   '/_admin/admin/ads/$adId': typeof AdminAdminAdsAdIdRoute
+  '/_admin/admin/users/$userId': typeof AdminAdminUsersUserIdRoute
+  '/_app/ads/$adId/edit': typeof AppAdsAdIdEditRoute
+  '/_admin/admin/categories/': typeof AdminAdminCategoriesIndexRoute
+  '/_admin/admin/users/': typeof AdminAdminUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,12 +165,15 @@ export interface FileRouteTypes {
     | '/my-ads'
     | '/product'
     | '/profile'
-    | '/test-login'
     | '/auth/login'
     | '/auth/register'
     | '/product/$productId'
     | '/admin/'
     | '/admin/ads/$adId'
+    | '/admin/users/$userId'
+    | '/ads/$adId/edit'
+    | '/admin/categories/'
+    | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,12 +181,15 @@ export interface FileRouteTypes {
     | '/my-ads'
     | '/product'
     | '/profile'
-    | '/test-login'
     | '/auth/login'
     | '/auth/register'
     | '/product/$productId'
     | '/admin'
     | '/admin/ads/$adId'
+    | '/admin/users/$userId'
+    | '/ads/$adId/edit'
+    | '/admin/categories'
+    | '/admin/users'
   id:
     | '__root__'
     | '/_admin'
@@ -164,13 +198,16 @@ export interface FileRouteTypes {
     | '/_app/my-ads'
     | '/_app/product'
     | '/_app/profile'
-    | '/_app/test-login'
     | '/auth/login'
     | '/auth/register'
     | '/_app/'
     | '/_app/product/$productId'
     | '/_admin/admin/'
     | '/_admin/admin/ads/$adId'
+    | '/_admin/admin/users/$userId'
+    | '/_app/ads/$adId/edit'
+    | '/_admin/admin/categories/'
+    | '/_admin/admin/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -217,13 +254,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/test-login': {
-      id: '/_app/test-login'
-      path: '/test-login'
-      fullPath: '/test-login'
-      preLoaderRoute: typeof AppTestLoginRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/profile': {
       id: '/_app/profile'
       path: '/profile'
@@ -266,6 +296,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductProductIdRouteImport
       parentRoute: typeof AppProductRoute
     }
+    '/_admin/admin/users/': {
+      id: '/_admin/admin/users/'
+      path: '/admin/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminAdminUsersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/categories/': {
+      id: '/_admin/admin/categories/'
+      path: '/admin/categories'
+      fullPath: '/admin/categories/'
+      preLoaderRoute: typeof AdminAdminCategoriesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_app/ads/$adId/edit': {
+      id: '/_app/ads/$adId/edit'
+      path: '/ads/$adId/edit'
+      fullPath: '/ads/$adId/edit'
+      preLoaderRoute: typeof AppAdsAdIdEditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_admin/admin/users/$userId': {
+      id: '/_admin/admin/users/$userId'
+      path: '/admin/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminAdminUsersUserIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/ads/$adId': {
       id: '/_admin/admin/ads/$adId'
       path: '/admin/ads/$adId'
@@ -279,11 +337,17 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdminIndexRoute: typeof AdminAdminIndexRoute
   AdminAdminAdsAdIdRoute: typeof AdminAdminAdsAdIdRoute
+  AdminAdminUsersUserIdRoute: typeof AdminAdminUsersUserIdRoute
+  AdminAdminCategoriesIndexRoute: typeof AdminAdminCategoriesIndexRoute
+  AdminAdminUsersIndexRoute: typeof AdminAdminUsersIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminIndexRoute: AdminAdminIndexRoute,
   AdminAdminAdsAdIdRoute: AdminAdminAdsAdIdRoute,
+  AdminAdminUsersUserIdRoute: AdminAdminUsersUserIdRoute,
+  AdminAdminCategoriesIndexRoute: AdminAdminCategoriesIndexRoute,
+  AdminAdminUsersIndexRoute: AdminAdminUsersIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -305,8 +369,8 @@ interface AppRouteChildren {
   AppMyAdsRoute: typeof AppMyAdsRoute
   AppProductRoute: typeof AppProductRouteWithChildren
   AppProfileRoute: typeof AppProfileRoute
-  AppTestLoginRoute: typeof AppTestLoginRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppAdsAdIdEditRoute: typeof AppAdsAdIdEditRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -314,8 +378,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppMyAdsRoute: AppMyAdsRoute,
   AppProductRoute: AppProductRouteWithChildren,
   AppProfileRoute: AppProfileRoute,
-  AppTestLoginRoute: AppTestLoginRoute,
   AppIndexRoute: AppIndexRoute,
+  AppAdsAdIdEditRoute: AppAdsAdIdEditRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

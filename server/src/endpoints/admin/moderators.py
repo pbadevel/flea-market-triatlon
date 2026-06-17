@@ -8,7 +8,10 @@ from src.kit.database.service import database_service
 from src.auth.dependencies import WebModerator
 from src.models import Ad, AdStatus, User, Review
 from src.schemas.ads import MyAdOut, AdModerate, AdminAdDetail
+
 from src.services import ad_service
+from src.bot.tg_services import tg_service_notifier
+
 from src.repositories.ads import AdRepository
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -53,12 +56,10 @@ async def moderate_ad(
         if not ad:
             raise HTTPException(404, "Ad not found")
         
-        # TODO: Если одобрено - отправить в Telegram канал
-        # if data.action == "approve":
-        #     from src.bot.services import send_ad_to_channel_api
-        #     channel_message_id = await send_ad_to_channel_api(ad)
-        #     ad.channel_message_id = channel_message_id
-        #     await session.flush()
+        if data.action == "approve":
+            channel_message_id = await tg_service_notifier.send_ad_to_channel(ad)
+            ad.channel_message_id = channel_message_id
+            await session.flush()
         
         await session.commit()
         

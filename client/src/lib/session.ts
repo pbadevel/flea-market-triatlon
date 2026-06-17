@@ -42,34 +42,12 @@ export const getSession = createServerFn().handler(async () => {
   };
 });
 
-// Тестовая авторизация
-export const testLoginFn = createServerFn().handler(async () => {
-  const response = await fetch(`${process.env.VITE_BACKEND_DOMAIN}/v1/auth-test/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tg_user_id: 123456789 }),
-  });
-  
-  const data = await response.json();
 
-  console.log(data)
-  
-  if (data.token && data.success) {
-    const session = await useAppSession();
-    await session.update({
-      token: data.token,
-      isAdmin: data.role === "ADMIN",
-      isModerator: data.role === "MODERATOR"
-    });
-  }
-  
-  return data;
-});
 
 export const verifySession = createServerFn().handler(async () => {
   const session = await useAppSession();
 
-  console.log("verifying", session)
+  // console.log("verifying", session.data)
   
   if (!session.data?.token) {
     throw redirect({ to: "/auth/login" });

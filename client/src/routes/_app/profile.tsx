@@ -522,23 +522,44 @@ function AdCard({ ad }: { ad: MyAd }) {
 
   return (
     <Link
-      to="/admin/ads/$adId"
-      params={{ adId: String(ad.id) }}
-      className="flex gap-4 rounded-lg border border-(--line) p-4 hover:bg-(--link-bg-hover) transition"
+      to="/product/$productId"
+      params={{ productId: String(ad.id) }}
+      className="flex gap-2 rounded-lg border border-(--line) p-4 hover:bg-(--link-bg-hover) transition"
     >
-      {/* ... существующий код ... */}
-      
-      <div className="flex flex-col items-end justify-between">
-        <span className={`rounded-full px-2 py-1 text-xs font-medium ${color}`}>
-          {label}
-        </span>
-        {/* Показываем контакты если нужно */}
-        {ad.contact_method && (
-          <ContactInfo contactMethod={ad.contact_method} />
-        )}
-        <span className="text-xs text-(--sea-ink-soft)">
-          {new Date(ad.created_at).toLocaleDateString('ru-RU')}
-        </span>
+      {/* Добавили w-full для растягивания и justify-between для разнесения по краям */}
+      <div className="flex w-full justify-between items-start"> 
+        
+        {/* ЛЕВАЯ ЧАСТЬ: Картинка + Характеристики */}
+        <div className="flex">
+          {ad.cover_url && (
+            <img
+              src={ad.cover_url}
+              alt={ad.title}
+              className="h-20 w-20 shrink-0 rounded-lg object-cover"
+            />
+          )}
+          <div className="flex flex-col px-3 justify-start">
+            <h3 className="font-medium text-(--sea-ink) line-clamp-1">{ad.title}</h3>
+            <p className="mt-1 text-lg font-bold text-(--sea-ink)">
+              {ad.price.toLocaleString()} ₽
+            </p>
+            <p className="mt-1 text-sm text-(--sea-ink-soft)">
+              {ad.city} · {ad.category}
+            </p>
+          </div>
+        </div>
+
+        {/* ПРАВАЯ ЧАСТЬ: Статус (одобрено) + Дата */}
+        {/* Изменено на items-end, чтобы текст внутри выравнивался по правому краю */}
+        <div className="flex flex-col gap-2 items-end justify-between h-full min-h-[80px]">
+          <span className={`rounded-full px-2 py-1 text-xs text-center font-medium ${color}`}>
+            {label}
+          </span>
+          <span className="text-xs text-(--sea-ink-soft)">
+            {new Date(ad.created_at).toLocaleDateString('ru-RU')}
+          </span>
+        </div>
+
       </div>
     </Link>
   )

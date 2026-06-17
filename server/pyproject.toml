@@ -20,7 +20,6 @@ dependencies = [
   "pydantic-settings>=2.10.1",
   "pyjwt>=2.10.1",
   "python-multipart>=0.0.32",
-  "python-telegram-bot>=22.5",
   "pytoniq-core>=0.1.44",
   "pytz>=2025.2",
   "pyxui-async==1.0.2",
@@ -31,6 +30,7 @@ dependencies = [
   "uvicorn>=0.35.0",
   "websockets>=15.0.1",
   "yookassa>=3.8.0",
+  "pillow>=12.2.0",
 ]
 
 [tool.pyright]
@@ -54,6 +54,7 @@ asyncio_mode = "strict"
 
 [tool.taskipy.tasks]
 api = { cmd = "uvicorn src.app:app --reload --workers 1 --host localhost --port 8000", help = "run api service" }
+bot = { cmd = "uv run -m src.bot.main", help = "run bot" }
 
 migrate_tg = { cmd = "uv run -m scripts.migrate_photos", help = "downloading photos" }
 

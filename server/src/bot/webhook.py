@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
 from aiogram.types import Update
 
-from src.bot.main import bot, dp
+from src.bot.main import get_bot, get_dispatcher
 from src.config import settings
 from src.logging import get_logger
 
@@ -23,7 +23,7 @@ async def telegram_webhook(request: Request):
     
     # Process update
     try:
-        await dp.feed_update(bot, update)
+        await get_dispatcher().feed_update(get_bot(), update)
     except Exception as e:
         log.error(f"Error processing update: {e}", exc_info=True)
     

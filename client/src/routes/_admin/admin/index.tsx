@@ -7,6 +7,7 @@ import {
   Clock,
   Package,
   Users,
+  Layers,
   Eye,
 } from 'lucide-react'
 import {
@@ -38,7 +39,7 @@ export const Route = createFileRoute('/_admin/admin/')({
 
 function AdminPage() {
   
-  const { token } = Route.useLoaderData()
+  const { token, isAdmin, isModerator } = Route.useLoaderData()
   const queryClient = useQueryClient()
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [selectedAd, setSelectedAd] = useState<AdminAd | null>(null)
@@ -115,7 +116,7 @@ function AdminPage() {
         <div className="page-wrap">
           <div className="flex h-14 items-center justify-between">
             <h1 className="text-lg font-semibold text-(--sea-ink)">
-              Панель администратора
+              {isAdmin ? 'Панель администратора' : 'Модерация'}
             </h1>
             <Link
               to="/"
@@ -128,7 +129,27 @@ function AdminPage() {
       </header>
 
       <div className="page-wrap py-8 space-y-8">
-        {/* Stats */}
+        {/* Navigation — только для админов */}
+        {isAdmin && (
+          <div className="flex gap-4">
+            <Link
+              to="/admin/categories"
+              className="flex items-center gap-2 rounded-lg border border-(--line) bg-white px-4 py-3 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+            >
+              <Layers className="size-4" />
+              Категории
+            </Link>
+            <Link
+              to="/admin/users"
+              className="flex items-center gap-2 rounded-lg border border-(--line) bg-white px-4 py-3 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+            >
+              <Users className="size-4" />
+              Пользователи
+            </Link>
+          </div>
+        )}
+        {/* Stats — только для админов */}
+        {isAdmin && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
             icon={<Users className="size-5" />}
@@ -157,8 +178,9 @@ function AdminPage() {
             color="green"
           />
         </div>
+        )}
 
-        {/* Pending Ads */}
+        {/* Pending Ads — видно всем (админам и модераторам) */}
         <div>
           <h2 className="text-xl font-bold text-(--sea-ink) mb-4 flex items-center gap-2">
             <Clock className="size-5" />

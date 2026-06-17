@@ -3,8 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
-from src.bot.main import bot, dp
-from src.bot.services import send_ad_to_moderation_api, publish_ad_to_channel_api
+# from src.bot.tg_services import send_ad_to_moderation_api, publish_ad_to_channel_api
 from src.kit.database.service import database_service
 from src.services import ad_service
 from src.logging import get_logger
@@ -31,7 +30,7 @@ async def test_send_to_moderation(ad_id: int):
         if not ad:
             raise HTTPException(404, "Ad not found")
         
-        await send_ad_to_moderation_api(ad)
+        # await send_ad_to_moderation_api(ad)
         
         return {"status": "ok", "message": f"Ad {ad_id} sent to moderation"}
 
@@ -48,12 +47,12 @@ async def test_publish_to_channel(ad_id: int):
         if not ad:
             raise HTTPException(404, "Ad not found")
         
-        message_id = await publish_ad_to_channel_api(ad)
+        # message_id = await publish_ad_to_channel_api(ad)
         
         return {
             "status": "ok",
             "message": f"Ad {ad_id} published to channel",
-            "channel_message_id": message_id
+            # "channel_message_id": message_id
         }
 
 
@@ -76,8 +75,9 @@ async def test_moderate(data: TestModerationRequest):
         
         # If approved, publish to channel
         if data.action == "approve":
-            message_id = await publish_ad_to_channel_api(ad)
-            ad.channel_message_id = message_id
+            pass
+            # message_id = await publish_ad_to_channel_api(ad)
+            # ad.channel_message_id = message_id
         
         await session.commit()
         

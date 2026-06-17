@@ -80,7 +80,7 @@ async def init_telegram_auth(request: Request):
 
 
 @router.post("/telegram/callback")
-async def telegram_auth_callback(data: TelegramAuthCallbackRequest):
+async def telegram_auth_callback(data: TelegramAuthCallbackRequest, request: Request):
     """
     Callback от бота после подтверждения авторизации пользователем
     """
@@ -89,7 +89,7 @@ async def telegram_auth_callback(data: TelegramAuthCallbackRequest):
         raise HTTPException(404, detail="Сессия авторизации не найдена или истекла")
     
     session_data = _auth_sessions[data.session_token]
-    
+
     # Проверяем что сессия ещё активна (15 минут)
     from datetime import timedelta
     if utc_now() - session_data["created_at"] > timedelta(minutes=15):
@@ -98,6 +98,7 @@ async def telegram_auth_callback(data: TelegramAuthCallbackRequest):
     
     async with database_service.get_session() as session:
         repository = UserRepository(session)
+        
         
         # Ищем или создаём пользователя
         user = await repository.get_by_tg_id(data.tg_user_id)
@@ -127,16 +128,17 @@ async def telegram_auth_callback(data: TelegramAuthCallbackRequest):
         auth_response = await auth_service.get_login_response(
             session=session,
             user=user,
-            request=Request(scope={"type": "http"}),  # Фиктивный request
+            request=request,  
+            custom_user_agent=f"TG{data.tg_user_id}/0.1"
         )
         
         # Обновляем статус сессии
-        _auth_sessions[data.session_token] = {
+        _auth_sessions[data.session_token].update({
             "status": "completed",
             "token": auth_response.token,
             "user_id": str(user.id),
             "role": user.role.value if hasattr(user, 'role') else "user",
-        }
+        })
         
         await session.commit()
         
@@ -153,6 +155,7 @@ async def check_telegram_auth_status(data: TelegramAuthStatusRequest):
     
     session_data = _auth_sessions[data.session_token]
     
+    
     # Проверяем что сессия ещё активна
     from datetime import timedelta
     if utc_now() - session_data["created_at"] > timedelta(minutes=15):
@@ -167,6 +170,7 @@ async def check_telegram_auth_status(data: TelegramAuthStatusRequest):
             userId=session_data["user_id"],
             role=session_data["role"],
         )
+        print(session_data["token"])
         # Очищаем сессию после успешной проверки
         del _auth_sessions[data.session_token]
         return response

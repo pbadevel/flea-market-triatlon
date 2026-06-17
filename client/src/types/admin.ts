@@ -1,5 +1,3 @@
-// src/types/admin.ts
-
 export interface AdminStats {
   total_users: number;
   total_ads: number;
@@ -65,6 +63,84 @@ export interface AdminSeller {
     comment: string | null;
     created_at: string;
   }>;
+}
+
+// --- Categories ---
+export interface SubcategoryOut {
+  key: string;
+  name: string;
+  icon: string | null;
+  display_order: number;
+  requires_size: boolean;
+  is_active: boolean;
+  group_key: string | null;
+}
+
+export interface SubcategoryGroupOut {
+  key: string;
+  name: string;
+  icon: string | null;
+  display_order: number;
+  subcategories: SubcategoryOut[];
+}
+
+export interface Category {
+  key: string;
+  name: string;
+  icon: string | null;
+  display_order: number;
+  is_active: boolean;
+  available_for: string | null;
+  groups: SubcategoryGroupOut[];
+  subcategories: SubcategoryOut[];
+}
+
+export interface CategoryCreate {
+  key: string;
+  name: string;
+  icon?: string;
+  display_order?: number;
+  available_for?: string;
+}
+
+export interface Subcategory {
+  key: string;
+  name: string;
+  icon: string | null;
+  display_order: number;
+  requires_size: boolean;
+  is_active: boolean;
+  group_key: string | null;
+}
+
+export interface SubcategoryCreate {
+  key: string;
+  name: string;
+  category_key: string;
+  group_key?: string;
+  icon?: string;
+  display_order?: number;
+  requires_size?: boolean;
+}
+
+// --- Users (admin) ---
+export interface AdminUser {
+  id: number;
+  tg_user_id: number;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  role: string;
+  is_trusted_seller: boolean;
+  phone: string | null;
+  created_at: string;
+}
+
+export interface AdminUsersResponse {
+  data: AdminUser[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface AdminAdDetail extends AdminAd {

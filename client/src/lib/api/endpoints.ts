@@ -18,6 +18,16 @@ export const ADMIN_MODERATE_ENDPOINT = (adId: number) => `${BASE_URL}/admin/ads/
 export const ADMIN_AD_DETAIL_ENDPOINT = (adId: number) => `${BASE_URL}/admin/ads/${adId}`;
 
 
+// Admin Categories
+export const ADMIN_CATEGORIES_ENDPOINT = `${BASE_URL}/admin/categories`;
+export const ADMIN_CATEGORIES_SUBCATEGORIES_ENDPOINT = `${BASE_URL}/admin/categories/subcategories`;
+
+// Admin Users
+export const ADMIN_USERS_ENDPOINT = `${BASE_URL}/admin/users`;
+export const ADMIN_USER_ADS_ENDPOINT = (userId: number) => `${ADMIN_USERS_ENDPOINT}/${userId}/ads`;
+export const ADMIN_USER_AD_STATUS_ENDPOINT = (userId: number, adId: number) => `${ADMIN_USERS_ENDPOINT}/${userId}/ads/${adId}/status`;
+export const ADMIN_USER_MAKE_ADMIN_ENDPOINT = (userId: number) => `${ADMIN_USERS_ENDPOINT}/${userId}/make-admin`;
+
 // Auth
 export const AUTH_TELEGRAM_INIT_ENDPOINT = `${BASE_URL}/auth/telegram/init`;
 export const AUTH_TELEGRAM_STATUS_ENDPOINT = `${BASE_URL}/auth/telegram/status`;

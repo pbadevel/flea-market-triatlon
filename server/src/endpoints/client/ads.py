@@ -1,18 +1,44 @@
 # src/api/endpoints/ads.py
+import os
+
 from fastapi import APIRouter, Query, Form, File, Depends, UploadFile, HTTPException
 from sqlalchemy import select, func, or_
 from sqlalchemy.orm import joinedload, selectinload
-from src.models import Ad, AdStatus, Review, User
-from src.auth.dependencies import WebUser, WebAdmin, get_user
+from src.models import Ad, AdStatus, Review, User, AdPhoto
+from src.auth.dependencies import WebUser, WebAdmin
 
 from src.kit.database.service import database_service
 from src.services import ad_service, user_service
+from src.bot.tg_services import tg_service_notifier
+
 
 from src.schemas.ads import AdOut, MyAdOut, AdCreate, AdPhotoCreate, AdModerate
 from datetime import datetime
 from typing import Optional, List, Annotated
 
+
+UPLOAD_DIR = "uploads"
+
+
+def _delete_photo_file(storage_path: str | None) -> None:
+    """Delete a photo file from disk if it exists."""
+    if not storage_path:
+        return
+    filepath = os.path.join(UPLOAD_DIR, storage_path)
+    try:
+        os.remove(filepath)
+    except FileNotFoundError:
+        pass  # already gone, nothing to do
+    except OSError as e:
+        import logging
+        logging.getLogger(__name__).warning(
+            "Failed to delete photo file: %s — %s", filepath, e
+        )
+
 router = APIRouter(prefix="/ads", tags=["ads"])
+
+
+
 
 @router.get("")
 async def list_ads(
@@ -154,9 +180,8 @@ async def create_ad(
         fresh_user = await user_service.get_repository(session).get_by_id(user.id)
         ad = await ad_service.create_ad(session, fresh_user, ad_data) # pyright: ignore
         
-        # TODO: Отправить на модерацию через бота (прямой вызов API)
-        # from src.bot.services import send_ad_to_moderation_api
-        # await send_ad_to_moderation_api(ad)
+        # Отправка в канал
+        await tg_service_notifier.send_ad_for_moderation(ad)
         
         await session.commit()
         
@@ -219,3 +244,161 @@ async def moderate_ad(
         await session.commit()
         
         return MyAdOut.from_orm_with_status(ad)
+
+
+
+
+
+
+
+
+@router.get("/{ad_id}", response_model=MyAdOut)
+async def get_ad_for_edit(
+    ad_id: int,
+    user: WebUser,
+):
+    """
+    Получить объявление для редактирования
+    Только владелец может редактировать своё объявление
+    """
+    async with database_service.get_session() as session:
+        repository = ad_service.get_repository(session)
+        ad = await repository.get_ad_with_photos(ad_id)
+        
+        if not ad:
+            raise HTTPException(404, "Объявление не найдено")
+        
+        # Проверка что это объявление текущего пользователя
+        if ad.seller_user_id != user.id:
+            raise HTTPException(403, "Нет прав на редактирование этого объявления")
+        
+        return MyAdOut.from_orm_with_status(ad)
+
+
+@router.put("/{ad_id}", response_model=MyAdOut)
+async def update_ad(
+    ad_id: int,
+    user: WebUser,
+    title: str = Form(...),
+    price: int = Form(...),
+    city: str = Form(...),
+    category: str = Form(...),
+    condition: str = Form(...),
+    contact_method: str = Form("telegram"),
+    ad_type: str = Form("Продажа"),
+    country: Optional[str] = Form(None),
+    subcategory: Optional[str] = Form(None),
+    size: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    delivery_method: Optional[str] = Form(None),
+    photos: List[UploadFile] = File(default=[]),
+):
+    """
+    Обновить объявление
+    После редактирования статус меняется на pending (требуется модерация)
+    """
+    async with database_service.get_session() as session:
+        repository = ad_service.get_repository(session)
+        ad = await repository.get_ad_with_photos(ad_id)
+        
+        if not ad:
+            raise HTTPException(404, "Объявление не найдено")
+        
+        # Проверка что это объявление текущего пользователя
+        if ad.seller_user_id != user.id:
+            raise HTTPException(403, "Нет прав на редактирование этого объявления")
+        
+        # Обновляем данные
+        ad.title = title
+        ad.price = price
+        ad.city = city
+        ad.country = country
+        ad.category = category
+        ad.subcategory = subcategory
+        ad.size = size
+        ad.condition = condition
+        ad.description = description
+        ad.ad_type = ad_type
+        ad.delivery_method = delivery_method
+        ad.contact_method = contact_method
+        
+        # Меняем статус на pending (требуется повторная модерация)
+        ad.status = AdStatus.pending.value
+        ad.rejection_reason = None  # Очищаем причину отклонения
+        
+        # Если загружены новые фото - удаляем старые и добавляем новые
+        if photos:
+            # Удаляем файлы старых фото с диска
+            for old_photo in ad.photos:
+                _delete_photo_file(old_photo.storage_path)
+
+            # Удаляем старые фото из БД
+            for old_photo in ad.photos:
+                await session.delete(old_photo)
+            
+            # Добавляем новые
+            for i, photo in enumerate(photos):
+                if photo.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+                    raise HTTPException(400, f"Invalid photo format: {photo.content_type}")
+                
+                file_bytes = await photo.read()
+                extension = f".{photo.filename.split('.')[-1]}" if photo.filename and '.' in photo.filename else ".jpg"
+                
+                storage_path = await ad_service.upload_photo(file_bytes, extension)
+                
+                new_photo = AdPhoto(
+                    ad_id=ad.id,
+                    file_id=None,
+                    storage_path=storage_path,
+                    position=i,
+                )
+                session.add(new_photo)
+        
+        await session.commit()
+
+        await tg_service_notifier.delete_ad_from_channel(ad)
+
+        # Отправка в канал
+        await tg_service_notifier.send_ad_for_moderation(ad)
+        
+        
+        # Возвращаем обновлённое объявление
+        updated_ad = await repository.get_ad_with_photos(ad_id)
+        return MyAdOut.from_orm_with_status(updated_ad) # pyright: ignore
+
+
+@router.delete("/{ad_id}")
+async def delete_ad(
+    ad_id: int,
+    user: WebUser,
+):
+    """
+    Удалить объявление
+    Только владелец может удалить своё объявление
+    """
+    async with database_service.get_session() as session:
+        ad = await ad_service.get_repository(session).get_ad_with_photos(ad_id)
+        
+        if not ad:
+            raise HTTPException(404, "Объявление не найдено")
+        
+        # Проверка что это объявление текущего пользователя
+        if ad.seller_user_id != user.id:
+            raise HTTPException(403, "Нет прав на удаление этого объявления")
+        
+        # Удаляем файлы фото с диска
+        for photo in ad.photos:
+            _delete_photo_file(photo.storage_path)
+
+        # Удаляем фото из БД
+        for photo in ad.photos:
+            await session.delete(photo)
+        
+        # Удаляем объявление
+        await session.delete(ad)
+        await session.commit()
+        
+        await tg_service_notifier.delete_ad_from_channel(ad)
+
+        return {"status": "ok", "message": "Объявление удалено"}
+    

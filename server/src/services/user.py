@@ -1,4 +1,4 @@
-from telegram import User as TGUser
+from aiogram.types import User as TGUser
 from typing import Optional, List, Tuple
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,12 +6,12 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import or_
 from src.kit.repository.main import Options
 
-from telegram import User as TGUser
 from src.auth.init_data.types import InitData
 from src.exceptions import BadRequest
 from src.kit.pagination import PaginationParams
-from src.models import User
 from src.repositories.users import UserRepository
+from src.models import User
+from src.enums import UserRole
 
 
 class UserService:
@@ -192,7 +192,11 @@ class UserService:
     async def get_users_count(self, session: AsyncSession):
         repository = UserRepository.from_session(session)
         return await repository.count_base(repository.get_count_stmt_base())
-
+    
+    async def get_moderators(self, session: AsyncSession) -> List[User]:
+        repo = self.get_repository(session)
+        stmt = repo.get_base_stmt().where(User.role == UserRole.MODERATOR)
+        return await repo.get_all(stmt)
     
     def get_repository(self, session: AsyncSession):
         return UserRepository(session)

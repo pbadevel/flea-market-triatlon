@@ -52,6 +52,7 @@ class AdRepository(BaseRepository[Ad], IDRepositoryMixin[Ad, int]):
         stmt = (
             self.get_base_stmt()
             .where(Ad.id == ad_id)
+            .options(selectinload(Ad.seller), selectinload(Ad.photos),)
         )
         return await self.get_one_or_none(stmt)
 

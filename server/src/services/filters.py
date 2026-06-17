@@ -1,26 +1,30 @@
-from typing import Any, cast
+"""
+Service for category / filter configuration.
+Reads categories from DB (CategoryModel, SubcategoryModel, SubcategoryGroup).
+If DB is empty, falls back to static defaults (first run / migration).
+"""
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
-from src.models import Ad, AdStatus
+from src.models import CategoryModel, SubcategoryModel, SubcategoryGroup as SubcategoryGroupModel
 from src.schemas.filters import (
     FilterConfig,
     CategoryFilter,
-    CategoryKey,
     SubcategoryItem,
     SubcategoryGroup,
     GeoItem,
 )
 
-CATEGORIES_DATA: dict[str, Any] = {
+# --- Static fallback (used if DB categories are empty) ---
+_STATIC_CATEGORIES = {
     "swim": {
         "label": "🏊 ПЛАВАНИЕ",
         "items": [
             {"key": "wetsuits", "label": "Гидрокостюмы", "requires_size": True},
             {"key": "accessories", "label": "Аксессуары"},
         ],
-        "tags": ["swim", "wetsuit", "goggles", "buoy", "swim_accessory"],
     },
     "bike": {
         "label": "🚴 ВЕЛОСПОРТ",
@@ -48,7 +52,6 @@ CATEGORIES_DATA: dict[str, Any] = {
             {"key": "accessories", "label": "🔧 Аксессуары"},
             {"key": "bike_bag", "label": "🧳 Велочемоданы"},
         ],
-        "tags": ["bike", "roadbike", "ttbike", "gravelbike", "mtb", "wheels", "tires", "components", "helmet", "cyclingwear", "cycling_shoes", "tools"],
     },
     "run": {
         "label": "🏃 БЕГ",
@@ -57,7 +60,6 @@ CATEGORIES_DATA: dict[str, Any] = {
             {"key": "clothing", "label": "👕 Одежда для бега", "requires_size": True},
             {"key": "accessories", "label": "🎒 Аксессуары"},
         ],
-        "tags": ["run", "running_shoes", "running_wear", "hydration", "run_accessory"],
     },
     "electronics": {
         "label": "💻 ЭЛЕКТРОНИКА",
@@ -67,12 +69,10 @@ CATEGORIES_DATA: dict[str, Any] = {
             {"key": "sensors", "label": "📡 Датчики и мощемеры"},
             {"key": "smart_trainers", "label": "🏋️ Смарт-станки"},
         ],
-        "tags": ["electronics", "watch", "bikecomputer", "sensor", "heart_rate", "trainer", "smart_trainer"],
     },
     "slots": {
         "label": "🏁 СТАРТОВЫЕ СЛОТЫ",
         "items": [],
-        "tags": ["race_slot", "ironman", "ironman70_3", "triathlon", "race"],
     },
 }
 
@@ -89,31 +89,16 @@ GEO_COUNTRIES = [
 ]
 
 DEFAULT_CITIES = [
-    "Москва",
-    "Санкт-Петербург",
-    "Сочи",
-    "Краснодар",
-    "Казань",
-    "Екатеринбург",
-    "Новосибирск",
-    "Нижний Новгород",
-    "Самара",
-    "Ростов-на-Дону",
-    "Уфа",
-    "Челябинск",
-    "Пермь",
-    "Тюмень",
-    "Омск",
-    "Воронеж",
-    "Красноярск",
-    "Ижевск",
-    "Калининград",
-    "Владивосток",
+    "Москва", "Санкт-Петербург", "Сочи", "Краснодар", "Казань",
+    "Екатеринбург", "Новосибирск", "Нижний Новгород", "Самара",
+    "Ростов-на-Дону", "Уфа", "Челябинск", "Пермь", "Тюмень",
+    "Омск", "Воронеж", "Красноярск", "Ижевск", "Калининград", "Владивосток",
 ]
 
 CONDITIONS = [{"key": "new", "label": "Новое"}, {"key": "used", "label": "Б/У"}, {"key": "unknown", "label": "Не указано"}]
 AD_TYPES = [{"key": "sale", "label": "Продажа"}, {"key": "rent", "label": "Аренда"}]
 SIZES = ["44", "46", "48", "50", "52", "54", "56", "58", "60"]
+
 
 def _sort_cities(cities: set[str]) -> list[str]:
     return sorted(cities, key=lambda c: c.casefold())
@@ -123,6 +108,8 @@ async def _load_cities_from_ads(
     session: AsyncSession,
 ) -> tuple[dict[str, set[str]], list[str]]:
     """Distinct cities from approved ads, grouped by country key."""
+    from src.models import Ad, AdStatus
+
     stmt = (
         select(Ad.country, Ad.city)
         .where(
@@ -148,25 +135,79 @@ async def _load_cities_from_ads(
     return by_country, all_cities
 
 
-def _build_static_filter_config() -> FilterConfig:
-    categories = []
-    for key, raw_data in CATEGORIES_DATA.items():
-        data: dict[str, Any] = raw_data
-        groups = [SubcategoryGroup(**g) for g in data.get("groups", [])] or None
-        items = [SubcategoryItem(**i) for i in data.get("items", [])] or None
-        categories.append(
-            CategoryFilter(
-                key=cast(CategoryKey, key),
-                label=data["label"],
-                groups=groups,
-                items=items,
-                default_tags=data.get("tags", []),
-            )
+async def _load_categories_from_db(session: AsyncSession) -> list[dict]:
+    """Load category tree from DB models."""
+    result = await session.execute(
+        select(CategoryModel)
+        .where(CategoryModel.is_active.is_(True))
+        .options(
+            joinedload(CategoryModel.subcategories),
+            joinedload(CategoryModel.groups),
         )
+        .order_by(CategoryModel.display_order)
+    )
+    categories_db = result.unique().scalars().all()
+
+    if not categories_db:
+        # Fallback to static
+        return _STATIC_CATEGORIES  # type: ignore
+
+    output = []
+    for cat in categories_db:
+        cat_data = {
+            "key": cat.key,
+            "label": cat.name,
+            "icon": cat.icon,
+            "items": [],
+            "groups": [],
+        }
+
+        # Build group structure
+        groups_map = {}
+        for group in cat.groups:
+            groups_map[group.key] = {
+                "name": group.name,
+                "items": [],
+            }
+
+        # Sort subcategories into groups or items
+        for sub in cat.subcategories:
+            item = SubcategoryItem(
+                key=sub.key,
+                label=sub.name,
+                requires_size=sub.requires_size,
+            )
+            if sub.group_key and sub.group_key in groups_map:
+                groups_map[sub.group_key]["items"].append(item)
+            else:
+                cat_data["items"].append(item.model_dump())
+
+        cat_data["groups"] = [
+            SubcategoryGroup(**g) for g in groups_map.values() if g["items"]
+        ]
+
+        output.append(cat_data)
+
+    return output
+
+
+async def get_filter_config(session: AsyncSession) -> FilterConfig:
+    categories_data = await _load_categories_from_db(session)
+
+    categories = [
+        CategoryFilter(
+            key=cat["key"],
+            label=cat["label"],
+            icon=cat.get("icon"),
+            groups=cat.get("groups") or None,
+            items=[SubcategoryItem(**i) for i in cat.get("items", [])] or None,
+        )
+        for cat in categories_data
+    ]
 
     countries = [GeoItem(**c) for c in GEO_COUNTRIES]
 
-    return FilterConfig(
+    config = FilterConfig(
         categories=categories,
         countries=countries,
         default_cities=list(DEFAULT_CITIES),
@@ -175,9 +216,6 @@ def _build_static_filter_config() -> FilterConfig:
         ad_types=AD_TYPES,
     )
 
-
-async def get_filter_config(session: AsyncSession) -> FilterConfig:
-    config = _build_static_filter_config()
     by_country, all_cities = await _load_cities_from_ads(session)
 
     known_country_keys = {c.key for c in config.countries}
@@ -187,7 +225,6 @@ async def get_filter_config(session: AsyncSession) -> FilterConfig:
         db_cities = by_country.get(country.key, set())
         country.cities = _sort_cities(set(country.cities) | db_cities)
 
-    # Cities with unknown / missing country — still selectable
     for key, cities in by_country.items():
         if key not in known_country_keys:
             other_cities |= cities

@@ -15,20 +15,20 @@ class AuthService:
     async def authenticate(
         self, session: AsyncSession, token: str
     ) -> UserSession | None:
-        print(token)
         stmt = select(UserSession).where(
             UserSession.token == token, UserSession.expires_at > utc_now()
         )
         result = await session.execute(stmt)
         ans = result.unique().scalar_one_or_none()
-        print(ans)
         return ans
 
     async def get_login_response(
-        self, session: AsyncSession, user: User, request: Request
+        self, session: AsyncSession, user: User, request: Request, 
+        custom_user_agent: None | str = None
     ):
+        ua = custom_user_agent or request.headers.get("User-Agent", "")
         user_session = await self._create_user_session(
-            session=session, user=user, user_agent=request.headers.get("User-Agent", "")
+            session=session, user=user, user_agent=ua
         )
 
         return ServerAuthResponse(token=user_session.token, success=True, role=user.role, userId=str(user.id))

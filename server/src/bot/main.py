@@ -23,31 +23,61 @@ def create_dispatcher() -> Dispatcher:
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     
-    # Register handlers
+    # Register handlers (order matters!) 
+    from src.bot.handlers import start as start_handler
+    from src.bot.handlers import add_ad
+    from src.bot.handlers import catalog
+    from src.bot.handlers import my_ads
+    from src.bot.handlers import reviews
     from src.bot.handlers import moderation
-    from src.bot.handlers import auth as auth_handler
+    from src.bot.handlers import admin as admin_handler
+    from src.bot.handlers import echo
 
+    dp.include_router(start_handler.router)
+    dp.include_router(add_ad.router)
+    dp.include_router(catalog.router)
+    dp.include_router(my_ads.router)
+    dp.include_router(reviews.router)
     dp.include_router(moderation.router)
-    dp.include_router(auth_handler.router)
+    dp.include_router(admin_handler.router)
+    dp.include_router(echo.router)  # echo всегда последним
     
     return dp
 
 
-# Global instances
-bot = create_bot()
-dp = create_dispatcher()
+# Global instances — создаются только при старте (не при импорте)
+_bot: Bot | None = None
+_dp: Dispatcher | None = None
+
+
+def get_bot() -> Bot:
+    global _bot
+    if _bot is None:
+        _bot = create_bot()
+    return _bot
+
+
+def get_dispatcher() -> Dispatcher:
+    global _dp
+    if _dp is None:
+        _dp = create_dispatcher()
+    return _dp
 
 
 async def setup_bot():
     """Setup bot (called in lifespan)"""
     log.info("Setting up Telegram bot...")
-    # Для тестов используем polling вместо webhook
+    bot = get_bot()
+    dp = get_dispatcher()
     log.info("Telegram bot ready (polling mode for tests)")
+    print("@", (await bot.me()).username, sep='')
+    await dp.start_polling(bot)
 
 
 async def shutdown_bot():
     """Shutdown bot"""
     log.info("Shutting down Telegram bot...")
+    bot = get_bot()
     await bot.session.close()
     log.info("Telegram bot stopped")
 
@@ -59,54 +89,12 @@ async def process_update_manually(update_data: dict):
     """
     from aiogram.types import Update
     update = Update(**update_data)
-    await dp.feed_update(bot, update)
+    await get_dispatcher().feed_update(get_bot(), update)
 
 
-# from aiogram import Bot, Dispatcher
-# from aiogram.enums import ParseMode
-# from aiogram.client.default import DefaultBotProperties
-# from aiogram.fsm.storage.memory import MemoryStorage
-
-# from src.config import settings
-# from src.logging import get_logger
-
-# log = get_logger()
-
-
-# def create_bot() -> Bot:
-#     """Create Telegram bot instance"""
-#     return Bot(
-#         token=settings.BOT_TOKEN,
-#         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-#     )
-
-
-# def create_dispatcher() -> Dispatcher:
-#     """Create dispatcher with FSM storage"""
-#     storage = MemoryStorage()
-#     dp = Dispatcher(storage=storage)
-    
-#     # Register handlers
-#     from src.bot.handlers import moderation
-#     dp.include_router(moderation.router)
-    
-#     return dp
-
-
-# # Global instances
-# bot = create_bot()
-# dp = create_dispatcher()
-
-
-# async def setup_bot():
-#     """Setup bot (called in lifespan)"""
-#     log.info("Setting up Telegram bot...")
-#     # Webhook will be set separately
-#     log.info("Telegram bot ready")
-
-
-# async def shutdown_bot():
-#     """Shutdown bot"""
-#     log.info("Shutting down Telegram bot...")
-#     await bot.session.close()
-#     log.info("Telegram bot stopped")
+if __name__ == "__main__":
+    import asyncio
+    try:
+        asyncio.run(setup_bot())
+    except Exception as e:
+        print("Failed bot: {e}".format(e))
