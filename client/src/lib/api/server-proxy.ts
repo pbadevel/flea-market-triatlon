@@ -1,7 +1,8 @@
 // Server-side API proxy – hides backend domain from client
 import { createServerFn } from '@tanstack/react-start'
+import { BASE_URL } from './endpoints'
 
-const API_HOST = 'http://127.0.0.1:8000'
+const API_HOST = `${BASE_URL}`
 
 // Generic API proxy for JSON requests
 export const serverApi = createServerFn()
