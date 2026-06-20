@@ -2,11 +2,17 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useEffect, useState } from 'react'
 import { CheckCircle, XCircle } from 'lucide-react'
+import { useAppSession } from '@/lib/session'
 
 const confirmEmailFn = createServerFn()
   .inputValidator((data: { token: string }) => data)
   .handler(async ({ data }) => {
-    const res = await fetch(`http://127.0.0.1:8000/v1/auth/confirm-email?token=${encodeURIComponent(data.token)}`)
+    const resp = await fetch(`http://127.0.0.1:8000/v1/auth/confirm-email?token=${encodeURIComponent(data.token)}`)
+    const result = await resp.json()
+    if (result.success) {
+        const session = await useAppSession()
+        await session.update({ token: result.token, isAdmin: result.role === 'ADMIN', isModerator: result.role === 'MODERATOR' })
+    }
     return await res.json()
   })
 

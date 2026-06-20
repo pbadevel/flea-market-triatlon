@@ -203,6 +203,7 @@ async def confirm_email(
             "message": "Email успешно подтверждён",
             "token": auth_response.token,
             "userId": str(user.id),
+            "role": user.role
         }
 
 

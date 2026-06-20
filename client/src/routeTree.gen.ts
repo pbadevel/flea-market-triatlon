@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthConfirmEmailRouteImport } from './routes/auth/confirm-email'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppProductRouteImport } from './routes/_app/product'
 import { Route as AppMyAdsRouteImport } from './routes/_app/my-ads'
@@ -47,6 +48,11 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthConfirmEmailRoute = AuthConfirmEmailRouteImport.update({
+  id: '/auth/confirm-email',
+  path: '/auth/confirm-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/my-ads': typeof AppMyAdsRoute
   '/product': typeof AppProductRouteWithChildren
   '/profile': typeof AppProfileRoute
+  '/auth/confirm-email': typeof AuthConfirmEmailRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/product/$productId': typeof AppProductProductIdRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/my-ads': typeof AppMyAdsRoute
   '/product': typeof AppProductRouteWithChildren
   '/profile': typeof AppProfileRoute
+  '/auth/confirm-email': typeof AuthConfirmEmailRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/product/$productId': typeof AppProductProductIdRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_app/my-ads': typeof AppMyAdsRoute
   '/_app/product': typeof AppProductRouteWithChildren
   '/_app/profile': typeof AppProfileRoute
+  '/auth/confirm-email': typeof AuthConfirmEmailRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/_app/': typeof AppIndexRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/my-ads'
     | '/product'
     | '/profile'
+    | '/auth/confirm-email'
     | '/auth/login'
     | '/auth/register'
     | '/product/$productId'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/my-ads'
     | '/product'
     | '/profile'
+    | '/auth/confirm-email'
     | '/auth/login'
     | '/auth/register'
     | '/product/$productId'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_app/my-ads'
     | '/_app/product'
     | '/_app/profile'
+    | '/auth/confirm-email'
     | '/auth/login'
     | '/auth/register'
     | '/_app/'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
+  AuthConfirmEmailRoute: typeof AuthConfirmEmailRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
 }
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/confirm-email': {
+      id: '/auth/confirm-email'
+      path: '/auth/confirm-email'
+      fullPath: '/auth/confirm-email'
+      preLoaderRoute: typeof AuthConfirmEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/profile': {
@@ -387,6 +407,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
+  AuthConfirmEmailRoute: AuthConfirmEmailRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
 }
