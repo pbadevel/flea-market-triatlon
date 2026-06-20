@@ -101,7 +101,7 @@ function MyAdsPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
         <div className="page-wrap">
-          <div className="flex h-14 items-center justify-between gap-2">
+          <div className="flex min-h-14 items-center justify-between gap-2 flex-wrap py-2">
             <div className="flex items-center gap-3 min-w-0 shrink">
               <Link
                 to="/"

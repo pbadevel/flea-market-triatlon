@@ -185,7 +185,7 @@ function ProfilePage() {
 
         {/* Profile Info */}
         <div className="rounded-lg border border-(--line) bg-white p-6">
-          <div className="flex items-center justify-between mb-6 gap-2">
+          <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
               Информация о пользователе
             </h2>
@@ -231,7 +231,7 @@ function ProfilePage() {
 
         {/* My Ads */}
         <div className="rounded-lg border border-(--line) bg-white p-6 mb-10">
-          <div className="flex items-center justify-between mb-6 gap-2">
+          <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
               Мои объявления
             </h2>
