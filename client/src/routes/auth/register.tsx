@@ -15,11 +15,13 @@ import {
   Loader2,
   ExternalLink,
   MailCheck,
+  RefreshCw,
 } from 'lucide-react'
 import {
   initTelegramAuthFn,
   checkTelegramAuthStatusFn,
   registerEmailFn,
+  resendConfirmationFn,
 } from '@/lib/api/auth'
 import { getSession } from '@/lib/session'
 
@@ -104,6 +106,16 @@ function RegisterPage() {
     },
   })
 
+  const resendMutation = useMutation({
+    mutationFn: (email: string) => resendConfirmationFn({data: { email, password: '' }}),
+    onSuccess: (data) => {
+      alert(data.message || 'Письмо отправлено')
+    },
+    onError: (err) => {
+      alert(err.message || 'Ошибка отправки')
+    },
+  })
+
   const handleTelegramAuth = () => {
     setError('')
     setTgAuthStatus('idle')
@@ -163,6 +175,14 @@ function RegisterPage() {
                 <li>Проверьте папку «Спам»</li>
                 <li>Убедитесь, что адрес {registeredEmail} указан верно</li>
               </ol>
+              <button
+                onClick={() => resendMutation.mutate(registeredEmail)}
+                disabled={resendMutation.isPending}
+                className="mt-3 inline-flex items-center gap-1 text-sm text-(--palm) hover:underline disabled:opacity-50"
+              >
+                <RefreshCw className={`size-3.5 ${resendMutation.isPending ? 'animate-spin' : ''}`} />
+                {resendMutation.isPending ? 'Отправка...' : 'Выслать повторно'}
+              </button>
             </div>
 
             <div className="pt-4 border-t border-(--line)">

@@ -34,6 +34,7 @@ export const AUTH_TELEGRAM_INIT_ENDPOINT = `${BASE_URL}/auth/telegram/init`;
 export const AUTH_TELEGRAM_STATUS_ENDPOINT = `${BASE_URL}/auth/telegram/status`;
 export const AUTH_REGISTER_EMAIL_ENDPOINT = `${BASE_URL}/auth/register/email`;
 export const AUTH_LOGIN_EMAIL_ENDPOINT = `${BASE_URL}/auth/login/email`;
+export const AUTH_RESEND_CONFIRM_ENDPOINT = `${BASE_URL}/auth/resend-confirmation`;
 
 // PROFILE
 export const PROFILE_ME_ENDPOINT = `${BASE_URL}/users/me`;

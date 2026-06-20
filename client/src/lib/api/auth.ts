@@ -6,6 +6,7 @@ import {
   AUTH_TELEGRAM_STATUS_ENDPOINT,
   AUTH_REGISTER_EMAIL_ENDPOINT,
   AUTH_LOGIN_EMAIL_ENDPOINT,
+  AUTH_RESEND_CONFIRM_ENDPOINT,
 } from './endpoints';
 
 import { useAppSession } from '../session';
@@ -97,4 +98,12 @@ export const loginEmailFn = createServerFn()
     }
 
     return response;
+  });
+export const resendConfirmationFn = createServerFn()
+  .inputValidator((data: { email: string; password: string }) => data)
+  .handler(async ({ data }) => {
+    return await apiRequest<{ success: boolean; message: string }>(
+      AUTH_RESEND_CONFIRM_ENDPOINT,
+      { method: "POST", body: data }
+    );
   });

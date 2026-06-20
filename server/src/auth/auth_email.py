@@ -119,6 +119,49 @@ async def register_email(
         return {"success": True, "message": "Письмо с подтверждением отправлено на email", "email": data.email}
 
 
+@router.post("/resend-confirmation")
+async def resend_confirmation(
+    data: EmailRegisterRequest,
+):
+    """
+    Повторная отправка письма с подтверждением email."""
+    async with database_service.get_session() as session:
+        # Ищем credentials по email
+        stmt = select(UserCredentials).where(UserCredentials.email == data.email)
+        result = await session.execute(stmt)
+        creds = result.scalar_one_or_none()
+        
+        if not creds:
+            raise HTTPException(404, detail="Пользователь с таким email не найден")
+        
+        if creds.is_email_verified:
+            raise HTTPException(400, detail="Email уже подтверждён")
+        
+        # Генерируем новый токен
+        creds.email_confirm_token = secrets.token_urlsafe(32)
+        await session.flush()
+        
+        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token=***}"
+        html = f"""<html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Подтвердите email</h2>
+            <p>Перейдите по ссылке для подтверждения регистрации:</p>
+            <p><a href=\"{confirm_url}\" style="display: inline-block; padding: 12px 24px; background: #2ecc71; color: white; text-decoration: none; border-radius: 8px;">Подтвердить email</a></p>
+            <p>Или скопируйте ссылку: {confirm_url}</p>
+        </body>
+        </html>"""
+        
+        await session.commit()
+        
+        await email_service.send_email(
+            to=data.email,
+            subject="Подтверждение email на flea-market",
+            html_body=html,
+        )
+        
+        return {"success": True, "message": "Письмо отправлено повторно"}
+
+
 @router.get("/confirm-email", response_model=dict)
 async def confirm_email(
     request: Request,
