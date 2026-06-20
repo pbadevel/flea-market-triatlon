@@ -11,7 +11,9 @@ function App() {
   return (
     <div className="min-h-screen">
       <Header />
-      <Outlet />
+      <main className="pb-24 lg:pb-0">
+        <Outlet />
+      </main>
       <UserTabbar />
     </div>
   )
