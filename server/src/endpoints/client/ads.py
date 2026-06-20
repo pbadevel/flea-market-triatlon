@@ -1,7 +1,7 @@
 # src/api/endpoints/ads.py
 import os
 
-from fastapi import APIRouter, Query, Form, File, Depends, UploadFile, HTTPException
+from fastapi import APIRouter, Query, Form, File, Depends, UploadFile, HTTPException, BackgroundTasks
 from sqlalchemy import select, func, or_
 from sqlalchemy.orm import joinedload, selectinload
 from src.models import Ad, AdStatus, Review, User, AdPhoto
@@ -122,6 +122,7 @@ async def list_ads(
 
 @router.post("", response_model=MyAdOut, status_code=201)
 async def create_ad(
+    background_tasks: BackgroundTasks,
     user: WebUser,
     title: Annotated[str, Form()],
     price: Annotated[int, Form()],
@@ -180,8 +181,8 @@ async def create_ad(
         fresh_user = await user_service.get_repository(session).get_by_id(user.id)
         ad = await ad_service.create_ad(session, fresh_user, ad_data) # pyright: ignore
         
-        # Отправка в канал
-        await tg_service_notifier.send_ad_for_moderation(ad)
+        # Отправка в канал (фоном, чтобы не ждать)
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation, ad)
         
         await session.commit()
         
@@ -247,6 +248,7 @@ async def moderate_ad(
 
 @router.post("/{ad_id}/resend", response_model=MyAdOut)
 async def resend_ad(
+    background_tasks: BackgroundTasks,
     ad_id: int,
     user: WebUser,
 ):
@@ -269,8 +271,9 @@ async def resend_ad(
         ad.status = AdStatus.pending.value
         ad.rejection_reason = None
         
-        await tg_service_notifier.delete_ad_from_channel(ad)
-        await tg_service_notifier.send_ad_for_moderation(ad)
+        # Уведомления фоном
+        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel, ad)
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation, ad)
         
         await session.commit()
         
@@ -303,6 +306,7 @@ async def get_ad_for_edit(
 
 @router.put("/{ad_id}", response_model=MyAdOut)
 async def update_ad(
+    background_tasks: BackgroundTasks,
     ad_id: int,
     user: WebUser,
     title: str = Form(...),
@@ -389,9 +393,9 @@ async def update_ad(
             )
             session.add(new_photo)
         
-        # Сначала отправляем уведомления (пока сессия жива), потом коммитим
-        await tg_service_notifier.delete_ad_from_channel(ad)
-        await tg_service_notifier.send_ad_for_moderation(ad)
+        # Уведомления фоном (чтобы не блокировать ответ)
+        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel, ad)
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation, ad)
 
         await session.commit()
         
@@ -402,6 +406,7 @@ async def update_ad(
 
 @router.delete("/{ad_id}")
 async def delete_ad(
+    background_tasks: BackgroundTasks,
     ad_id: int,
     user: WebUser,
 ):
@@ -431,7 +436,7 @@ async def delete_ad(
         await session.delete(ad)
         await session.commit()
         
-        await tg_service_notifier.delete_ad_from_channel(ad)
+        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel, ad)
 
         return {"status": "ok", "message": "Объявление удалено"}
     
