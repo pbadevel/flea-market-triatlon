@@ -36,7 +36,8 @@ class EmailService:
             with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
                 server.starttls()
                 if settings.SMTP_USER:
-                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD.get_secret_value())
+                    password = settings.SMTP_PASSWORD.get_secret_value() if hasattr(settings.SMTP_PASSWORD, 'get_secret_value') else settings.SMTP_PASSWORD
+                    server.login(settings.SMTP_USER, password)
                 server.sendmail(settings.SMTP_FROM, [to], msg.as_string())
 
             log.info("Email sent to %s: %s", to, subject)
