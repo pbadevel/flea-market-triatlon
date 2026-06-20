@@ -101,24 +101,24 @@ function MyAdsPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
         <div className="page-wrap">
-          <div className="flex h-14 items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex h-14 items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0 shrink">
               <Link
                 to="/"
-                className="flex items-center gap-1 text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                className="flex items-center gap-1 text-(--sea-ink-soft) hover:text-(--sea-ink) shrink-0"
               >
-                <ArrowLeft className="size-5" />
-                <span className="text-sm">Назад</span>
+                <ArrowLeft className="size-5 shrink-0" />
+                <span className="text-sm whitespace-nowrap">Назад</span>
               </Link>
-              <h1 className="text-lg font-semibold text-(--sea-ink)">
+              <h1 className="text-lg font-semibold text-(--sea-ink) whitespace-nowrap">
                 Мои объявления
               </h1>
             </div>
             <Link
               to="/create-ad"
-              className="flex items-center gap-1 rounded-lg bg-(--palm) px-3 py-1.5 text-sm font-medium text-white hover:bg-(--palm)/90"
+              className="shrink-0 flex items-center gap-1 rounded-lg bg-(--palm) px-3 py-1.5 text-sm font-medium text-white hover:bg-(--palm)/90 whitespace-nowrap"
             >
-              <Plus className="size-4" />
+              <Plus className="size-4 shrink-0" />
               Создать
             </Link>
           </div>

@@ -185,22 +185,22 @@ function ProfilePage() {
 
         {/* Profile Info */}
         <div className="rounded-lg border border-(--line) bg-white p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-(--sea-ink)">
+          <div className="flex items-center justify-between mb-6 gap-2">
+            <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
               Информация о пользователе
             </h2>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="flex items-center gap-2 text-sm text-(--palm) hover:underline"
+              className="shrink-0 flex items-center gap-1.5 text-sm text-(--palm) hover:underline whitespace-nowrap"
             >
               {isEditing ? (
                 <>
-                  <X className="size-4" />
+                  <X className="size-4 shrink-0" />
                   Отмена
                 </>
               ) : (
                 <>
-                  <Edit3 className="size-4" />
+                  <Edit3 className="size-4 shrink-0" />
                   Редактировать
                 </>
               )}
@@ -231,13 +231,13 @@ function ProfilePage() {
 
         {/* My Ads */}
         <div className="rounded-lg border border-(--line) bg-white p-6 mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-(--sea-ink)">
+          <div className="flex items-center justify-between mb-6 gap-2">
+            <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
               Мои объявления
             </h2>
             <Link
               to="/create-ad"
-              className="text-sm text-(--palm) hover:underline"
+              className="shrink-0 text-sm text-(--palm) hover:underline whitespace-nowrap"
             >
               Создать новое
             </Link>

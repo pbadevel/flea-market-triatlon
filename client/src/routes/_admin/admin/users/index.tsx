@@ -88,13 +88,13 @@ function UsersPage() {
                       {u.is_root && <Star className="size-3 text-yellow-500" title="Root admin" />}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <Link to="/admin/users/$userId" params={{ userId: String(u.id) }} className="flex items-center gap-1 text-(--palm) hover:underline">
-                      <Eye className="size-3" /> Смотреть
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <Link to="/admin/users/$userId" params={{ userId: String(u.id) }} className="flex items-center gap-1 text-(--palm) hover:underline whitespace-nowrap">
+                      <Eye className="size-3 shrink-0" /> Смотреть
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 shrink-0">
                       {u.role !== 'admin' && !u.is_root && (
                         <button onClick={() => updateMut.mutate({ id: u.id, data: { role: u.role === 'moderator' ? 'user' : 'moderator' } })}
                           className="rounded p-1.5 hover:bg-gray-100"
