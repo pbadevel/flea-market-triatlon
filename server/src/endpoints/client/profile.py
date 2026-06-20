@@ -91,7 +91,7 @@ async def update_my_profile(
                     await session.flush()
                     
                     if data.email:
-                        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token=***"
+                        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={credentials.email_confirm_token}"
                         html = f"""<html><body style="font-family:Arial;padding:20px">
                             <h2>Подтвердите email</h2>
                             <p>Перейдите по ссылке:</p>
@@ -109,7 +109,7 @@ async def update_my_profile(
                 await session.flush()
                 
                 if data.email:
-                    confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token=***"
+                    confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={credentials.email_confirm_token}"
                     html = f"""<html><body style="font-family:Arial;padding:20px">
                         <h2>Подтвердите регистрацию</h2>
                         <p><a href=\"{confirm_url}\" style="display:inline-block;padding:12px 24px;background:#2ecc71;color:white;text-decoration:none;border-radius:8px">Подтвердить email</a></p>
