@@ -180,10 +180,10 @@ async def get_ad_detail(
             .options(
                 selectinload(Ad.photos),
                 selectinload(Ad.tags),
-                # ИСПРАВЛЕНО: загружаем продавца + его отзывы + авторов отзывов
                 joinedload(Ad.seller)
                     .selectinload(User.reviews_received)
-                    .selectinload(Review.reviewer)
+                    .selectinload(Review.reviewer),
+                joinedload(Ad.seller).selectinload(User.credentials),
             )
         )
         

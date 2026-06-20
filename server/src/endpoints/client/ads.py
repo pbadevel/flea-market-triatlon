@@ -60,9 +60,10 @@ async def list_ads(
         
         stmt = stmt.options(
             selectinload(Ad.photos),
-            joinedload(Ad.seller).selectinload(User.reviews_received).options(
-                joinedload(Review.reviewer)
-            )
+            joinedload(Ad.seller)
+                .selectinload(User.reviews_received)
+                .options(joinedload(Review.reviewer)),
+            joinedload(Ad.seller).selectinload(User.credentials),
         )
         
         # Filters (multiple values = OR within group, AND across groups)

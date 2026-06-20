@@ -28,10 +28,10 @@ async def get_product(
             )
             .options(
                 joinedload(Ad.photos),
-                # Загружаем продавца, затем его отзывы, и ВНУТРИ отзывов — автора (reviewer)
-                joinedload(Ad.seller).selectinload(User.reviews_received).options(
-                    joinedload(Review.reviewer)
-                )
+                joinedload(Ad.seller)
+                    .selectinload(User.reviews_received)
+                    .options(joinedload(Review.reviewer)),
+                joinedload(Ad.seller).selectinload(User.credentials),
             )
         )
                 
