@@ -124,7 +124,7 @@ function CreateAdPage() {
       return await createAd(data, token!)
     },
     onSuccess: () => {
-      navigate({ to: '/' })
+      navigate({ to: '/my-ads' })
     },
     onError: (err) => {
       setError(err.message || 'Ошибка при создании объявления')

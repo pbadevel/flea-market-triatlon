@@ -12,6 +12,7 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from src.logging import get_logger
 from src.kit.database.service import database_service
+from src.kit.utils import map_country, get_ru_condition
 from src.models import Ad, AdStatus, AdPhoto, Review, User
 from src.bot.keyboards import *
 from src.bot.texts import *
@@ -280,3 +281,44 @@ async def show_reviews(callback: CallbackQuery):
                 text += f"\n   {r.comment[:100]}"
 
     await callback.answer(text, show_alert=True)
+
+
+@router.callback_query(lambda c: c.data.startswith("detail:"))
+async def detail_button_handler(callback: CallbackQuery):
+    """Обработчик кнопки 'Подробнее' из канала."""
+    ad_id = callback.data.split(":")[1]
+    
+    async with database_service.get_session() as session:
+        result = await session.execute(
+            select(Ad).where(Ad.id == int(ad_id)).options(
+                joinedload(Ad.photos),
+                joinedload(Ad.seller),
+            )
+        )
+        ad = result.scalars().first()
+        
+        if not ad:
+            await callback.answer("Объявление не найдено", show_alert=True)
+            return
+        
+        country_ru = map_country(ad.country) if ad.country else None
+        location = f"{country_ru} - {ad.city}" if country_ru else ad.city
+        
+        msg = (
+            f"🛍 <b>{ad.title}</b>\n\n"
+            f"📍 {location}\n"
+            f"🏷 {ad.category}{f' → {ad.subcategory}' if ad.subcategory else ''}\n"
+            f"📦 {get_ru_condition(ad.condition)}\n"
+            f"💰 <b>{ad.price:,} ₽</b>\n"
+        )
+        if ad.description:
+            msg += f"\n📝 {ad.description[:500]}"
+        
+        msg += f"\n\n👤 Продавец: @{ad.seller.username if ad.seller and ad.seller.username else 'не указан'}"
+        if ad.seller and ad.seller.first_name:
+            msg += f" ({ad.seller.first_name})"
+        
+        await callback.answer(
+            "Скоро здесь будет ссылка на сайт 🚀",
+            show_alert=True,
+        )

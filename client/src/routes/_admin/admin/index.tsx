@@ -285,51 +285,51 @@ function AdModerationCard({
 }) {
   return (
     <div className="rounded-lg border border-(--line) bg-white p-4">
-      <div className="flex gap-4">
-        {ad.cover_url && (
-          <Link
-            // to="/admin/ads/$adId"
-            to="/admin/ads/$adId"
-            params={{ adId: String(ad.id) }}
-            className="shrink-0 block"
-            onClick={(e) => {
-              console.log('Click on image, adId:', ad.id)
-            }}
-          >
-            <img
-              src={ad.cover_url}
-              alt={ad.title}
-              className="h-24 w-24 rounded-lg object-cover hover:opacity-80 transition"
-            />
-          </Link>
-        )}
-        <div className="flex-1 min-w-0">
-          <Link
-            // to="/admin/ads/$adId"
-            to="/admin/ads/$adId"
-            params={{ adId: String(ad.id) }}
-            className="font-medium text-(--sea-ink) line-clamp-2 hover:text-(--palm) transition block"
-            onClick={(e) => {
-              console.log('Click on title, adId:', ad.id)
-            }}
-          >
-            {ad.title}
-          </Link>
-          <p className="mt-1 text-lg font-bold text-(--sea-ink)">
-            {ad.price.toLocaleString()} ₽
-          </p>
-          <p className="mt-1 text-sm text-(--sea-ink-soft)">
-            {ad.city}{ad.country ? `, ${ad.country}` : ''} · {ad.category}
-          </p>
-          <p className="mt-1 text-xs text-(--sea-ink-soft)">
-            {new Date(ad.created_at).toLocaleString('ru-RU')}
-          </p>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex gap-4 flex-1 min-w-0">
+          {ad.cover_url && (
+            <Link
+              to="/admin/ads/$adId"
+              params={{ adId: String(ad.id) }}
+              className="shrink-0 block"
+              onClick={(e) => {
+                console.log('Click on image, adId:', ad.id)
+              }}
+            >
+              <img
+                src={ad.cover_url}
+                alt={ad.title}
+                className="h-20 w-20 md:h-24 md:w-24 rounded-lg object-cover hover:opacity-80 transition"
+              />
+            </Link>
+          )}
+          <div className="flex-1 min-w-0">
+            <Link
+              to="/admin/ads/$adId"
+              params={{ adId: String(ad.id) }}
+              className="font-medium text-(--sea-ink) line-clamp-2 hover:text-(--palm) transition block"
+              onClick={(e) => {
+                console.log('Click on title, adId:', ad.id)
+              }}
+            >
+              {ad.title}
+            </Link>
+            <p className="mt-1 text-lg font-bold text-(--sea-ink)">
+              {ad.price.toLocaleString()} ₽
+            </p>
+            <p className="mt-1 text-sm text-(--sea-ink-soft)">
+              {ad.city}{ad.country ? `, ${ad.country}` : ''} · {ad.category}
+            </p>
+            <p className="mt-1 text-xs text-(--sea-ink-soft)">
+              {new Date(ad.created_at).toLocaleString('ru-RU')}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-2 shrink-0">
+        <div className="flex flex-row md:flex-col gap-2 shrink-0">
           <Link
             to="/admin/ads/$adId"
             params={{ adId: String(ad.id) }}
-            className="flex items-center justify-center gap-1 rounded-lg border border-(--line) px-3 py-2 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover)"
+            className="flex-1 md:flex-none flex items-center justify-center gap-1 rounded-lg border border-(--line) px-3 py-2 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover)"
             onClick={(e) => {
               console.log('Click on view button, adId:', ad.id)
             }}
@@ -340,7 +340,7 @@ function AdModerationCard({
           <button
             onClick={onApprove}
             disabled={disabled}
-            className="flex items-center gap-1 rounded-lg bg-green-500 px-3 py-2 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50"
+            className="flex-1 md:flex-none flex items-center justify-center gap-1 rounded-lg bg-green-500 px-3 py-2 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50"
           >
             <CheckCircle className="size-4" />
             Одобрить
@@ -348,7 +348,7 @@ function AdModerationCard({
           <button
             onClick={onReject}
             disabled={disabled}
-            className="flex items-center gap-1 rounded-lg bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+            className="flex-1 md:flex-none flex items-center justify-center gap-1 rounded-lg bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
           >
             <XCircle className="size-4" />
             Отклонить

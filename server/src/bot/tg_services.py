@@ -8,7 +8,7 @@ from aiogram.enums import ParseMode
 
 
 from src.models import Ad, User
-from src.kit.utils import get_bot, get_ru_condition
+from src.kit.utils import get_bot, get_ru_condition, map_country
 from src.kit.database.service import database_service
 from src.services import user_service
 
@@ -17,14 +17,17 @@ from src.logging import get_logger
 
 log = get_logger()
 
-def get_publish_text_to_channel(ad: Ad): 
+def get_publish_text_to_channel(ad: Ad):
+    country_ru = map_country(ad.country) if ad.country else ""
+    location = f"{country_ru} - {ad.city}" if country_ru else ad.city
 
-    return f'🛍 <b>{ad.title}</b>\n\n' \
-    \
-    f'📍 {ad.country+" - " if ad.country else ""}{ad.city}\n' \
-    f'{f"📏 Размер: {ad.size}" if ad.size else ""}\n' \
-    f'📦 {get_ru_condition(ad.condition)}\n' \
-    f'🛒 <b>{ad.price:,} ₽</b>' \
+    return (
+        f'🛍 <b>{ad.title}</b>\n\n'
+        f'📍 {location}\n'
+        f'{f"📏 Размер: {ad.size}\n" if ad.size else ""}'
+        f'📦 {get_ru_condition(ad.condition)}\n'
+        f'🛒 <b>{ad.price:,} ₽</b>'
+    )
 
 def _format_seller(ad: Ad) -> str:
     """Format seller info for moderation message — works for both tg and email users."""
@@ -91,18 +94,12 @@ class TgService:
             # Build message for channel
             text=get_publish_text_to_channel(ad) + water_text
             
-            # Contact button Позже когда будет домен вставить url site
-            # builder = InlineKeyboardBuilder()
-            # if ad.contact_method == "telegram":
-            #     builder.button(
-            #         text="📩 Написать продавцу",
-            #         url=f"https://t.me/{ad.seller.username or ad.seller.tg_user_id}"
-            #     )
-            # elif ad.contact_method == "phone" and ad.seller.phone:
-            #     builder.button(
-            #         text="📞 Позвонить",
-            #         url=f"tel:{ad.seller.phone}"
-            #     )
+            # Build keyboard
+            builder = InlineKeyboardBuilder()
+            builder.button(
+                text="🔍 Подробнее",
+                callback_data=f"detail:{ad.id}"
+            )
             
             # Send to channel
             channel_id = settings.TELEGRAM_CHANNEL_ID
@@ -152,7 +149,7 @@ class TgService:
                         channel_id,
                         photo=photo.file_id,
                         caption=text,
-                        # reply_markup=builder.as_markup(),
+                        reply_markup=builder.as_markup(),
                         parse_mode=ParseMode.HTML,
                     )
                     return msg.message_id
@@ -164,7 +161,7 @@ class TgService:
                         channel_id,
                         photo=BufferedInputFile(photo_bytes, filename="photo.jpg"),
                         caption=text,
-                        # reply_markup=builder.as_markup(),
+                        reply_markup=builder.as_markup(),
                         parse_mode=ParseMode.HTML,
                     )
                     return msg.message_id
@@ -173,7 +170,7 @@ class TgService:
             msg = await self.bot.send_message(
                 channel_id,
                 text,
-                # reply_markup=builder.as_markup(),
+                reply_markup=builder.as_markup(),
                 parse_mode=ParseMode.HTML,
             )
             return msg.message_id
