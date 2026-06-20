@@ -110,7 +110,7 @@ function ProfilePage() {
   }
 
   // Проверка на наличие способов связи
-  const hasNoContact = !profile.username && !profile.email && !profile.phone
+  const hasNoContact = !profile.username && !(profile.email && profile.is_email_verified) && !profile.phone
 
   return (
     <div className="min-h-screen bg-(--bg)">
@@ -323,6 +323,15 @@ function ProfileInfo({ profile }: { profile: UserProfile }) {
           label="Email"
           value={profile.email || 'Не указан'}
         />
+        {profile.email && !profile.is_email_verified && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+            <span className="text-yellow-600 text-lg">⚠️</span>
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium">Email не подтверждён</p>
+              <p className="text-xs mt-0.5">Проверьте почту {profile.email} и перейдите по ссылке из письма</p>
+            </div>
+          </div>
+        )}
         <InfoField
           icon={<Phone className="size-4" />}
           label="Телефон"

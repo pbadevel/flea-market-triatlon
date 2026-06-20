@@ -9,8 +9,10 @@ from src.models import User, Ad, AdStatus, UserCredentials
 from src.schemas.profile import UserProfileOut, UserProfileUpdate, UserStats
 from src.repositories.users import UserRepository
 from src.services.auth.password import hash_password
+from src.services.email import email_service
 import secrets
 from src.enums import UserRole
+from src.config import settings
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -33,6 +35,7 @@ async def get_my_profile(user: WebUser):
             "last_name": user.last_name,
             "phone": user.phone,
             "email": credentials.email if credentials else None,
+            "is_email_verified": credentials.is_email_verified if credentials else False,
             "is_moderator": user.role==UserRole.MODERATOR,
             "is_trusted_seller": user.is_trusted_seller,
             "agreed_to_terms": user.agreed_to_terms,
@@ -80,16 +83,38 @@ async def update_my_profile(
             credentials = result.scalar_one_or_none()
             
             if credentials:
-                credentials.email = data.email
+                email_changed = credentials.email != data.email
+                if email_changed:
+                    credentials.email = data.email
+                    credentials.is_email_verified = False
+                    credentials.email_confirm_token = secrets.token_urlsafe(32)
+                    await session.flush()
+                    
+                    if data.email:
+                        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token=***}"
+                        html = f"""<html><body style="font-family:Arial;padding:20px">
+                            <h2>Подтвердите email</h2>
+                            <p>Перейдите по ссылке:</p>
+                            <p><a href=\"{confirm_url}\" style="display:inline-block;padding:12px 24px;background:#2ecc71;color:white;text-decoration:none;border-radius:8px">Подтвердить</a></p>
+                        </body></html>"""
+                        await email_service.send_email(to=data.email, subject="Подтверждение email", html_body=html)
             else:
-                # Создаем credentials если их нет
-                new_credentials = UserCredentials(
+                new_creds = UserCredentials(
                     user_id=fresh_user.id,
                     email=data.email,
                     password_hash=hash_password(secrets.token_urlsafe(32)),
                     is_email_verified=False,
                 )
-                session.add(new_credentials)
+                session.add(new_creds)
+                await session.flush()
+                
+                if data.email:
+                    confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token=***}"
+                    html = f"""<html><body style="font-family:Arial;padding:20px">
+                        <h2>Подтвердите регистрацию</h2>
+                        <p><a href=\"{confirm_url}\" style="display:inline-block;padding:12px 24px;background:#2ecc71;color:white;text-decoration:none;border-radius:8px">Подтвердить email</a></p>
+                    </body></html>"""
+                    await email_service.send_email(to=data.email, subject="Подтверждение регистрации", html_body=html)
         
         await session.commit()
         

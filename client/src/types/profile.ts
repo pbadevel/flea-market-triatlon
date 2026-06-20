@@ -7,6 +7,7 @@ export interface UserProfile {
   last_name: string | null;
   phone: string | null;
   email: string | null;  // Email
+  is_email_verified: boolean;
   is_moderator: boolean;
   is_trusted_seller: boolean;
   agreed_to_terms: boolean;

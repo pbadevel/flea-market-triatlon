@@ -13,6 +13,7 @@ class UserProfileOut(BaseModel):
     last_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None  # Email из credentials
+    is_email_verified: bool = False
     is_moderator: bool = False
     is_trusted_seller: bool = False
     agreed_to_terms: bool = False
