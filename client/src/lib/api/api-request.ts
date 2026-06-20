@@ -42,13 +42,17 @@ export const rawApiRequest = async <T>(
 
   if (!response.ok) {
     const errorName = json["error"];
-    const errorDetail = JSON.stringify(json["detail"]);
+    const errorDetail = json["detail"] ?? json["message"] ?? "Неизвестная ошибка";
+    const formattedDetail = typeof errorDetail === "string" ? errorDetail : JSON.stringify(errorDetail);
 
     if (json["error"] == "ResourceNotFound") {
-      throw new ResourceNotFound(errorDetail);
+      throw new ResourceNotFound(formattedDetail);
     }
 
-    throw new Error(`${errorName} - ${errorDetail}`);
+    if (errorName && errorName !== "undefined") {
+      throw new Error(`${errorName} - ${formattedDetail}`);
+    }
+    throw new Error(formattedDetail);
   }
 
   return json;
