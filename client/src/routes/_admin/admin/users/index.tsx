@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Users, Search, Shield, ShieldOff, Ban, CheckCircle, Star, Eye } from 'lucide-react'
 import { verifySession } from '@/lib/session'
-import { fetchUsers, updateUser, banUser, unbanUser, makeAdmin } from '@/lib/api/admin/users'
+import { fetchUsers, updateUserRole, banUser, unbanUser, makeAdmin } from '@/lib/api/admin/users'
 
 export const Route = createFileRoute('/_admin/admin/users/')({
   component: UsersPage,
@@ -25,7 +25,7 @@ function UsersPage() {
   })
 
   const updateMut = useMutation({
-    mutationFn: (d: { id: number; data: { role?: string } }) => updateUser(token!, d.id, d.data),
+    mutationFn: (d: { id: number; data: { role?: string } }) => updateUserRole(token!, d.id, d.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
