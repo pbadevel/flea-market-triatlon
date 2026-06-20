@@ -501,6 +501,18 @@ function CreateAdPage() {
 
                 {showCityDropdown && filterConfig && (
                   <div className="absolute z-50 mt-1 w-full rounded-lg border border-(--line) bg-white shadow-lg max-h-64 overflow-y-auto">
+                    {/* Кнопка "Другой город" — в самом верху */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseCustomCity(true)
+                        setShowCityDropdown(false)
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-(--palm) hover:bg-(--link-bg-hover) transition border-b border-(--line)"
+                    >
+                      + Ввести город вручную
+                    </button>
+
                     {/* Популярные города */}
                     {filterConfig.default_cities.length > 0 && (
                       <div>
@@ -555,17 +567,6 @@ function CreateAdPage() {
                       </div>
                     )}
 
-                    {/* Кнопка "Другой город" */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUseCustomCity(true)
-                        setShowCityDropdown(false)
-                      }}
-                      className="w-full px-4 py-2.5 text-left text-sm text-(--palm) hover:bg-(--link-bg-hover) transition border-t border-(--line)"
-                    >
-                      + Ввести город вручную
-                    </button>
                   </div>
                 )}
               </div>
