@@ -13,7 +13,7 @@ const confirmEmailFn = createServerFn()
         const session = await useAppSession()
         await session.update({ token: result.token, isAdmin: result.role === 'ADMIN', isModerator: result.role === 'MODERATOR' })
     }
-    return await res.json()
+    return result
   })
 
 export const Route = createFileRoute('/auth/confirm-email')({
@@ -41,10 +41,6 @@ function ConfirmEmailPage() {
         if (data.success) {
           setStatus('success')
           setMessage('Email успешно подтверждён!')
-          // Сохраняем токен сессии (автоматический вход)
-          if (data.token) {
-            document.cookie = `session=${data.token}; path=/; max-age=${30*24*60*60}; SameSite=Lax`
-          }
           // Redirect to profile after 2 seconds
           setTimeout(() => {
             window.location.href = '/profile'
