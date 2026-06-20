@@ -225,7 +225,7 @@ function MyAdsPage() {
                       )}
 
                       {/* БЛОК КНОПОК УПРАВЛЕНИЯ */}
-                      <div className="flex gap-2 mt-3">
+                      <div className="flex gap-2 mt-3 flex-wrap">
                         {/* Кнопка "Просмотреть" для активных объявлений */}
                         {ad.status === 'approved' && (
                           <Link

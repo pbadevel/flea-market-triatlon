@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Loader2,
   ExternalLink,
+  MailCheck,
 } from 'lucide-react'
 import {
   initTelegramAuthFn,
@@ -50,6 +51,7 @@ function RegisterPage() {
     lastName: '',
   })
   const [error, setError] = useState('')
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
 
   // Telegram auth
   const telegramInitMutation = useMutation({
@@ -95,7 +97,7 @@ function RegisterPage() {
       lastName: formData.lastName || undefined,
     }}),
     onSuccess: () => {
-      navigate({ to: '/' })
+      setRegisteredEmail(formData.email)
     },
     onError: (err) => {
       setError(err.message || 'Произошла ошибка')
@@ -130,6 +132,51 @@ function RegisterPage() {
   if (token) {
     navigate({ to: '/' })
     return null
+  }
+
+  // Показываем экран подтверждения email
+  if (registeredEmail) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <MailCheck className="mx-auto size-16 text-green-500 mb-4" />
+            <h1 className="text-2xl font-bold text-(--sea-ink) mb-2">
+              Почти готово!
+            </h1>
+            <p className="text-(--sea-ink-soft)">
+              Письмо отправлено на <strong>{registeredEmail}</strong>
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center space-y-4">
+            <div className="bg-green-50 rounded-xl p-4">
+              <p className="text-sm text-green-800">
+                Нажмите на ссылку в письме, чтобы подтвердить регистрацию.
+                После подтверждения вы будете автоматически авторизованы.
+              </p>
+            </div>
+
+            <div className="text-sm text-(--sea-ink-soft)">
+              <p>Не пришло письмо?</p>
+              <ol className="mt-2 text-left space-y-1 list-decimal list-inside">
+                <li>Проверьте папку «Спам»</li>
+                <li>Убедитесь, что адрес {registeredEmail} указан верно</li>
+              </ol>
+            </div>
+
+            <div className="pt-4 border-t border-(--line)">
+              <p className="text-xs text-(--sea-ink-soft) mb-3">
+                Уже подтвердили?{' '}
+                <Link to="/auth/login" className="text-(--palm) hover:underline font-medium">
+                  Войти
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -94,13 +94,6 @@ async def register_email(
         user_creds.email_confirm_token = confirm_token
         await session.flush()
         
-        # Создаем сессию
-        response = await auth_service.get_login_response(
-            session=session,
-            user=user,
-            request=request,
-        )
-        
         await session.commit()
         
         # Отправляем письмо с подтверждением
@@ -123,12 +116,7 @@ async def register_email(
             html_body=html,
         )
         
-        return AuthResponse(
-            token=response.token,
-            success=True,
-            userId=str(user.id),
-            role=user.role.value,
-        )
+        return {"success": True, "message": "Письмо с подтверждением отправлено на email", "email": data.email}
 
 
 @router.get("/confirm-email", response_model=dict)
@@ -137,7 +125,7 @@ async def confirm_email(
     token: str = Query(..., description="Токен подтверждения"),
 ):
     """
-    Подтверждение email по токену.
+    Подтверждение email по токену + создание сессии.
     """
     async with database_service.get_session() as session:
         stmt = select(UserCredentials).where(
@@ -150,8 +138,19 @@ async def confirm_email(
         if not creds:
             return {"success": False, "message": "Неверный или устаревший токен"}
         
+        # Подтверждаем email
         creds.is_email_verified = True
         creds.email_confirm_token = None
+        await session.flush()
+        
+        # Создаём сессию для автоматического входа
+        user = creds.user
+        auth_response = await auth_service.get_login_response(
+            session=session,
+            user=user,
+            request=request,
+        )
+        
         await session.commit()
         
         log.info("Email confirmed: %s (user %s)", creds.email, creds.user_id)
@@ -159,6 +158,8 @@ async def confirm_email(
         return {
             "success": True,
             "message": "Email успешно подтверждён",
+            "token": auth_response.token,
+            "userId": str(user.id),
         }
 
 
@@ -182,6 +183,10 @@ async def login_email(
         # Проверяем пароль
         if not verify_password(data.password, credentials.password_hash):
             raise HTTPException(401, detail="Неверный email или пароль")
+        
+        # Проверяем подтверждение email
+        if not credentials.is_email_verified:
+            raise HTTPException(403, detail="Email не подтверждён. Проверьте почту.")
         
         # Получаем пользователя
         user = credentials.user

@@ -30,6 +30,10 @@ function ConfirmEmailPage() {
         if (data.success) {
           setStatus('success')
           setMessage('Email успешно подтверждён!')
+          // Сохраняем токен сессии (автоматический вход)
+          if (data.token) {
+            document.cookie = `session=${data.token}; path=/; max-age=${30*24*60*60}; SameSite=Lax`
+          }
           // Redirect to profile after 2 seconds
           setTimeout(() => {
             window.location.href = '/profile'
