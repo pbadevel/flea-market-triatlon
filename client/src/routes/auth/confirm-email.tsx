@@ -1,6 +1,14 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
 import { useEffect, useState } from 'react'
 import { CheckCircle, XCircle } from 'lucide-react'
+
+const confirmEmailFn = createServerFn()
+  .inputValidator((data: { token: string }) => data)
+  .handler(async ({ data }) => {
+    const res = await fetch(`http://127.0.0.1:8000/v1/auth/confirm-email?token=${encodeURIComponent(data.token)}`)
+    return await res.json()
+  })
 
 export const Route = createFileRoute('/auth/confirm-email')({
   component: ConfirmEmailPage,
@@ -23,10 +31,7 @@ function ConfirmEmailPage() {
 
     const confirm = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_DOMAIN}/v1/auth/confirm-email?token=${encodeURIComponent(token)}`
-        )
-        const data = await res.json()
+        const data = await confirmEmailFn({ data: { token } })
         if (data.success) {
           setStatus('success')
           setMessage('Email успешно подтверждён!')

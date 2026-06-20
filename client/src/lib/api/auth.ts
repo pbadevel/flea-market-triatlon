@@ -1,109 +1,64 @@
 // src/lib/api/auth.ts
 import { createServerFn } from '@tanstack/react-start';
-import { apiRequest } from './api-request';
-import {
-  AUTH_TELEGRAM_INIT_ENDPOINT,
-  AUTH_TELEGRAM_STATUS_ENDPOINT,
-  AUTH_REGISTER_EMAIL_ENDPOINT,
-  AUTH_LOGIN_EMAIL_ENDPOINT,
-  AUTH_RESEND_CONFIRM_ENDPOINT,
-} from './endpoints';
-
 import { useAppSession } from '../session';
+
+const API = 'http://127.0.0.1:8000/v1'
+
+async function apiCall<T>(path: string, options?: { method?: string; body?: unknown; token?: string }): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (options?.token) headers['Authorization'] = `Bearer ${options.token}`
+  const res = await fetch(`${API}${path}`, {
+    method: options?.method || 'GET',
+    headers,
+    body: options?.body ? JSON.stringify(options.body) : undefined,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Request failed' }))
+    throw new Error(typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail))
+  }
+  return await res.json()
+}
 
 // Telegram Auth
 export const initTelegramAuthFn = createServerFn().handler(async () => {
-  return await apiRequest<{ deeplink: string; session_token: string }>(
-    AUTH_TELEGRAM_INIT_ENDPOINT,
-    { method: "POST" }
-  );
-});
+  return await apiCall<{ deeplink: string; session_token: string }>('/auth/telegram/init', { method: 'POST' })
+})
 
 export const checkTelegramAuthStatusFn = createServerFn()
   .inputValidator((data: { session_token: string }) => data)
   .handler(async ({ data }) => {
-
-    const response = await apiRequest<{
-      status: "pending" | "completed" | "expired";
-      token?: string;
-      userId?: string;
-      role?: string;
-    }>(AUTH_TELEGRAM_STATUS_ENDPOINT, {
-      method: "POST",
-      body: data,
-    });
-
-    if (response.token && response.status === "completed") {
-      const session = await useAppSession();
-      await session.update({
-        token: response.token,
-        isAdmin: response.role === "ADMIN",
-        isModerator: response.role === "MODERATOR",
-      });
+    const response = await apiCall<{ status: 'pending' | 'completed' | 'expired'; token?: string; userId?: string; role?: string }>(
+      '/auth/telegram/status', { method: 'POST', body: data }
+    )
+    if (response.token && response.status === 'completed') {
+      const session = await useAppSession()
+      await session.update({ token: response.token, isAdmin: response.role === 'ADMIN', isModerator: response.role === 'MODERATOR' })
     }
-    
     return response
-  });
+  })
 
 // Email Auth
 export const registerEmailFn = createServerFn()
-  .inputValidator((data: {
-    email: string;
-    password: string;
-    firstName?: string;
-    lastName?: string;
-  }) => data)
+  .inputValidator((data: { email: string; password: string; firstName?: string; lastName?: string }) => data)
   .handler(async ({ data }) => {
-    const response = await apiRequest<{
-      success: boolean;
-      message: string;
-      email: string;
-    }>(AUTH_REGISTER_EMAIL_ENDPOINT, {
-      method: "POST",
-      body: data,
-    });
-
-    if (response.token && response.success) {
-      const session = await useAppSession();
-      await session.update({
-        token: response.token,
-        isAdmin: response.role === "ADMIN",
-        isModerator: response.role === "MODERATOR",
-      });
-    }
-
-    return response;
-  });
+    return await apiCall<{ success: boolean; message: string; email: string }>('/auth/register/email', { method: 'POST', body: data })
+  })
 
 export const loginEmailFn = createServerFn()
   .inputValidator((data: { email: string; password: string }) => data)
   .handler(async ({ data }) => {
-    const response = await apiRequest<{
-      token: string;
-      success: boolean;
-      userId: string;
-      role: string;
-    }>(AUTH_LOGIN_EMAIL_ENDPOINT, {
-      method: "POST",
-      body: data,
-    });
-
+    const response = await apiCall<{ token: string; success: boolean; userId: string; role: string }>(
+      '/auth/login/email', { method: 'POST', body: data }
+    )
     if (response.token && response.success) {
-      const session = await useAppSession();
-      await session.update({
-        token: response.token,
-        isAdmin: response.role === "ADMIN",
-        isModerator: response.role === "MODERATOR",
-      });
+      const session = await useAppSession()
+      await session.update({ token: response.token, isAdmin: response.role === 'ADMIN', isModerator: response.role === 'MODERATOR' })
     }
+    return response
+  })
 
-    return response;
-  });
 export const resendConfirmationFn = createServerFn()
   .inputValidator((data: { email: string; password: string }) => data)
   .handler(async ({ data }) => {
-    return await apiRequest<{ success: boolean; message: string }>(
-      AUTH_RESEND_CONFIRM_ENDPOINT,
-      { method: "POST", body: data }
-    );
-  });
+    return await apiCall<{ success: boolean; message: string }>('/auth/resend-confirmation', { method: 'POST', body: data })
+  })

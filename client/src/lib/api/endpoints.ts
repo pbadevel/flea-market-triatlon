@@ -1,5 +1,4 @@
-console.log(import.meta.env.VITE_BACKEND_DOMAIN)
-export const BASE_URL = `${import.meta.env.VITE_BACKEND_DOMAIN}/v1`;
+export const BASE_URL = ''; // Domain hidden — use serverApi instead
 
 
 export const ADS_LIST_ENDPOINT = `${BASE_URL}/ads`;

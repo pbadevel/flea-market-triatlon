@@ -1,89 +1,16 @@
-// src/lib/api/admin/moderator.ts
+import { serverApi } from '../server-proxy'
 
-import { apiRequest } from '../api-request';
-import {   
-    ADMIN_PENDING_ADS_ENDPOINT,
-    ADMIN_ALL_ADS_ENDPOINT,
-    ADMIN_MODERATE_ENDPOINT,
-    ADMIN_STATS_ENDPOINT,
-    ADMIN_AD_DETAIL_ENDPOINT,
- } from '../endpoints';
+export const fetchAdminStats = (token: string) =>
+  serverApi({ data: { path: '/admin/stats', token } })
 
-import type {
-  AdminStats,
-  AdminAdsResponse,
-  AdminAd,
-  ModerateAdPayload,
-  AdminAdDetail,
-} from '@/types/admin';
+export const fetchPendingAds = (token: string) =>
+  serverApi({ data: { path: '/admin/ads/pending', token } })
 
-/** Получить статистику админки */
-export const fetchAdminStats = async (token: string): Promise<AdminStats> => {
-  return apiRequest<AdminStats>(ADMIN_STATS_ENDPOINT, {
-    method: 'GET',
-    token,
-  });
-};
+export const fetchAllAds = (token: string) =>
+  serverApi({ data: { path: '/admin/ads/all', token } })
 
-/** Получить объявления на модерации */
-export const fetchPendingAds = async (
-  token: string,
-  page: number = 1,
-  limit: number = 20,
-): Promise<AdminAdsResponse> => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-  });
+export const moderateAd = (token: string, adId: number, action: string, rejection_reason?: string) =>
+  serverApi({ data: { path: `/admin/ads/${adId}/moderate`, method: 'POST', token, body: { action, rejection_reason } } })
 
-  return apiRequest<AdminAdsResponse>(
-    `${ADMIN_PENDING_ADS_ENDPOINT}?${params.toString()}`,
-    {
-      method: 'GET',
-      token,
-    },
-  );
-};
-
-/** Получить все объявления с фильтрами */
-export const fetchAllAds = async (
-  token: string,
-  filters: { status?: string; page?: number; limit?: number } = {},
-): Promise<AdminAdsResponse> => {
-  const params = new URLSearchParams();
-  if (filters.status) params.append('status', filters.status);
-  if (filters.page) params.append('page', filters.page.toString());
-  if (filters.limit) params.append('limit', filters.limit.toString());
-
-  const url = params.toString()
-    ? `${ADMIN_ALL_ADS_ENDPOINT}?${params.toString()}`
-    : ADMIN_ALL_ADS_ENDPOINT;
-
-  return apiRequest<AdminAdsResponse>(url, {
-    method: 'GET',
-    token,
-  });
-};
-
-/** Модерировать объявление (одобрить/отклонить) */
-export const moderateAd = async (
-  token: string,
-  adId: number,
-  payload: ModerateAdPayload,
-): Promise<AdminAd> => {
-  return apiRequest<AdminAd>(ADMIN_MODERATE_ENDPOINT(adId), {
-    method: 'POST',
-    token,
-    body: payload,
-  });
-};
-
-export const fetchAdminAdDetail = async (
-  token: string,
-  adId: number,
-): Promise<AdminAdDetail> => {
-  return apiRequest<AdminAdDetail>(ADMIN_AD_DETAIL_ENDPOINT(adId), {
-    method: 'GET',
-    token,
-  });
-};
+export const fetchAdminAdDetail = (token: string, adId: number) =>
+  serverApi({ data: { path: `/admin/ads/${adId}`, token } })

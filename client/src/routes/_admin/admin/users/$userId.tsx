@@ -2,8 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Package } from 'lucide-react'
 import { verifySession } from '@/lib/session'
-import { apiRequest } from '@/lib/api/api-request'
-import { ADMIN_USER_ADS_ENDPOINT, ADMIN_USER_AD_STATUS_ENDPOINT } from '@/lib/api/endpoints'
+import { serverApi } from '@/lib/api/server-proxy'
 
 interface UserAd {
   id: number; title: string; price: number; city: string; category: string; status: string; created_at: string
@@ -23,13 +22,13 @@ function UserDetailPage() {
 
   const { data: ads, isLoading } = useQuery({
     queryKey: ['admin-user-ads', userId],
-    queryFn: () => apiRequest<UserAd[]>(ADMIN_USER_ADS_ENDPOINT(userId), { method: 'GET', token }),
+    queryFn: () => serverApi({ data: { path: `/admin/users/${userId}/ads`, token } }) as Promise<UserAd[]>,
     enabled: !!token,
   })
 
   const statusMut = useMutation({
     mutationFn: ({ adId, status }: { adId: number; status: string }) =>
-      apiRequest(ADMIN_USER_AD_STATUS_ENDPOINT(userId, adId), { method: 'PUT', token, body: { status } }),
+      serverApi({ data: { path: `/admin/users/${userId}/ads/${adId}/status`, method: 'PUT', token, body: { status } }}) as Promise<any>,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-user-ads', userId] }),
   })
 

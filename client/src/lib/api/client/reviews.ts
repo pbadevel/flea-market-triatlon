@@ -1,15 +1,4 @@
-import { apiRequest } from '../api-request'
-import { REVIEWS_ENDPOINT } from '../endpoints'
-import type { ReviewCreate, Review } from '@/types/products'
+import { serverApi } from '../server-proxy'
 
-
-export const createReview = async (
-  token: string,
-  data: ReviewCreate,
-): Promise<Review> => {
-  return apiRequest<Review>(REVIEWS_ENDPOINT, {
-    method: 'POST',
-    token,
-    body: data,
-  })
-}
+export const createReview = (token: string, data: { ad_id: number; rating: number; comment?: string }) =>
+  serverApi({ data: { path: '/reviews', method: 'POST', token, body: data } })
