@@ -1,4 +1,4 @@
-console.log(import.meta.env.VITE_BACKEND_DOMAIN)
+console.log(import.meta.env.BACKEND_DOMAIN)
 export const BASE_URL = `${import.meta.env.VITE_BACKEND_DOMAIN}/v1`;
 
 
