@@ -54,10 +54,9 @@ export const registerEmailFn = createServerFn()
   }) => data)
   .handler(async ({ data }) => {
     const response = await apiRequest<{
-      token: string;
       success: boolean;
-      userId: string;
-      role: string;
+      message: string;
+      email: string;
     }>(AUTH_REGISTER_EMAIL_ENDPOINT, {
       method: "POST",
       body: data,

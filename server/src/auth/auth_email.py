@@ -40,7 +40,7 @@ class AuthResponse(Schema):
     role: str
 
 
-@router.post("/register/email", response_model=AuthResponse)
+@router.post("/register/email")
 async def register_email(
     request: Request,
     data: EmailRegisterRequest,
