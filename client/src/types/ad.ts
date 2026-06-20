@@ -94,6 +94,7 @@ export interface MyAd extends Ad {
   rejection_reason?: string;
   created_at: string;
   channel_message_id?: number;
+  photo_ids?: number[];
 }
 
 export interface AdCreateData {

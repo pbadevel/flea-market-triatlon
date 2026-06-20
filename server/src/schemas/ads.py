@@ -147,12 +147,16 @@ class MyAdOut(BaseModel):
     rejection_reason: Optional[str] = None
     created_at: datetime
     channel_message_id: Optional[int] = None
+    # IDs существующих фото (для редактирования — чтобы знать, какие сохранить)
+    photo_ids: list[int] = Field(default_factory=list)
 
     @classmethod
     def from_orm_with_status(cls, ad: Ad, base_url: str = f"{settings.API_DOMAIN_URL}/uploads/") -> "MyAdOut":
         cover_url = None
+        photo_ids = []
         if ad.photos:
             sorted_photos = sorted(ad.photos, key=lambda p: p.position)
+            photo_ids = [p.id for p in sorted_photos]
             for photo in sorted_photos:
                 if photo.storage_path:
                     cover_url = f"{base_url}{photo.storage_path}"
@@ -174,6 +178,7 @@ class MyAdOut(BaseModel):
             rejection_reason=ad.rejection_reason,
             created_at=ad.created_at,
             channel_message_id=ad.channel_message_id,
+            photo_ids=photo_ids,
         )
 
     class Config:
@@ -210,7 +215,7 @@ class AdOut(BaseModel):
             for photo in sorted_photos:
                 url = None
                 if photo.storage_path:
-                    url = f"{base_url}/{photo.storage_path}"
+                    url = f"{base_url}{photo.storage_path}"
                 elif photo.file_id:
                     url = f"https://t.me/file/{photo.file_id}"
                 
@@ -291,7 +296,7 @@ class AdminAdDetail(BaseModel):
         from_attributes = True
 
     @classmethod
-    def from_orm_full(cls, ad: Ad, base_url: str = "http://localhost:8000/uploads/") -> "AdminAdDetail":
+    def from_orm_full(cls, ad: Ad, base_url: str = f"{settings.API_DOMAIN_URL}/uploads/") -> "AdminAdDetail":
         # Фотографии
         photos = []
         if ad.photos:

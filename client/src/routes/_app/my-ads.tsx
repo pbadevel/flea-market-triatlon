@@ -1,8 +1,8 @@
 // src/routes/my-ads.tsx
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Plus, Eye, CheckCircle, XCircle, Clock, Pencil, Trash2 } from 'lucide-react'
-import { deleteAd, fetchMyAds } from '@/lib/api/client/ads'
+import { ArrowLeft, Plus, Eye, CheckCircle, XCircle, Clock, Pencil, Trash2, Send } from 'lucide-react'
+import { deleteAd, fetchMyAds, resendAd } from '@/lib/api/client/ads'
 import { verifySession } from '@/lib/session'
 import { useState } from 'react'
 import { queryClient } from '@/lib/query'
@@ -34,6 +34,13 @@ function MyAdsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (adId: number) => deleteAd(token!, adId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-ads'] })
+    },
+  })
+
+  const resendMutation = useMutation({
+    mutationFn: (adId: number) => resendAd(token!, adId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-ads'] })
     },
@@ -243,6 +250,21 @@ function MyAdsPage() {
                             <Pencil className="size-3" />
                             Редактировать
                           </Link>
+                        )}
+
+                        {/* Кнопка "Отправить на модерацию" (только для отклонённых) */}
+                        {ad.status === 'rejected' && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              resendMutation.mutate(ad.id);
+                            }}
+                            disabled={resendMutation.isPending}
+                            className="flex items-center gap-1 rounded-lg border border-(--palm) px-3 py-1.5 text-xs font-medium text-(--palm) hover:bg-(--palm)/5 disabled:opacity-50 transition"
+                          >
+                            <Send className="size-3" />
+                            {resendMutation.isPending ? 'Отправка...' : 'На модерацию'}
+                          </button>
                         )}
 
                         {/* Кнопка "Удалить" */}

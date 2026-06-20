@@ -86,6 +86,16 @@ export const updateAd = async (
   });
 };
 
+export const resendAd = async (
+  token: string,
+  adId: number,
+): Promise<MyAd> => {
+  return apiRequest<MyAd>(`${ADS_LIST_ENDPOINT}/${adId}/resend`, {
+    method: 'POST',
+    token,
+  });
+};
+
 export const deleteAd = async (
   token: string,
   adId: number,

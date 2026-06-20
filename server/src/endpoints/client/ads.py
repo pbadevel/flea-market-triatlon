@@ -242,14 +242,40 @@ async def moderate_ad(
         #     await send_ad_to_channel(ad)
         
         await session.commit()
-        
         return MyAdOut.from_orm_with_status(ad)
 
 
-
-
-
-
+@router.post("/{ad_id}/resend", response_model=MyAdOut)
+async def resend_ad(
+    ad_id: int,
+    user: WebUser,
+):
+    """
+    Отправить отклонённое объявление на повторную модерацию без редактирования.
+    """
+    async with database_service.get_session() as session:
+        repository = ad_service.get_repository(session)
+        ad = await repository.get_ad_with_photos(ad_id)
+        
+        if not ad:
+            raise HTTPException(404, "Объявление не найдено")
+        
+        if ad.seller_user_id != user.id:
+            raise HTTPException(403, "Нет прав на это действие")
+        
+        if ad.status != AdStatus.rejected.value:
+            raise HTTPException(400, "Можно повторно отправить только отклонённое объявление")
+        
+        ad.status = AdStatus.pending.value
+        ad.rejection_reason = None
+        
+        await tg_service_notifier.delete_ad_from_channel(ad)
+        await tg_service_notifier.send_ad_for_moderation(ad)
+        
+        await session.commit()
+        
+        updated_ad = await repository.get_ad_with_photos(ad_id)
+        return MyAdOut.from_orm_with_status(updated_ad) # pyright: ignore
 
 
 @router.get("/{ad_id}", response_model=MyAdOut)
@@ -292,6 +318,7 @@ async def update_ad(
     description: Optional[str] = Form(None),
     delivery_method: Optional[str] = Form(None),
     photos: List[UploadFile] = File(default=[]),
+    keep_photo_ids: List[int] = Form(default=[]),
 ):
     """
     Обновить объявление
@@ -326,41 +353,47 @@ async def update_ad(
         ad.status = AdStatus.pending.value
         ad.rejection_reason = None  # Очищаем причину отклонения
         
-        # Если загружены новые фото - удаляем старые и добавляем новые
-        if photos:
-            # Удаляем файлы старых фото с диска
-            for old_photo in ad.photos:
-                _delete_photo_file(old_photo.storage_path)
-
-            # Удаляем старые фото из БД
-            for old_photo in ad.photos:
-                await session.delete(old_photo)
+        # Управление фото: удаляем только те, что не в keep_photo_ids, добавляем новые
+        keep_set = set(keep_photo_ids)
+        photos_to_delete = [p for p in ad.photos if p.id not in keep_set]
+        
+        # Удаляем файлы с диска
+        for old_photo in photos_to_delete:
+            _delete_photo_file(old_photo.storage_path)
+        
+        # Удаляем из БД
+        for old_photo in photos_to_delete:
+            await session.delete(old_photo)
+        
+        # Обновляем позиции оставшихся фото
+        remaining = [p for p in ad.photos if p.id in keep_set]
+        for i, photo in enumerate(remaining):
+            photo.position = i
+        
+        # Добавляем новые
+        start_pos = len(remaining)
+        for i, photo in enumerate(photos):
+            if photo.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+                raise HTTPException(400, f"Invalid photo format: {photo.content_type}")
             
-            # Добавляем новые
-            for i, photo in enumerate(photos):
-                if photo.content_type not in ["image/jpeg", "image/png", "image/webp"]:
-                    raise HTTPException(400, f"Invalid photo format: {photo.content_type}")
-                
-                file_bytes = await photo.read()
-                extension = f".{photo.filename.split('.')[-1]}" if photo.filename and '.' in photo.filename else ".jpg"
-                
-                storage_path = await ad_service.upload_photo(file_bytes, extension)
-                
-                new_photo = AdPhoto(
-                    ad_id=ad.id,
-                    file_id=None,
-                    storage_path=storage_path,
-                    position=i,
-                )
-                session.add(new_photo)
+            file_bytes = await photo.read()
+            extension = f".{photo.filename.split('.')[-1]}" if photo.filename and '.' in photo.filename else ".jpg"
+            
+            storage_path = await ad_service.upload_photo(file_bytes, extension)
+            
+            new_photo = AdPhoto(
+                ad_id=ad.id,
+                file_id=None,
+                storage_path=storage_path,
+                position=start_pos + i,
+            )
+            session.add(new_photo)
         
-        await session.commit()
-
+        # Сначала отправляем уведомления (пока сессия жива), потом коммитим
         await tg_service_notifier.delete_ad_from_channel(ad)
-
-        # Отправка в канал
         await tg_service_notifier.send_ad_for_moderation(ad)
-        
+
+        await session.commit()
         
         # Возвращаем обновлённое объявление
         updated_ad = await repository.get_ad_with_photos(ad_id)

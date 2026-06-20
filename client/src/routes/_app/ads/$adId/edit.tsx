@@ -21,6 +21,15 @@ export const Route = createFileRoute('/_app/ads/$adId/edit')({
   component: EditAdPage,
 })
 
+interface PhotoItem {
+  /** ID существующего фото с сервера (undefined для загруженных) */
+  id?: number;
+  /** File объект для новых фото (undefined для существующих) */
+  file?: File;
+  /** URL превью (серверный URL или blob) */
+  url: string;
+}
+
 function EditAdPage() {
   const { token } = Route.useLoaderData()
   const { adId } = Route.useParams()
@@ -41,8 +50,7 @@ function EditAdPage() {
     contact_method: 'telegram',
   })
   
-  const [photos, setPhotos] = useState<File[]>([])
-  const [previews, setPreviews] = useState<string[]>([])
+  const [photoItems, setPhotoItems] = useState<PhotoItem[]>([])
   const [error, setError] = useState('')
 
   const { data: ad, isLoading: adLoading } = useQuery({
@@ -70,7 +78,11 @@ function EditAdPage() {
       })
       
       if (ad.image_urls && ad.image_urls.length > 0) {
-        setPreviews(ad.image_urls)
+        const items: PhotoItem[] = (ad.image_urls || []).map((url, i) => ({
+          id: ad.photo_ids?.[i],
+          url,
+        }))
+        setPhotoItems(items)
       }
     }
   }, [ad])
@@ -90,15 +102,22 @@ function EditAdPage() {
       data.append('ad_type', formData.ad_type)
       data.append('contact_method', formData.contact_method)
 
-      photos.forEach((photo) => {
-        data.append('photos', photo)
-      })
+      // Какие существующие фото оставить
+      const keepIds = photoItems
+        .filter(p => p.id !== undefined)
+        .map(p => p.id!)
+      keepIds.forEach(id => data.append('keep_photo_ids', id.toString()))
+
+      // Новые фото
+      photoItems
+        .filter(p => p.file !== undefined)
+        .forEach(p => data.append('photos', p.file!))
 
       return await updateAd(token!, parseInt(adId), data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-ads'] })
-      navigate({ to: '/my-ads' })
+      navigate({ to: '/' })
     },
     onError: (err) => {
       setError(err.message || 'Ошибка при обновлении объявления')
@@ -107,18 +126,16 @@ function EditAdPage() {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    const newPhotos = [...photos, ...files].slice(0, 10)
-    setPhotos(newPhotos)
-
-    const newPreviews = newPhotos.map((file) => URL.createObjectURL(file))
-    setPreviews(newPreviews)
+    const maxNew = 10 - photoItems.length
+    const newItems: PhotoItem[] = files.slice(0, maxNew).map(file => ({
+      file,
+      url: URL.createObjectURL(file),
+    }))
+    setPhotoItems(prev => [...prev, ...newItems])
   }
 
   const removePhoto = (index: number) => {
-    const newPhotos = photos.filter((_, i) => i !== index)
-    const newPreviews = previews.filter((_, i) => i !== index)
-    setPhotos(newPhotos)
-    setPreviews(newPreviews)
+    setPhotoItems(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -218,10 +235,10 @@ function EditAdPage() {
               Фотографии
             </label>
             <div className="grid grid-cols-3 gap-3">
-              {previews.map((preview, index) => (
+              {photoItems.map((item, index) => (
                 <div key={index} className="relative aspect-square">
                   <img
-                    src={preview}
+                    src={item.url}
                     alt={`Preview ${index + 1}`}
                     className="h-full w-full rounded-lg object-cover"
                   />
@@ -234,7 +251,7 @@ function EditAdPage() {
                   </button>
                 </div>
               ))}
-              {photos.length < 10 && (
+              {photoItems.length < 10 && (
                 <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-(--line) hover:border-(--palm)">
                   <input
                     type="file"
@@ -246,7 +263,7 @@ function EditAdPage() {
                   <div className="text-center">
                     <Upload className="mx-auto size-8 text-(--sea-ink-soft)" />
                     <p className="mt-2 text-xs text-(--sea-ink-soft)">
-                      {photos.length}/10
+                      {photoItems.length}/10
                     </p>
                   </div>
                 </label>

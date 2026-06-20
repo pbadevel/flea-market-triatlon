@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from src.models import AdStatus
 from src.services import ad_service
+from src.services.email import email_service
 from src.kit.database.service import database_service
 from src.bot.tg_services import tg_service_notifier
 
@@ -98,6 +99,15 @@ async def handle_moderation_callback(callback: CallbackQuery, bot: Bot):
                 
                 # Notify user
                 await tg_service_notifier.notify_user_ad_approved(ad)
+                
+                # Email notification for email-registered users
+                if not ad.seller.username and ad.seller.credentials and ad.seller.credentials.email:
+                    await email_service.notify_user_ad_approved_email(
+                        email=ad.seller.credentials.email,
+                        title=ad.title,
+                        price=ad.price,
+                        ad_id=ad.id,
+                    )
 
 
             # NEED REASON  
@@ -216,6 +226,15 @@ async def continue_confirmation_rejection(cb: CallbackQuery, state: FSMContext):
                 
                 # Notify user
                 await tg_service_notifier.notify_user_ad_rejected(ad, rejection_reason)
+                
+                # Email notification for email-registered users
+                if not ad.seller.username and ad.seller.credentials and ad.seller.credentials.email:
+                    await email_service.notify_user_ad_rejected_email(
+                        email=ad.seller.credentials.email,
+                        title=ad.title,
+                        price=ad.price,
+                        reason=rejection_reason,
+                    )
                 return
         except Exception as e:
             await msg.answer(

@@ -66,6 +66,13 @@ class Settings(BaseSettings):
 
   
 
+    # SMTP
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100
 

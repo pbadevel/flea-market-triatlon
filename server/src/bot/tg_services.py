@@ -26,6 +26,33 @@ def get_publish_text_to_channel(ad: Ad):
     f'📦 {get_ru_condition(ad.condition)}\n' \
     f'🛒 <b>{ad.price:,} ₽</b>' \
 
+def _format_seller(ad: Ad) -> str:
+    """Format seller info for moderation message — works for both tg and email users."""
+    seller = ad.seller
+    if not seller:
+        return "👤 Продавец: неизвестен"
+    
+    # Telegram user with username
+    if seller.username:
+        name_part = f"@{seller.username}"
+        source = "📱 Telegram"
+    else:
+        # Email/web user — use first/last name or email
+        name_parts = []
+        if seller.first_name:
+            name_parts.append(seller.first_name)
+        if seller.last_name:
+            name_parts.append(seller.last_name)
+        name_part = " ".join(name_parts) if name_parts else "пользователь"
+        
+        # Try to get email from credentials
+        if seller.credentials and seller.credentials.email:
+            name_part += f" ({seller.credentials.email})"
+        source = "🌐 Сайт"
+    
+    return f"👤 Продавец: {name_part}\n📬 {source} (ID: {seller.id})"
+
+
 def get_text_for_moderation(ad: Ad):
     
     return f'🆕 <b>Новое объявление на модерации</b>\n\n' \
@@ -37,7 +64,7 @@ def get_text_for_moderation(ad: Ad):
     f'{f"📏 Размер: {ad.size}" if ad.size else ""}\n' \
     f'📦 Состояние: {get_ru_condition(ad.condition)}\n\n'\
     \
-    f'👤 Продавец: @{ad.seller.username or "не указан"} (ID: {ad.seller.id})\n'\
+    f'{_format_seller(ad)}\n'\
     f'🆔 ID объявления: {ad.id}\n\n'\
     \
     f'{(ad.description[:1000]+"..." if ad.description else None) or ""}'
