@@ -141,7 +141,7 @@ async def resend_confirmation(
         creds.email_confirm_token = secrets.token_urlsafe(32)
         await session.flush()
         
-        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token=***}"
+        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={creds.email_confirm_token}"
         html = f"""<html>
         <body style="font-family: Arial, sans-serif; padding: 20px;">
             <h2>Подтвердите email</h2>
