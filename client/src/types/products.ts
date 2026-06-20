@@ -1,10 +1,16 @@
 export interface Review {
   id: number
   reviewer_username: string | null
-  reviewer_tg_id: number
+  reviewer_user_id: number
   rating: number
   comment: string | null
   created_at: string
+}
+
+export interface ReviewCreate {
+  ad_id: number
+  rating: number
+  comment?: string
 }
 
 export interface Seller {

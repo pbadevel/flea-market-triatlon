@@ -1,11 +1,13 @@
 // src/components/features/product-detail.tsx
 import { useParams } from '@tanstack/react-router'
-import { ArrowLeft, Heart, Share2, MessageCircle, Star, User, CheckCircle, Shield } from 'lucide-react'
+import { ArrowLeft, Heart, Share2, MessageCircle, Star, User, CheckCircle, Shield, Send } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productQueryOptions } from '@/lib/queries/ads'
+import { verifySession } from '@/lib/session'
+import { createReview } from '@/lib/api/client/reviews'
 import { useState } from 'react'
-import { Review, Seller } from '@/types/products'
+import { Review, Seller, ReviewCreate } from '@/types/products'
 
 
 // Компонент карусели изображений
@@ -82,6 +84,105 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
 }
 
 // Компонент рейтинга
+// Кликабельные звёзды для формы отзыва
+function ClickableStars({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className="transition hover:scale-110"
+        >
+          <Star
+            className={`size-8 ${
+              star <= value
+                ? 'fill-yellow-400 text-yellow-400'
+                : 'text-gray-300 hover:text-yellow-300'
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Форма отзыва
+function ReviewForm({ adId, sellerId, token }: { adId: number; sellerId: number; token: string | null }) {
+  const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: (data: ReviewCreate) => createReview(token!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product', adId] })
+      setRating(0)
+      setComment('')
+      setShowForm(false)
+    },
+  })
+
+  if (!token) {
+    return (
+      <div className="rounded-lg border border-(--line) p-4 text-center text-sm text-(--sea-ink-soft)">
+        <Link to="/auth/login" className="text-(--palm) hover:underline">Войдите</Link>, чтобы оставить отзыв
+      </div>
+    )
+  }
+
+  if (!showForm) {
+    return (
+      <button
+        onClick={() => setShowForm(true)}
+        className="w-full rounded-lg border border-(--palm) py-2.5 text-sm font-medium text-(--palm) hover:bg-(--palm)/5 transition"
+      >
+        Оставить отзыв
+      </button>
+    )
+  }
+
+  return (
+    <div className="rounded-lg border border-(--line) p-4 space-y-3">
+      <h4 className="text-sm font-semibold text-(--sea-ink)">Ваша оценка</h4>
+      <ClickableStars value={rating} onChange={setRating} />
+      
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Комментарий (необязательно)"
+        rows={3}
+        maxLength={500}
+        className="w-full rounded-lg border border-(--line) px-3 py-2 text-sm text-(--sea-ink) focus:border-(--palm) focus:outline-none resize-none"
+      />
+      
+      <div className="flex gap-2">
+        <button
+          onClick={() => mutation.mutate({ ad_id: adId, rating, comment: comment || undefined })}
+          disabled={rating === 0 || mutation.isPending}
+          className="flex items-center gap-1 rounded-lg bg-(--palm) px-4 py-2 text-sm font-medium text-white hover:bg-(--palm)/90 disabled:opacity-50 transition"
+        >
+          <Send className="size-3.5" />
+          {mutation.isPending ? 'Отправка...' : 'Отправить'}
+        </button>
+        <button
+          onClick={() => setShowForm(false)}
+          className="rounded-lg border border-(--line) px-4 py-2 text-sm text-(--sea-ink-soft) hover:bg-(--link-bg-hover)"
+        >
+          Отмена
+        </button>
+      </div>
+
+      {mutation.isError && (
+        <p className="text-sm text-red-500">{mutation.error.message}</p>
+      )}
+    </div>
+  )
+}
+
+
 function StarRating({ rating, count }: { rating: number; count?: number }) {
   return (
     <div className="flex items-center gap-1">
@@ -112,7 +213,7 @@ function ReviewCard({ review }: { review: Review }) {
       <div className="flex items-start justify-between">
         <div>
           <p className="font-medium text-(--sea-ink)">
-            {review.reviewer_username || `Пользователь #${review.reviewer_tg_id}`}
+            {review.reviewer_username || `Пользователь #${review.reviewer_user_id}`}
           </p>
           <StarRating rating={review.rating} />
         </div>
@@ -128,7 +229,7 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 // Компонент информации о продавце
-function SellerInfo({ seller }: { seller: Seller }) {
+function SellerInfo({ seller, adId, token }: { seller: Seller; adId: number; token: string | null }) {
   return (
     <div className="rounded-lg border border-(--line) p-4">
       <div className="flex items-center gap-3">
@@ -160,19 +261,32 @@ function SellerInfo({ seller }: { seller: Seller }) {
       </div>
 
       {/* Reviews */}
-      {seller.reviews.length > 0 && (
-        <div className="mt-4 space-y-3">
-          <h4 className="text-sm font-semibold text-(--sea-ink)">Отзывы</h4>
-          {seller.reviews.map((review) => (
+      {/* Отзывы */}
+      <div className="mt-4 space-y-3">
+        <h4 className="text-sm font-semibold text-(--sea-ink)">
+          Отзывы
+          {seller.review_count > 0 && (
+            <span className="text-xs font-normal text-(--sea-ink-soft) ml-1">({seller.review_count})</span>
+          )}
+        </h4>
+        {seller.reviews.length > 0 ? (
+          seller.reviews.map((review) => (
             <ReviewCard key={review.id} review={review} />
-          ))}
-        </div>
-      )}
+          ))
+        ) : (
+          <p className="text-sm text-(--sea-ink-soft)">Пока нет отзывов. Будьте первыми!</p>
+        )}
+      </div>
+
+      {/* Форма отзыва */}
+      <div className="mt-4">
+        <ReviewForm adId={adId} sellerId={seller.id} token={token} />
+      </div>
     </div>
   )
 }
 
-export function ProductDetail() {
+export function ProductDetail({ token }: { token?: string | null }) {
   const { productId } = useParams({ from: '/_app/product/$productId' })
 
   const { data: product, isLoading, isError, error } = useQuery(
@@ -289,7 +403,7 @@ export function ProductDetail() {
             </div>
 
             {/* Seller Info */}
-            {product.seller && <SellerInfo seller={product.seller} />}
+            {product.seller && <SellerInfo seller={product.seller} adId={product.id} token={token ?? null} />}
 
             {/* Description */}
             {product.description && (

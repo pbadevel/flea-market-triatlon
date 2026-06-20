@@ -78,7 +78,7 @@ class AdPhotoOut(BaseModel):
 class ReviewOut(BaseModel):
     id: int
     reviewer_username: Optional[str]
-    reviewer_tg_id: int
+    reviewer_user_id: int
     rating: int
     comment: Optional[str]
     created_at: datetime
@@ -109,7 +109,7 @@ class SellerOut(BaseModel):
             ReviewOut(
                 id=r.id,
                 reviewer_username=r.reviewer.username if r.reviewer else None,
-                reviewer_tg_id=r.reviewer.tg_user_id if r.reviewer else 0,
+                reviewer_user_id=r.reviewer.id if r.reviewer else 0,
                 rating=r.rating,
                 comment=r.comment,
                 created_at=r.created_at,

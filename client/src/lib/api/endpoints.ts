@@ -8,6 +8,7 @@ export const FILTER_ENDPOINT = `${BASE_URL}/filters`;
 export const PRODUCT_ENDPOINT = `${BASE_URL}/products`;
 export const MY_ADS_ENDPOINT = `${BASE_URL}/ads/my`;
 export const CREATE_AD_ENDPOINT = `${BASE_URL}/ads`;
+export const REVIEWS_ENDPOINT = `${BASE_URL}/reviews`;
 
 
 // Admin
