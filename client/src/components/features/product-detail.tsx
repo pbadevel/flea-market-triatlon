@@ -1,6 +1,6 @@
 // src/components/features/product-detail.tsx
 import { useParams } from '@tanstack/react-router'
-import { ArrowLeft, Heart, Share2, MessageCircle, Star, User, CheckCircle, Shield, Send } from 'lucide-react'
+import { ArrowLeft, Heart, Share2, MessageCircle, Star, User, CheckCircle, Shield, Send, Mail, Phone } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productQueryOptions } from '@/lib/queries/ads'
@@ -125,23 +125,25 @@ function ReviewForm({ adId, sellerId, token }: { adId: number; sellerId: number;
     },
   })
 
-  if (!token) {
-    return (
-      <div className="rounded-lg border border-(--line) p-4 text-center text-sm text-(--sea-ink-soft)">
-        <Link to="/auth/login" className="text-(--palm) hover:underline">Войдите</Link>, чтобы оставить отзыв
-      </div>
-    )
-  }
-
   if (!showForm) {
     return (
       <button
-        onClick={() => setShowForm(true)}
-        className="w-full rounded-lg border border-(--palm) py-2.5 text-sm font-medium text-(--palm) hover:bg-(--palm)/5 transition"
+        onClick={() => {
+          if (!token) {
+            window.location.href = '/auth/login'
+            return
+          }
+          setShowForm(true)
+        }}
+        className="w-full py-2 text-sm text-(--sea-ink-soft) hover:text-(--palm) transition text-left"
       >
-        Оставить отзыв
+        {token ? 'Оставить отзыв' : 'Оставить отзыв →'}
       </button>
     )
+  }
+
+  if (!token) {
+    return null
   }
 
   return (
@@ -177,6 +179,100 @@ function ReviewForm({ adId, sellerId, token }: { adId: number; sellerId: number;
 
       {mutation.isError && (
         <p className="text-sm text-red-500">{mutation.error.message}</p>
+      )}
+    </div>
+  )
+}
+
+
+// Умная кнопка связи — показывает доступные способы
+function ContactSellerButton({ seller }: { seller: Seller | null }) {
+  const [showOptions, setShowOptions] = useState(false)
+
+  if (!seller) return null
+
+  const contacts: { icon: React.ReactNode; label: string; href: string }[] = []
+
+  if (seller.username) {
+    contacts.push({
+      icon: <MessageCircle className="size-4" />,
+      label: 'Telegram',
+      href: `https://t.me/${seller.username}`,
+    })
+  }
+  if (seller.email) {
+    contacts.push({
+      icon: <Mail className="size-4" />,
+      label: 'Email',
+      href: `mailto:${seller.email}`,
+    })
+  }
+  if (seller.phone) {
+    contacts.push({
+      icon: <Phone className="size-4" />,
+      label: 'Позвонить',
+      href: `tel:${seller.phone}`,
+    })
+  }
+
+  if (contacts.length === 0) {
+    return (
+      <button
+        disabled
+        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm)/50 py-3 text-sm font-medium text-white cursor-not-allowed"
+      >
+        <MessageCircle className="size-4" />
+        Нет контактов
+      </button>
+    )
+  }
+
+  if (contacts.length === 1) {
+    const c = contacts[0]
+    return (
+      <a
+        href={c.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 transition"
+      >
+        {c.icon}
+        Связаться — {c.label}
+      </a>
+    )
+  }
+
+  return (
+    <div className="relative flex-1">
+      <button
+        onClick={() => setShowOptions(!showOptions)}
+        className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 transition"
+      >
+        <MessageCircle className="size-4" />
+        Связаться с продавцом
+      </button>
+      {showOptions && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowOptions(false)}
+          />
+          <div className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-(--line) bg-white shadow-lg overflow-hidden z-50">
+            {contacts.map((c, i) => (
+              <a
+                key={i}
+                href={c.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-3 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover) transition border-b border-(--line) last:border-0"
+                onClick={() => setShowOptions(false)}
+              >
+                {c.icon}
+                {c.label}
+              </a>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
@@ -376,24 +472,9 @@ export function ProductDetail({ token }: { token?: string | null }) {
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Actions — умная кнопка связи */}
             <div className="flex gap-3">
-              {product.seller?.username ? (
-                <a
-                  href={`https://t.me/${product.seller.username}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90"
-                >
-                  <MessageCircle className="size-4" />
-                  Связаться с продавцом
-                </a>
-              ) : (
-                <button className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90">
-                  <MessageCircle className="size-4" />
-                  Связаться с продавцом
-                </button>
-              )}
+              <ContactSellerButton seller={product.seller} />
               <button 
                 className="rounded-lg border border-(--line) p-3 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
                 aria-label="Добавить в избранное"

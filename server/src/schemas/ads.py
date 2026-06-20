@@ -92,6 +92,8 @@ class SellerOut(BaseModel):
     username: Optional[str]
     first_name: Optional[str]
     last_name: Optional[str]
+    phone: Optional[str]
+    email: Optional[str]
     is_trusted_seller: bool
     is_moderator: bool
     rating: float
@@ -103,6 +105,9 @@ class SellerOut(BaseModel):
         # Считаем средний рейтинг
         reviews = user.reviews_received
         rating = round(sum(r.rating for r in reviews) / len(reviews), 1) if reviews else 0.0
+        
+        # Контакты продавца
+        email = user.credentials.email if user.credentials else None
         
         # Формируем последние 5 отзывов
         recent_reviews = [
@@ -122,6 +127,8 @@ class SellerOut(BaseModel):
             username=user.username,
             first_name=user.first_name,
             last_name=user.last_name,
+            phone=user.phone,
+            email=email,
             is_trusted_seller=user.is_trusted_seller,
             is_moderator=user.role == UserRole.MODERATOR,
             rating=rating,
