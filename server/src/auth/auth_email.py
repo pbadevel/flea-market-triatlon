@@ -1,17 +1,23 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from sqlalchemy import select
 from src.kit.schemas import Schema
 from pydantic import EmailStr, Field
 from typing import Optional
 import hashlib
+import secrets
 
 from src.kit.database.service import database_service
+from src.kit.utils import utc_now
 from src.models import User, UserCredentials
 from src.auth.service import auth as auth_service
 from src.repositories import UserRepository, UserCredentialsRepository
 from src.services.auth.password import hash_password, verify_password
+from src.services.email import email_service
 from src.enums import UserRole
+from src.config import settings
+from src.logging import get_logger
 
+log = get_logger()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -83,6 +89,11 @@ async def register_email(
             flush=True
         )
         
+        # Генерируем токен подтверждения email
+        confirm_token = secrets.token_urlsafe(32)
+        user_creds.email_confirm_token = confirm_token
+        await session.flush()
+        
         # Создаем сессию
         response = await auth_service.get_login_response(
             session=session,
@@ -92,12 +103,63 @@ async def register_email(
         
         await session.commit()
         
+        # Отправляем письмо с подтверждением
+        confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={confirm_token}"
+        html = f"""<html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Добро пожаловать! 🎉</h2>
+            <p>Вы зарегистрировались на flea-market.</p>
+            <p>Подтвердите ваш email, перейдя по ссылке:</p>
+            <p><a href=\"{confirm_url}\" style=\"display: inline-block; padding: 12px 24px; background: #2ecc71; color: white; text-decoration: none; border-radius: 8px;\">Подтвердить email</a></p>
+            <p>Или скопируйте ссылку: {confirm_url}</p>
+            <p style="margin-top: 20px; color: #888; font-size: 12px;">
+                С уважением, команда flea-market
+            </p>
+        </body>
+        </html>"""
+        await email_service.send_email(
+            to=data.email,
+            subject="Подтверждение регистрации на flea-market",
+            html_body=html,
+        )
+        
         return AuthResponse(
             token=response.token,
             success=True,
             userId=str(user.id),
             role=user.role.value,
         )
+
+
+@router.get("/confirm-email", response_model=dict)
+async def confirm_email(
+    request: Request,
+    token: str = Query(..., description="Токен подтверждения"),
+):
+    """
+    Подтверждение email по токену.
+    """
+    async with database_service.get_session() as session:
+        stmt = select(UserCredentials).where(
+            UserCredentials.email_confirm_token == token,
+            UserCredentials.is_email_verified == False,
+        )
+        result = await session.execute(stmt)
+        creds = result.scalar_one_or_none()
+        
+        if not creds:
+            return {"success": False, "message": "Неверный или устаревший токен"}
+        
+        creds.is_email_verified = True
+        creds.email_confirm_token = None
+        await session.commit()
+        
+        log.info("Email confirmed: %s (user %s)", creds.email, creds.user_id)
+        
+        return {
+            "success": True,
+            "message": "Email успешно подтверждён",
+        }
 
 
 @router.post("/login/email", response_model=AuthResponse)

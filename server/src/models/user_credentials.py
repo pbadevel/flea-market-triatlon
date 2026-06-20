@@ -35,6 +35,12 @@ class UserCredentials(RecordModel):
         nullable=False,
     )
 
+    # Токен для подтверждения email
+    email_confirm_token: Mapped[str | None] = mapped_column(
+        String(128),
+        nullable=True,
+    )
+
     # Подтверждён ли email
     is_email_verified: Mapped[bool] = mapped_column(
         default=False,

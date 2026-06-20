@@ -109,6 +109,9 @@ function ProfilePage() {
     )
   }
 
+  // Проверка на наличие способов связи
+  const hasNoContact = !profile.username && !profile.email && !profile.phone
+
   return (
     <div className="min-h-screen bg-(--bg)">
       {/* Header */}
@@ -133,6 +136,22 @@ function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {/* Баннер — нет способов связи */}
+      {hasNoContact && (
+        <div className="bg-red-50 border-b border-red-200">
+          <div className="page-wrap py-3">
+            <div className="flex items-center gap-2 text-sm text-red-700">
+              <span className="text-lg">⚠️</span>
+              <span>
+                У вас нет способов связи. <strong>Клиенты не смогут с вами связаться.</strong>{' '}
+                <Link to="/profile" className="underline font-medium">Добавьте контакты</Link>
+                , чтобы получать отклики.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="page-wrap py-8 space-y-6">
         {/* Stats Cards */}

@@ -12,6 +12,7 @@ from src.schemas.ads import MyAdOut, AdModerate, AdminAdDetail
 from src.services import ad_service
 from src.services.email import email_service
 from src.bot.tg_services import tg_service_notifier
+from src.services.notifications import notify_ad_approved, notify_ad_rejected
 
 from src.repositories.ads import AdRepository
 
@@ -64,31 +65,11 @@ async def moderate_ad(
         
         await session.commit()
         
-        # Notify user — TG or email depending on registration method
-        if ad.seller and ad.seller.username:
-            # Telegram user
-            if data.action == "approve":
-                await tg_service_notifier.notify_user_ad_approved(ad)
-            else:
-                await tg_service_notifier.notify_user_ad_rejected(
-                    ad, data.rejection_reason or "Причина не указана"
-                )
-        elif ad.seller and ad.seller.credentials and ad.seller.credentials.email:
-            # Email/web user
-            if data.action == "approve":
-                await email_service.notify_user_ad_approved_email(
-                    email=ad.seller.credentials.email,
-                    title=ad.title,
-                    price=ad.price,
-                    ad_id=ad.id,
-                )
-            else:
-                await email_service.notify_user_ad_rejected_email(
-                    email=ad.seller.credentials.email,
-                    title=ad.title,
-                    price=ad.price,
-                    reason=data.rejection_reason or "Причина не указана",
-                )
+        # Умное оповещение: TG → fallback email
+        if data.action == "approve":
+            await notify_ad_approved(ad)
+        else:
+            await notify_ad_rejected(ad, data.rejection_reason or "Причина не указана")
         
         return MyAdOut.from_orm_with_status(ad)
 
