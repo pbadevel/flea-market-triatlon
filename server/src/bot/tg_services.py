@@ -7,10 +7,12 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.enums import ParseMode
 
 
-from src.models import Ad, User
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+
+from src.models import Ad
 from src.kit.utils import get_bot, get_ru_condition, map_country
 from src.kit.database.service import database_service
-from src.services import user_service
 
 from src.config import settings
 from src.logging import get_logger
@@ -288,5 +290,36 @@ class TgService:
             )
         except Exception as e:
             log.error(f"cannot delete message from telegram channel: {e}")
+
+    async def send_ad_for_moderation_by_id(self, ad_id: int):
+        """Загрузить объявление по ID и отправить на модерацию (для фоновых задач)."""
+        async with database_service.get_session() as session:
+            stmt = (
+                select(Ad)
+                .where(Ad.id == ad_id)
+                .options(
+                    joinedload(Ad.photos),
+                    joinedload(Ad.seller),
+                )
+            )
+            result = await session.execute(stmt)
+            ad = result.scalars().first()
+        if not ad:
+            log.error(f"send_ad_for_moderation_by_id: ad {ad_id} not found")
+            return
+        await self.send_ad_for_moderation(ad)
+
+    async def delete_ad_from_channel_by_id(self, ad_id: int):
+        """Загрузить объявление по ID и удалить из канала (для фоновых задач)."""
+        async with database_service.get_session() as session:
+            result = await session.execute(
+                select(Ad).where(Ad.id == ad_id)
+            )
+            ad = result.scalars().first()
+            if not ad:
+                log.error(f"delete_ad_from_channel_by_id: ad {ad_id} not found")
+                return
+        await self.delete_ad_from_channel(ad)
+
 
 tg_service_notifier = TgService()

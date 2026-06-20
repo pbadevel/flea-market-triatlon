@@ -182,7 +182,7 @@ async def create_ad(
         ad = await ad_service.create_ad(session, fresh_user, ad_data) # pyright: ignore
         
         # Отправка в канал (фоном, чтобы не ждать)
-        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation, ad)
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation_by_id, ad.id)
         
         await session.commit()
         
@@ -272,8 +272,8 @@ async def resend_ad(
         ad.rejection_reason = None
         
         # Уведомления фоном
-        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel, ad)
-        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation, ad)
+        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel_by_id, ad.id)
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation_by_id, ad.id)
         
         await session.commit()
         
@@ -394,8 +394,8 @@ async def update_ad(
             session.add(new_photo)
         
         # Уведомления фоном (чтобы не блокировать ответ)
-        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel, ad)
-        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation, ad)
+        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel_by_id, ad.id)
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation_by_id, ad.id)
 
         await session.commit()
         
@@ -436,7 +436,7 @@ async def delete_ad(
         await session.delete(ad)
         await session.commit()
         
-        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel, ad)
+        background_tasks.add_task(tg_service_notifier.delete_ad_from_channel_by_id, ad.id)
 
         return {"status": "ok", "message": "Объявление удалено"}
     
