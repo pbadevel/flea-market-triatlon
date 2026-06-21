@@ -27,3 +27,8 @@ class ValueRequestError(BadRequest):
 class Forbidden(BadRequest):
     def __init__(self, message: str = "No rights"):
         super().__init__(message)
+
+
+class Banned(AppError):
+    def __init__(self, message: str = "Аккаунт заблокирован"):
+        super().__init__(message)

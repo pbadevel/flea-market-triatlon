@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.scope import Scope
 from src.enums import UserRole
-from src.exceptions import Forbidden, Unauthorized
+from src.exceptions import Banned, Forbidden, Unauthorized
 from src.models import User, UserSession
 from src.postgres import get_db_session
 
@@ -36,7 +36,7 @@ def get_user(user_session: UserSession | None = Depends(get_user_session)) -> Us
     if user_session is None:
         raise Unauthorized(message="No user session")
     if user_session.user.is_banned:
-        raise Forbidden(message="Аккаунт заблокирован")
+        raise Banned(message="Аккаунт заблокирован")
     return user_session.user
 
 

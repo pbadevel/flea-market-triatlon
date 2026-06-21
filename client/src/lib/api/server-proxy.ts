@@ -3,6 +3,21 @@ import { createServerFn } from '@tanstack/react-start'
 
 const API_HOST = 'http://127.0.0.1:8000'
 
+export class BannedError extends Error {
+  constructor(message = 'Аккаунт заблокирован') {
+    super(message)
+    this.name = 'BannedError'
+  }
+}
+
+function handleErrorResponse(res: Response, err: any) {
+  if (res.status === 403 && err?.code === 'BANNED') {
+    throw new BannedError(err.detail)
+  }
+  const detail = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)
+  throw new Error(detail)
+}
+
 // Generic API proxy for JSON requests
 export const serverApi = createServerFn({ method: 'POST' })
   .inputValidator((data: {
@@ -29,8 +44,7 @@ export const serverApi = createServerFn({ method: 'POST' })
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'Request failed' }))
-      const detail = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)
-      throw new Error(detail)
+      handleErrorResponse(res, err)
     }
 
     return await res.json()
@@ -73,8 +87,7 @@ export const serverUpload = createServerFn({ method: 'POST' })
         throw new Error('Файлы слишком большие. Максимальный размер — 50 МБ.')
       }
       const err = await res.json().catch(() => ({ detail: 'Upload failed' }))
-      const detail = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)
-      throw new Error(detail)
+      handleErrorResponse(res, err)
     }
     return await res.json()
   })
