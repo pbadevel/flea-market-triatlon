@@ -7,10 +7,14 @@ async function formDataToUploadPayload(fd: FormData) {
   const fileNames: string[] = []
   const fileBases: string[] = []
 
-  for (const [key, val] of fd.entries()) {
+  const entries = Array.from(fd.entries())
+  for (const [key, val] of entries) {
     if (val instanceof File) {
       const buf = await val.arrayBuffer()
-      fileBases.push(Buffer.from(buf).toString('base64'))
+      const bytes = new Uint8Array(buf)
+      let binary = ''
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+      fileBases.push(btoa(binary))
       fileNames.push(val.name)
     } else {
       fields[key] = String(val)
