@@ -103,7 +103,11 @@ async def _resolve_user(message: Message):
 
 async def _show_main_menu(message: Message):
     """Показать главное меню."""
-    await _resolve_user(message)
+    user = await _resolve_user(message)
+
+    if user and user.is_banned:
+        await message.answer("⛔ Ваш аккаунт заблокирован. Обратитесь к администрации.")
+        return
 
     await message.answer(
         START_MESSAGE,
@@ -119,6 +123,13 @@ async def _proceed_auth(deep_link_param: str, message: Message):
     """Авторизация через Telegram (deeplink с сайта)."""
     if not message.from_user:
         return
+
+    # Проверяем бан
+    async with database_service.get_session() as session:
+        user = await user_service.get_or_create_by_tg(session, message.from_user)
+        if user and user.is_banned:
+            await message.answer("⛔ Ваш аккаунт заблокирован. Обратитесь к администрации.")
+            return
 
     session_token = deep_link_param.replace("auth_", "")
 

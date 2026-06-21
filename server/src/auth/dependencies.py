@@ -35,6 +35,8 @@ async def get_user_session(
 def get_user(user_session: UserSession | None = Depends(get_user_session)) -> User:
     if user_session is None:
         raise Unauthorized(message="No user session")
+    if user_session.user.is_banned:
+        raise Forbidden(message="Аккаунт заблокирован")
     return user_session.user
 
 
