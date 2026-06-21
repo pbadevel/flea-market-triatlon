@@ -51,6 +51,9 @@ export const fetchFilters = () =>
 export const fetchMyAds = (token: string) =>
   serverApi({ data: { path: '/ads/my', token } })
 
+export const fetchAdForEdit = (token: string, adId: number) =>
+  serverApi({ data: { path: `/ads/${adId}`, token } })
+
 export const createAd = async ({ token, formData }: { token: string; formData: FormData }) => {
   const payload = await formDataToUploadPayload(formData)
   return serverUpload({ data: { ...payload, path: '/ads', method: 'POST', token } })
