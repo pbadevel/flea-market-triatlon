@@ -1,14 +1,14 @@
 """Admin: управление пользователями."""
 
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from src.kit.database.service import database_service
-from src.auth.dependencies import WebAdmin, WebUser
+from src.auth.dependencies import WebAdmin
 from src.config import settings
-from src.models import User, Blacklist, Ad, AdStatus
+from src.models import User, Ad, AdStatus, UserCredentials
 from src.enums import UserRole
 
 router = APIRouter(prefix="/admin/users", tags=["admin-users"])
@@ -22,6 +22,7 @@ class UserOut(BaseModel):
     last_name: str | None
     role: str
     is_root: bool
+    is_banned: bool
     is_trusted_seller: bool
     phone: str | None
     created_at: str
@@ -29,6 +30,18 @@ class UserOut(BaseModel):
 
 def _is_root_by_tg_id(tg_id: int | None) -> bool:
     return tg_id is not None and tg_id in settings.ADMIN_IDS
+
+
+def _user_to_out(u: User) -> UserOut:
+    return UserOut(
+        id=u.id, tg_user_id=u.tg_user_id, username=u.username,
+        first_name=u.first_name, last_name=u.last_name,
+        role=u.role.value if hasattr(u.role, 'value') else str(u.role),
+        is_root=_is_root_by_tg_id(u.tg_user_id),
+        is_banned=u.is_banned,
+        is_trusted_seller=u.is_trusted_seller,
+        phone=u.phone, created_at=u.created_at.isoformat() if u.created_at else "",
+    )
 
 
 @router.get("")
@@ -48,13 +61,60 @@ async def list_users(admin: WebAdmin, search: str = Query("", max_length=50), pa
         users = result.scalars().all()
 
     return {
-        "data": [UserOut(id=u.id, tg_user_id=u.tg_user_id, username=u.username,
-            first_name=u.first_name, last_name=u.last_name,
-            role=u.role.value if hasattr(u.role, 'value') else str(u.role),
-            is_root=_is_root_by_tg_id(u.tg_user_id), is_trusted_seller=u.is_trusted_seller,
-            phone=u.phone, created_at=u.created_at.isoformat() if u.created_at else "") for u in users],
+        "data": [_user_to_out(u) for u in users],
         "total": total, "page": page, "limit": limit,
     }
+
+
+# --- User detail ---
+
+class UserDetailOut(BaseModel):
+    id: int
+    tg_user_id: int | None = None
+    username: str | None
+    first_name: str | None
+    last_name: str | None
+    role: str
+    is_root: bool
+    is_banned: bool
+    is_trusted_seller: bool
+    phone: str | None
+    email: str | None = None
+    is_email_verified: bool = False
+    ads_count: int = 0
+    created_at: str
+
+
+@router.get("/{user_id}")
+async def get_user_detail(user_id: int, admin: WebAdmin):
+    async with database_service.get_session() as session:
+        result = await session.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(404, "User not found")
+
+        stmt_creds = select(UserCredentials).where(UserCredentials.user_id == user.id)
+        creds_result = await session.execute(stmt_creds)
+        credentials = creds_result.scalar_one_or_none()
+
+        ads_count_result = await session.execute(
+            select(func.count(Ad.id)).where(Ad.seller_user_id == user.id)
+        )
+        ads_count = ads_count_result.scalar() or 0
+
+        return UserDetailOut(
+            id=user.id, tg_user_id=user.tg_user_id, username=user.username,
+            first_name=user.first_name, last_name=user.last_name,
+            role=user.role.value if hasattr(user.role, 'value') else str(user.role),
+            is_root=_is_root_by_tg_id(user.tg_user_id),
+            is_banned=user.is_banned,
+            is_trusted_seller=user.is_trusted_seller,
+            phone=user.phone,
+            email=credentials.email if credentials else None,
+            is_email_verified=credentials.is_email_verified if credentials else False,
+            ads_count=ads_count,
+            created_at=user.created_at.isoformat() if user.created_at else "",
+        )
 
 
 class UserUpdate(BaseModel):
@@ -106,12 +166,8 @@ async def ban_user(user_id: int, admin: WebAdmin):
             raise HTTPException(404, "User not found")
         if _is_root_by_tg_id(user.tg_user_id):
             raise HTTPException(403, "Cannot ban root admin")
-        if user.tg_user_id is None:
-            raise HTTPException(400, "Cannot ban user without linked Telegram")
-        existing = await session.execute(select(Blacklist).where(Blacklist.tg_user_id == user.tg_user_id))
-        if not existing.scalar_one_or_none():
-            session.add(Blacklist(tg_user_id=user.tg_user_id))
-            await session.commit()
+        user.is_banned = True
+        await session.commit()
         return {"status": "ok", "message": "User banned"}
 
 
@@ -122,11 +178,8 @@ async def unban_user(user_id: int, admin: WebAdmin):
         user = result.scalar_one_or_none()
         if not user:
             raise HTTPException(404, "User not found")
-        result = await session.execute(select(Blacklist).where(Blacklist.tg_user_id == user.tg_user_id))
-        entry = result.scalar_one_or_none()
-        if entry:
-            await session.delete(entry)
-            await session.commit()
+        user.is_banned = False
+        await session.commit()
         return {"status": "ok", "message": "User unbanned"}
 
 
@@ -157,12 +210,11 @@ async def get_user_ads(user_id: int, admin: WebAdmin):
 
 
 class AdStatusUpdate(BaseModel):
-    status: str  # approved, rejected, removed, sold, pending
+    status: str
 
 
 @router.put("/{user_id}/ads/{ad_id}/status")
 async def update_ad_status(user_id: int, ad_id: int, data: AdStatusUpdate, admin: WebAdmin):
-    """Изменить статус объявления пользователя (админ)."""
     async with database_service.get_session() as session:
         result = await session.execute(
             select(Ad).where(Ad.id == ad_id, Ad.seller_user_id == user_id)
@@ -180,3 +232,18 @@ async def update_ad_status(user_id: int, ad_id: int, data: AdStatusUpdate, admin
             ad.rejection_reason = "Отклонено администратором"
         await session.commit()
         return {"status": "ok", "message": f"Ad {ad_id} status → {data.status}"}
+
+
+@router.delete("/{user_id}/ads/{ad_id}")
+async def delete_user_ad(user_id: int, ad_id: int, admin: WebAdmin):
+    """Удалить объявление пользователя (админ)."""
+    async with database_service.get_session() as session:
+        result = await session.execute(
+            select(Ad).where(Ad.id == ad_id, Ad.seller_user_id == user_id)
+        )
+        ad = result.scalar_one_or_none()
+        if not ad:
+            raise HTTPException(404, "Ad not found")
+        await session.delete(ad)
+        await session.commit()
+        return {"status": "ok", "message": f"Ad {ad_id} deleted"}

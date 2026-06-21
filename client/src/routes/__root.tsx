@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import Footer from '@/components/features/Footer'
 import Header from '@/components/features/Header'
+import { ToastContainer } from '@/components/ui/toast'
 
 import appCss from '@/styles.css?url'
 import { seo } from "@/lib/seo";
@@ -49,7 +50,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           {/* <CountryProvider> */}
            
               {children}
-            
+              <ToastContainer />
             {/* <Footer /> */}
           {/* </CountryProvider> */}
           {/* <MobileCatalog/> */}

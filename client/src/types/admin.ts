@@ -126,14 +126,21 @@ export interface SubcategoryCreate {
 // --- Users (admin) ---
 export interface AdminUser {
   id: number;
-  tg_user_id: number;
+  tg_user_id: number | null;
   username: string | null;
   first_name: string | null;
   last_name: string | null;
   role: string;
+  is_banned: boolean;
   is_trusted_seller: boolean;
   phone: string | null;
   created_at: string;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  email: string | null;
+  is_email_verified: boolean;
+  ads_count: number;
 }
 
 export interface AdminUsersResponse {

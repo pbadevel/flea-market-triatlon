@@ -20,6 +20,7 @@ class User(RecordModel):
             Enum(UserRole, native_enum=False), default=UserRole.USER
         )
     
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_trusted_seller: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     agreed_to_terms: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
