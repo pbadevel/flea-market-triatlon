@@ -67,7 +67,16 @@ class AdRepository(BaseRepository[Ad], IDRepositoryMixin[Ad, int]):
         channel_message_id: Optional[int] = None,
     ) -> Optional[Ad]:
         """Update ad status"""
-        ad = await self.get_by_id(ad_id)
+        from sqlalchemy.orm import selectinload
+        stmt = (
+            select(Ad)
+            .where(Ad.id == ad_id)
+            .options(
+                selectinload(Ad.seller).selectinload("credentials"),
+            )
+        )
+        result = await self.session.execute(stmt)
+        ad = result.unique().scalar_one_or_none()
         if not ad:
             return None
         
