@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .user_credentials import UserCredentials
 
 class User(RecordModel):
-    tg_user_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    tg_user_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -41,4 +41,4 @@ class User(RecordModel):
 class Blacklist(RecordModel):
     """Забаненные пользователи."""
     __tablename__ = "blacklist" # pyright: ignore # явное имя, чтобы не стало "blacklists" по авто-правилу
-    tg_user_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    tg_user_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)

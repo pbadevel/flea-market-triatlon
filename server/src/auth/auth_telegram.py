@@ -51,6 +51,45 @@ class TelegramAuthStatusResponse(BaseModel):
 _auth_sessions = {}
 
 
+@router.post("/telegram/link")
+async def link_telegram(request: Request):
+    """
+    Привязка Telegram к текущему email-аккаунту.
+    Требует Authorization: Bearer <token> в заголовке.
+    """
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(401, detail="Требуется авторизация")
+    token = auth_header.split(" ", 1)[1]
+
+    from src.auth.service import auth as auth_service
+    async with database_service.get_session() as session:
+        user_session = await auth_service.authenticate(session, token)
+        if not user_session:
+            raise HTTPException(401, detail="Неверный или истёкший токен")
+        current_user = user_session.user
+        if current_user.tg_user_id:
+            raise HTTPException(400, detail="Telegram уже привязан к аккаунту")
+
+    session_token = secrets.token_urlsafe(32)
+    _auth_sessions[session_token] = {
+        "type": "link",
+        "user_id": current_user.id,
+        "status": "pending",
+        "created_at": utc_now(),
+        "ip": request.client.host if request.client else None,
+    }
+
+    from src.config import settings
+    bot_username = settings.BOT_USERNAME
+    deeplink = f"https://t.me/{bot_username}?start=auth_{session_token}"
+
+    return TelegramAuthInitResponse(
+        deeplink=deeplink,
+        session_token=session_token,
+    )
+
+
 @router.post("/telegram/init", response_model=TelegramAuthInitResponse)
 async def init_telegram_auth(request: Request):
     """
@@ -100,29 +139,53 @@ async def telegram_auth_callback(data: TelegramAuthCallbackRequest, request: Req
         repository = UserRepository(session)
         
         
-        # Ищем или создаём пользователя
-        user = await repository.get_by_tg_id(data.tg_user_id)
+        # Проверяем: это привязка или вход?
+        is_link = session_data.get("type") == "link"
         
-        if not user:
-            # Создаём нового пользователя
+        if is_link:
+            # Режим привязки — привязываем tg_user_id к существующему пользователю
             from src.models import User as UserModel
-            user = await repository.create(
-                obj=UserModel(
-                    tg_user_id=data.tg_user_id,
-                    username=data.username,
-                    first_name=data.first_name,
-                    last_name=data.last_name,
-                ),
-                flush=True,
+            existing_user = await repository.get_by_tg_id(data.tg_user_id)
+            if existing_user:
+                raise HTTPException(400, detail="Этот Telegram аккаунт уже привязан к другому пользователю")
+            
+            user = await repository.get_one_or_none(
+                select(UserModel).where(UserModel.id == session_data["user_id"])
             )
-        else:
-            # Обновляем данные если изменились
-            if data.username and user.username != data.username:
+            if not user:
+                raise HTTPException(404, detail="Пользователь не найден")
+            
+            user.tg_user_id = data.tg_user_id
+            if data.username:
                 user.username = data.username
-            if data.first_name and user.first_name != data.first_name:
+            if data.first_name:
                 user.first_name = data.first_name
-            if data.last_name and user.last_name != data.last_name:
+            if data.last_name:
                 user.last_name = data.last_name
+        else:
+            # Режим входа — ищем или создаём пользователя
+            user = await repository.get_by_tg_id(data.tg_user_id)
+            
+            if not user:
+                # Создаём нового пользователя
+                from src.models import User as UserModel
+                user = await repository.create(
+                    obj=UserModel(
+                        tg_user_id=data.tg_user_id,
+                        username=data.username,
+                        first_name=data.first_name,
+                        last_name=data.last_name,
+                    ),
+                    flush=True,
+                )
+            else:
+                # Обновляем данные если изменились
+                if data.username and user.username != data.username:
+                    user.username = data.username
+                if data.first_name and user.first_name != data.first_name:
+                    user.first_name = data.first_name
+                if data.last_name and user.last_name != data.last_name:
+                    user.last_name = data.last_name
         
         # Создаём сессию для пользователя
         auth_response = await auth_service.get_login_response(

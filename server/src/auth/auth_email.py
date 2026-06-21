@@ -60,13 +60,7 @@ async def register_email(
         if existing_credentials:
             raise HTTPException(400, detail="Пользователь с таким email уже существует")
         
-        # Генерируем уникальный tg_user_id (не коллизируется с Telegram)
-        import random
-        while True:
-            tg_user_id = random.randint(10 ** 15, 10 ** 16 - 1)
-            existing = await session.execute(select(User).where(User.tg_user_id == tg_user_id))
-            if not existing.scalar_one_or_none():
-                break
+        # tg_user_id не задаётся — будет привязан при входе через Telegram
         
         # Хэшируем пароль
         password_hash = hash_password(data.password)
@@ -74,7 +68,7 @@ async def register_email(
         # Создаем пользователя
         user = await user_repository.create(
             obj=User(
-                tg_user_id=tg_user_id,
+                tg_user_id=None,
                 first_name=data.first_name,
                 last_name=data.last_name,
                 agreed_to_terms=True,
