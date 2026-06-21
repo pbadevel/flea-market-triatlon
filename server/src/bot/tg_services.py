@@ -10,7 +10,7 @@ from aiogram.enums import ParseMode
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from src.models import Ad
+from src.models import Ad, User
 from src.kit.utils import get_bot, get_ru_condition, map_country
 from src.kit.database.service import database_service
 
@@ -301,14 +301,15 @@ class TgService:
                 .options(
                     joinedload(Ad.photos),
                     joinedload(Ad.seller),
+                    joinedload(Ad.seller).joinedload(User.credentials),
                 )
             )
             result = await session.execute(stmt)
             ad = result.scalars().first()
-        if not ad:
-            log.error(f"send_ad_for_moderation_by_id: ad {ad_id} not found")
-            return
-        await self.send_ad_for_moderation(ad)
+            if not ad:
+                log.error(f"send_ad_for_moderation_by_id: ad {ad_id} not found")
+                return
+            await self.send_ad_for_moderation(ad)
 
     async def delete_ad_from_channel_by_id(self, ad_id: int):
         """Загрузить объявление по ID и удалить из канала (для фоновых задач)."""
@@ -320,7 +321,7 @@ class TgService:
             if not ad:
                 log.error(f"delete_ad_from_channel_by_id: ad {ad_id} not found")
                 return
-        await self.delete_ad_from_channel(ad)
+            await self.delete_ad_from_channel(ad)
 
 
 tg_service_notifier = TgService()
