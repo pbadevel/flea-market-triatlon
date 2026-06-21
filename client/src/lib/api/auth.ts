@@ -24,6 +24,12 @@ export const initTelegramAuthFn = createServerFn().handler(async () => {
   return await apiCall<{ deeplink: string; session_token: string }>('/auth/telegram/init', { method: 'POST' })
 })
 
+export const initTelegramLinkFn = createServerFn()
+  .inputValidator((data: { token: string }) => data)
+  .handler(async ({ data }) => {
+    return await apiCall<{ deeplink: string; session_token: string }>('/auth/telegram/init', { method: 'POST', token: data.token })
+  })
+
 export const checkTelegramAuthStatusFn = createServerFn()
   .inputValidator((data: { session_token: string }) => data)
   .handler(async ({ data }) => {

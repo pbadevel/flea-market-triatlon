@@ -120,25 +120,73 @@ async def telegram_auth_callback(data: TelegramAuthCallbackRequest, request: Req
         is_link = session_data.get("type") == "link"
         
         if is_link:
-            # Режим привязки — привязываем tg_user_id к существующему пользователю
-            from src.models import User as UserModel
-            existing_user = await repository.get_by_tg_id(data.tg_user_id)
-            if existing_user:
-                raise HTTPException(400, detail="Этот Telegram аккаунт уже привязан к другому пользователю")
-            
-            user = await repository.get_one_or_none(
+            # Режим привязки — привязываем tg_user_id к текущему пользователю
+            from src.models import User as UserModel, Ad, Review, ContactLog, DetailsLog, AdEdit, UserSession, UserCredentials
+
+            current_user = await repository.get_one_or_none(
                 select(UserModel).where(UserModel.id == session_data["user_id"])
             )
-            if not user:
+            if not current_user:
                 raise HTTPException(404, detail="Пользователь не найден")
-            
-            user.tg_user_id = data.tg_user_id
+
+            # Проверяем, не привязан ли уже этот TG к другому аккаунту
+            existing_tg_user = await repository.get_by_tg_id(data.tg_user_id)
+            if existing_tg_user and existing_tg_user.id != current_user.id:
+                # TG-пользователь уже существует — нужно СЛИЯНИЕ
+                # Переключаем все FK с TG-пользователя на текущего
+                old_id = existing_tg_user.id
+                new_id = current_user.id
+
+                # Ads
+                await session.execute(
+                    Ad.__table__.update().where(Ad.seller_user_id == old_id).values(seller_user_id=new_id)
+                )
+                # AdEdits
+                await session.execute(
+                    AdEdit.__table__.update().where(AdEdit.seller_user_id == old_id).values(seller_user_id=new_id)
+                )
+                # Reviews (reviewed)
+                await session.execute(
+                    Review.__table__.update().where(Review.reviewed_user_id == old_id).values(reviewed_user_id=new_id)
+                )
+                # Reviews (reviewer)
+                await session.execute(
+                    Review.__table__.update().where(Review.reviewer_user_id == old_id).values(reviewer_user_id=new_id)
+                )
+                # ContactLogs (buyer)
+                await session.execute(
+                    ContactLog.__table__.update().where(ContactLog.buyer_user_id == old_id).values(buyer_user_id=new_id)
+                )
+                # ContactLogs (seller)
+                await session.execute(
+                    ContactLog.__table__.update().where(ContactLog.seller_user_id == old_id).values(seller_user_id=new_id)
+                )
+                # DetailsLogs
+                await session.execute(
+                    DetailsLog.__table__.update().where(DetailsLog.seller_user_id == old_id).values(seller_user_id=new_id)
+                )
+                # UserSessions
+                await session.execute(
+                    UserSession.__table__.update().where(UserSession.user_id == old_id).values(user_id=new_id)
+                )
+                # Удаляем credentials старого TG-пользователя (если есть)
+                await session.execute(
+                    UserCredentials.__table__.delete().where(UserCredentials.user_id == old_id)
+                )
+                # Удаляем самого TG-пользователя
+                await session.delete(existing_tg_user)
+                await session.flush()
+
+            # Ставим tg_user_id текущему пользователю
+            current_user.tg_user_id = data.tg_user_id
             if data.username:
-                user.username = data.username
+                current_user.username = data.username
             if data.first_name:
-                user.first_name = data.first_name
+                current_user.first_name = data.first_name
             if data.last_name:
-                user.last_name = data.last_name
+                current_user.last_name = data.last_name
+
+            user = current_user
         else:
             # Режим входа — ищем или создаём пользователя
             user = await repository.get_by_tg_id(data.tg_user_id)

@@ -95,7 +95,7 @@ function RegisterPage() {
     mutationFn: () => registerEmailFn({data: {
       email: formData.email,
       password: formData.password,
-      firstName: formData.firstName || undefined,
+      firstName: formData.firstName,
       lastName: formData.lastName || undefined,
     }}),
     onSuccess: () => {
@@ -127,7 +127,7 @@ function RegisterPage() {
     setError('')
     
     if (method === 'email') {
-      if (!formData.email || !formData.password) {
+      if (!formData.email || !formData.password || !formData.firstName.trim()) {
         setError('Заполните все обязательные поля')
         return
       }
@@ -335,7 +335,7 @@ function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-(--sea-ink)">Имя</label>
+                  <label className="text-sm font-medium text-(--sea-ink)">Имя <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
                     <input
@@ -344,6 +344,7 @@ function RegisterPage() {
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
                       placeholder="Иван"
+                      required
                     />
                   </div>
                 </div>

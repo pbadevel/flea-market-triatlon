@@ -17,10 +17,12 @@ import {
   Star,
   MessageCircle,
   LogOut,
+  Link as LinkIcon,
 } from 'lucide-react'
 import { logoutFn, verifySession } from '@/lib/session'
 import { myProfileQueryOptions, myStatsQueryOptions } from '@/lib/queries/profile'
 import { updateMyProfile } from '@/lib/api/client/profile'
+import { initTelegramLinkFn, checkTelegramAuthStatusFn } from '@/lib/api/auth'
 import { fetchMyAds } from '@/lib/api/client/ads'
 import type { UserProfile, UserProfileUpdate } from '@/types/profile'
 import type { MyAd } from '@/types/ad'
@@ -37,6 +39,8 @@ function ProfilePage() {
   const { token } = Route.useLoaderData()
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
+  const [linkState, setLinkState] = useState<'idle' | 'waiting' | 'done'>('idle')
+  const [linkSessionToken, setLinkSessionToken] = useState<string | null>(null)
 
   const navigate = useNavigate();
 
@@ -76,6 +80,39 @@ function ProfilePage() {
     onError: (err) => {
       alert(`Ошибка: ${err.message}`)
     },
+  })
+
+  const handleLinkTelegram = async () => {
+    try {
+      const result = await initTelegramLinkFn({ data: { token: token! } })
+      setLinkSessionToken(result.session_token)
+      setLinkState('waiting')
+      window.open(result.deeplink, '_blank')
+    } catch (err: any) {
+      alert(err.message || 'Ошибка при инициализации привязки')
+    }
+  }
+
+  // Polling for link completion
+  useQuery({
+    queryKey: ['telegram-link-status', linkSessionToken],
+    queryFn: async () => {
+      if (!linkSessionToken) return null
+      const res = await checkTelegramAuthStatusFn({ data: { session_token: linkSessionToken } })
+      if (res.status === 'completed') {
+        setLinkState('done')
+        queryClient.invalidateQueries({ queryKey: ['profile'] })
+        return { done: true }
+      }
+      if (res.status === 'expired') {
+        setLinkState('idle')
+        setLinkSessionToken(null)
+        return null
+      }
+      return { pending: true }
+    },
+    enabled: linkState === 'waiting' && !!linkSessionToken,
+    refetchInterval: 1500,
   })
 
   if (!token) {
@@ -136,6 +173,31 @@ function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {/* Баннер — привязка Telegram */}
+      {linkState === 'waiting' && (
+        <div className="bg-blue-50 border-b border-blue-200">
+          <div className="page-wrap py-3">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <span className="text-lg">🔗</span>
+              <span>
+                Откройте Telegram и подтвердите привязку. <strong>Ожидание...</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {linkState === 'done' && (
+        <div className="bg-green-50 border-b border-green-200">
+          <div className="page-wrap py-3">
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <span className="text-lg">✅</span>
+              <span>Telegram успешно привязан!</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Баннер — нет способов связи */}
       {hasNoContact && (
@@ -215,7 +277,7 @@ function ProfilePage() {
               isPending={updateMutation.isPending}
             />
           ) : (
-            <ProfileInfo profile={profile} />
+            <ProfileInfo profile={profile} onLinkTelegram={handleLinkTelegram} />
           )}
         </div>
 
@@ -299,7 +361,7 @@ function StatCard({
 }
 
 
-function ProfileInfo({ profile }: { profile: UserProfile }) {
+function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLinkTelegram?: () => void }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -313,11 +375,22 @@ function ProfileInfo({ profile }: { profile: UserProfile }) {
           label="Фамилия"
           value={profile.last_name || 'Не указано'}
         />
-        <InfoField
-          icon={<MessageCircle className="size-4" />}
-          label="Telegram Username"
-          value={profile.username ? `@${profile.username}` : 'Не указан'}
-        />
+        <div>
+          <InfoField
+            icon={<MessageCircle className="size-4" />}
+            label="Telegram Username"
+            value={profile.username ? `@${profile.username}` : 'Не указан'}
+          />
+          {!profile.tg_user_id && onLinkTelegram && (
+            <button
+              onClick={onLinkTelegram}
+              className="mt-2 flex items-center gap-1.5 text-sm text-(--palm) hover:underline"
+            >
+              <LinkIcon className="size-3.5" />
+              Привязать Telegram
+            </button>
+          )}
+        </div>
         <InfoField
           icon={<Mail className="size-4" />}
           label="Email"
@@ -344,7 +417,7 @@ function ProfileInfo({ profile }: { profile: UserProfile }) {
           Зарегистрирован: {new Date(profile.created_at).toLocaleDateString('ru-RU')}
         </p>
         <p className="text-sm text-(--sea-ink-soft)">
-          Telegram ID: {profile.tg_user_id}
+          Telegram ID: {profile.tg_user_id ?? 'Не привязан'}
         </p>
       </div>
     </div>

@@ -24,7 +24,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 class EmailRegisterRequest(Schema):
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
-    first_name: Optional[str] = None
+    first_name: str = Field(..., min_length=1, max_length=100)
     last_name: Optional[str] = None
 
 
