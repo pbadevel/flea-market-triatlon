@@ -7,7 +7,7 @@ from datetime import datetime
 class UserProfileOut(BaseModel):
     """Публичная информация о пользователе"""
     id: int
-    tg_user_id: int
+    tg_user_id: Optional[int] = None
     username: Optional[str] = None  # Telegram username
     first_name: Optional[str] = None
     last_name: Optional[str] = None

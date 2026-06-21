@@ -16,7 +16,7 @@ router = APIRouter(prefix="/admin/users", tags=["admin-users"])
 
 class UserOut(BaseModel):
     id: int
-    tg_user_id: int
+    tg_user_id: int | None = None
     username: str | None
     first_name: str | None
     last_name: str | None
@@ -27,8 +27,8 @@ class UserOut(BaseModel):
     created_at: str
 
 
-def _is_root_by_tg_id(tg_id: int) -> bool:
-    return tg_id in settings.ADMIN_IDS
+def _is_root_by_tg_id(tg_id: int | None) -> bool:
+    return tg_id is not None and tg_id in settings.ADMIN_IDS
 
 
 @router.get("")
@@ -106,6 +106,8 @@ async def ban_user(user_id: int, admin: WebAdmin):
             raise HTTPException(404, "User not found")
         if _is_root_by_tg_id(user.tg_user_id):
             raise HTTPException(403, "Cannot ban root admin")
+        if user.tg_user_id is None:
+            raise HTTPException(400, "Cannot ban user without linked Telegram")
         existing = await session.execute(select(Blacklist).where(Blacklist.tg_user_id == user.tg_user_id))
         if not existing.scalar_one_or_none():
             session.add(Blacklist(tg_user_id=user.tg_user_id))
