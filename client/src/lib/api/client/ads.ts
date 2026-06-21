@@ -6,6 +6,7 @@ async function formDataToUploadPayload(fd: FormData) {
   const fields: Record<string, string> = {}
   const fileNames: string[] = []
   const fileBases: string[] = []
+  const fileTypes: string[] = []
 
   const entries = Array.from(fd.entries())
   for (const [key, val] of entries) {
@@ -16,11 +17,12 @@ async function formDataToUploadPayload(fd: FormData) {
       for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
       fileBases.push(btoa(binary))
       fileNames.push(val.name)
+      fileTypes.push(val.type)
     } else {
       fields[key] = String(val)
     }
   }
-  return { fields, fileNames, fileBases }
+  return { fields, fileNames, fileBases, fileTypes }
 }
 
 export const fetchAds = (filters: AdFilters = {}) => {

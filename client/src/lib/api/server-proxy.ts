@@ -45,6 +45,7 @@ export const serverUpload = createServerFn({ method: 'POST' })
     fields: Record<string, string>
     fileNames: string[]
     fileBases: string[]
+    fileTypes: string[]
   }) => data)
   .handler(async ({ data }) => {
     const url = `${API_HOST}/v1${data.path}`
@@ -55,7 +56,8 @@ export const serverUpload = createServerFn({ method: 'POST' })
     }
     for (let i = 0; i < data.fileNames.length; i++) {
       const buf = Buffer.from(data.fileBases[i], 'base64')
-      formData.append('photos', new Blob([buf]), data.fileNames[i])
+      const type = data.fileTypes[i] || 'application/octet-stream'
+      formData.append('photos', new Blob([buf], { type }), data.fileNames[i])
     }
 
     const res = await fetch(url, {
