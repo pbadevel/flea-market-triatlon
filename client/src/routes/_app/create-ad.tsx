@@ -156,6 +156,12 @@ function CreateAdPage() {
       return
     }
 
+    const totalSize = photos.reduce((sum, p) => sum + p.size, 0)
+    if (totalSize > 70 * 1024 * 1024) {
+      setError(`Общий размер фотографий ${(totalSize / 1024 / 1024).toFixed(1)} МБ превышает лимит 50 МБ. Уменьшите количество или размер файлов.`)
+      return
+    }
+
     createMutation.mutate()
   }
 

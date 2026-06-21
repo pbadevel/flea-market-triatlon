@@ -65,6 +65,9 @@ export const serverUpload = createServerFn({ method: 'POST' })
     })
 
     if (!res.ok) {
+      if (res.status === 413) {
+        throw new Error('Файлы слишком большие. Максимальный размер — 50 МБ.')
+      }
       const err = await res.json().catch(() => ({ detail: 'Upload failed' }))
       const detail = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)
       throw new Error(detail)
