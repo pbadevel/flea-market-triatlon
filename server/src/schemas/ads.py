@@ -146,41 +146,56 @@ class MyAdOut(BaseModel):
     title: str
     price: int
     cover_url: Optional[str] = None
+    image_urls: list[str] = Field(default_factory=list)
     city: str
     country: Optional[str] = None
     category: str
     subcategory: Optional[str] = None
+    size: Optional[str] = None
+    condition: str
+    description: Optional[str] = None
+    ad_type: str = Field(default="Продажа")
+    contact_method: str = Field(default="telegram")
     status: str
     rejection_reason: Optional[str] = None
     created_at: datetime
     channel_message_id: Optional[int] = None
-    # IDs существующих фото (для редактирования — чтобы знать, какие сохранить)
     photo_ids: list[int] = Field(default_factory=list)
 
     @classmethod
     def from_orm_with_status(cls, ad: Ad, base_url: str = f"{settings.API_DOMAIN_URL}/uploads/") -> "MyAdOut":
         cover_url = None
         photo_ids = []
+        image_urls = []
         if ad.photos:
             sorted_photos = sorted(ad.photos, key=lambda p: p.position)
             photo_ids = [p.id for p in sorted_photos]
             for photo in sorted_photos:
+                url = None
                 if photo.storage_path:
-                    cover_url = f"{base_url}{photo.storage_path}"
-                    break
+                    url = f"{base_url}{photo.storage_path}"
                 elif photo.file_id:
-                    cover_url = f"https://t.me/file/{photo.file_id}"
-                    break
+                    url = f"https://t.me/file/{photo.file_id}"
+                if url:
+                    image_urls.append(url)
+                    if cover_url is None:
+                        cover_url = url
 
         return cls(
             id=ad.id,
             title=ad.title,
             price=ad.price,
             cover_url=cover_url,
+            image_urls=image_urls,
             city=ad.city,
             country=ad.country,
             category=ad.category,
             subcategory=ad.subcategory,
+            size=ad.size,
+            condition=ad.condition,
+            description=ad.description,
+            ad_type=ad.ad_type,
+            contact_method=ad.contact_method,
             status=ad.status,
             rejection_reason=ad.rejection_reason,
             created_at=ad.created_at,
