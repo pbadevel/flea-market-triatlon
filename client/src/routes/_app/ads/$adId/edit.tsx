@@ -113,7 +113,7 @@ function EditAdPage() {
         .filter(p => p.file !== undefined)
         .forEach(p => data.append('photos', p.file!))
 
-      return await updateAd(token!, parseInt(adId), data)
+      return await updateAd({ token: token!, adId: parseInt(adId), formData: data })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-ads'] })

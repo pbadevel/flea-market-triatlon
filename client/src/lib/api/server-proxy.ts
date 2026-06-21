@@ -42,7 +42,7 @@ export const serverUpload = createServerFn({ method: 'POST' })
     path: string
     token: string
     method?: string
-    fields: Record<string, string>
+    fields: Record<string, string[]>
     fileNames: string[]
     fileBases: string[]
     fileTypes: string[]
@@ -51,8 +51,10 @@ export const serverUpload = createServerFn({ method: 'POST' })
     const url = `${API_HOST}/v1${data.path}`
     const formData = new FormData()
     
-    for (const [key, val] of Object.entries(data.fields)) {
-      formData.append(key, val)
+    for (const [key, vals] of Object.entries(data.fields)) {
+      for (const val of vals) {
+        formData.append(key, val)
+      }
     }
     for (let i = 0; i < data.fileNames.length; i++) {
       const buf = Buffer.from(data.fileBases[i], 'base64')

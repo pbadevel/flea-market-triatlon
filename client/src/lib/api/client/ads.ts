@@ -3,7 +3,7 @@ import type { AdFilters, MyAd } from '@/types/ad'
 
 // Helper: read FormData files into base64 + fields
 async function formDataToUploadPayload(fd: FormData) {
-  const fields: Record<string, string> = {}
+  const fields: Record<string, string[]> = {}
   const fileNames: string[] = []
   const fileBases: string[] = []
   const fileTypes: string[] = []
@@ -19,7 +19,8 @@ async function formDataToUploadPayload(fd: FormData) {
       fileNames.push(val.name)
       fileTypes.push(val.type)
     } else {
-      fields[key] = String(val)
+      if (!fields[key]) fields[key] = []
+      fields[key].push(String(val))
     }
   }
   return { fields, fileNames, fileBases, fileTypes }
