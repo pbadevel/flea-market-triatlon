@@ -4,7 +4,7 @@ import { createServerFn } from '@tanstack/react-start'
 const API_HOST = 'http://127.0.0.1:8000'
 
 // Generic API proxy for JSON requests
-export const serverApi = createServerFn()
+export const serverApi = createServerFn({ method: 'POST' })
   .inputValidator((data: {
     path: string
     method?: string
@@ -37,7 +37,7 @@ export const serverApi = createServerFn()
   })
 
 // Form-data upload proxy (create/update ad with photos)
-export const serverUpload = createServerFn()
+export const serverUpload = createServerFn({ method: 'POST' })
   .inputValidator((data: {
     path: string
     token: string
