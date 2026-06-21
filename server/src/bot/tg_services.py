@@ -100,7 +100,8 @@ class TgService:
             builder = InlineKeyboardBuilder()
             builder.button(
                 text="🔍 Подробнее",
-                callback_data=f"detail:{ad.id}"
+                url=f'{settings.SITE_URL}/product/{ad.id}'
+                # callback_data=f"detail:{ad.id}"
             )
             
             # Send to channel
