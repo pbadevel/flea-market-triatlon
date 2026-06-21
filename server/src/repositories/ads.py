@@ -72,7 +72,7 @@ class AdRepository(BaseRepository[Ad], IDRepositoryMixin[Ad, int]):
             select(Ad)
             .where(Ad.id == ad_id)
             .options(
-                selectinload(Ad.seller).selectinload("credentials"),
+                selectinload(Ad.seller).selectinload(User.credentials),
             )
         )
         result = await self.session.execute(stmt)
