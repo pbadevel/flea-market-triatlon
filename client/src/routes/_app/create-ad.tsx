@@ -121,7 +121,7 @@ function CreateAdPage() {
         data.append('photos', photo)
       })
 
-      return await createAd(token!, data)
+      return await createAd({token: token!, formData: data})
     },
     onSuccess: () => {
       navigate({ to: '/my-ads' })
