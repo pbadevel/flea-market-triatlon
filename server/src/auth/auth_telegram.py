@@ -51,67 +51,44 @@ class TelegramAuthStatusResponse(BaseModel):
 _auth_sessions = {}
 
 
-@router.post("/telegram/link")
-async def link_telegram(request: Request):
+@router.post("/telegram/init", response_model=TelegramAuthInitResponse)
+async def init_telegram_auth(request: Request):
     """
-    Привязка Telegram к текущему email-аккаунту.
-    Требует Authorization: Bearer <token> в заголовке.
+    Инициализация авторизации через Telegram.
+    Если передан Authorization header — режим привязки (link).
+    Если нет — режим входа (auth).
     """
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(401, detail="Требуется авторизация")
-    token = auth_header.split(" ", 1)[1]
-
-    from src.auth.service import auth as auth_service
-    async with database_service.get_session() as session:
-        user_session = await auth_service.authenticate(session, token)
-        if not user_session:
-            raise HTTPException(401, detail="Неверный или истёкший токен")
-        current_user = user_session.user
-        if current_user.tg_user_id:
-            raise HTTPException(400, detail="Telegram уже привязан к аккаунту")
-
     session_token = secrets.token_urlsafe(32)
-    _auth_sessions[session_token] = {
-        "type": "link",
-        "user_id": current_user.id,
+
+    # Проверяем Authorization header для режима link
+    auth_header = request.headers.get("Authorization", "")
+    session_data = {
         "status": "pending",
         "created_at": utc_now(),
         "ip": request.client.host if request.client else None,
     }
+
+    if auth_header.startswith("Bearer "):
+        token = auth_header.split(" ", 1)[1]
+        from src.auth.service import auth as auth_svc
+        async with database_service.get_session() as db_session:
+            user_session = await auth_svc.authenticate(db_session, token)
+            if not user_session:
+                raise HTTPException(401, detail="Неверный или истёкший токен")
+            current_user = user_session.user
+            if current_user.tg_user_id:
+                raise HTTPException(400, detail="Telegram уже привязан к аккаунту")
+            session_data["type"] = "link"
+            session_data["user_id"] = current_user.id
+    else:
+        session_data["type"] = "auth"
+
+    _auth_sessions[session_token] = session_data
 
     from src.config import settings
     bot_username = settings.BOT_USERNAME
     deeplink = f"https://t.me/{bot_username}?start=auth_{session_token}"
 
-    return TelegramAuthInitResponse(
-        deeplink=deeplink,
-        session_token=session_token,
-    )
-
-
-@router.post("/telegram/init", response_model=TelegramAuthInitResponse)
-async def init_telegram_auth(request: Request):
-    """
-    Инициализация авторизации через Telegram
-    Возвращает deeplink для перехода в бота
-    """
-    # Генерируем уникальный токен сессии
-    session_token = secrets.token_urlsafe(32)
-    
-    # Сохраняем сессию (в продакшене использовать Redis с TTL)
-    _auth_sessions[session_token] = {
-        "status": "pending",
-        "created_at": utc_now(),
-        "ip": request.client.host if request.client else None,
-    }
-    
-    # Формируем deeplink для бота
-    # Формат: https://t.me/YourBotName?start=auth_{session_token}
-    from src.config import settings
-    bot_username = settings.BOT_USERNAME  # Нужно добавить в конфиг
-    deeplink = f"https://t.me/{bot_username}?start=auth_{session_token}"
-    
     return TelegramAuthInitResponse(
         deeplink=deeplink,
         session_token=session_token,
