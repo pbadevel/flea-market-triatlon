@@ -1,6 +1,5 @@
 import { serverApi, serverUpload } from '../server-proxy'
-import type { Product, AdFilters } from '@/types/products'
-import type { MyAd } from '@/types/ad'
+import type { AdFilters, MyAd } from '@/types/ad'
 
 // Helper: read FormData files into base64 + fields
 async function formDataToUploadPayload(fd: FormData) {
@@ -46,12 +45,12 @@ export const fetchFilters = () =>
 export const fetchMyAds = (token: string) =>
   serverApi({ data: { path: '/ads/my', token } })
 
-export const createAd = async (token: string, formData: FormData) => {
+export const createAd = async ({ token, formData }: { token: string; formData: FormData }) => {
   const payload = await formDataToUploadPayload(formData)
   return serverUpload({ data: { ...payload, path: '/ads', method: 'POST', token } })
 }
 
-export const updateAd = async (token: string, adId: number, formData: FormData) => {
+export const updateAd = async ({ token, adId, formData }: { token: string; adId: number; formData: FormData }) => {
   const payload = await formDataToUploadPayload(formData)
   return serverUpload({ data: { ...payload, path: `/ads/${adId}`, method: 'PUT', token } })
 }
