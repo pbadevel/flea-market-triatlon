@@ -186,6 +186,8 @@ class TgService:
     async def notify_user_ad_approved(self, ad: Ad):
         """Notify user that their ad was approved"""
         try:
+            if not ad.seller or not ad.seller.tg_user_id:
+                return
             text = f"""
 ✅ <b>Ваше объявление одобрено!</b>
 
@@ -207,6 +209,8 @@ class TgService:
     async def notify_user_ad_rejected(self, ad: Ad, reason: str):
         """Notify user that their ad was rejected"""
         try:
+            if not ad.seller or not ad.seller.tg_user_id:
+                return
             text = f"""
 ❌ <b>Ваше объявление отклонено</b>
 
