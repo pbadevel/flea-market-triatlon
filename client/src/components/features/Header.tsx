@@ -15,6 +15,12 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const { data: session } = useQuery({
+    queryKey: ['session'],
+    queryFn: verifySession,
+    staleTime: 0,
+  });
+
   // Поиск с debounce
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
