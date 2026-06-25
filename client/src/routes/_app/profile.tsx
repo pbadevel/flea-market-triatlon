@@ -275,6 +275,7 @@ function ProfilePage() {
               onSave={(data) => updateMutation.mutate(data)}
               onCancel={() => setIsEditing(false)}
               isPending={updateMutation.isPending}
+              onLinkTelegram={handleLinkTelegram}
             />
           ) : (
             <ProfileInfo profile={profile} onLinkTelegram={handleLinkTelegram} />
@@ -450,11 +451,13 @@ function EditProfileForm({
   onSave,
   onCancel,
   isPending,
+  onLinkTelegram,
 }: {
   profile: UserProfile
   onSave: (data: UserProfileUpdate) => void
   onCancel: () => void
   isPending: boolean
+  onLinkTelegram?: () => void
 }) {
   const [formData, setFormData] = useState({
     first_name: profile.first_name || '',
@@ -521,9 +524,19 @@ function EditProfileForm({
         <p className="text-blue-600">
           {profile.username ? `@${profile.username}` : 'Не указан'}
         </p>
-        <p className="text-xs text-blue-500 mt-1">
-          Изменяется только через Telegram
-        </p>
+        {profile.tg_user_id == null ? (
+          <button
+            onClick={onLinkTelegram}
+            className="mt-2 flex items-center gap-1.5 text-sm font-medium text-(--palm) hover:underline"
+          >
+            <LinkIcon className="size-3.5" />
+            Привязать Telegram
+          </button>
+        ) : (
+          <p className="text-xs text-blue-500 mt-1">
+            Изменяется только через Telegram
+          </p>
+        )}
       </div>
 
       <div className="flex gap-3 pt-4">

@@ -59,9 +59,7 @@ async def register_email(
         
         if existing_credentials:
             raise HTTPException(400, detail="Пользователь с таким email уже существует")
-        
-        # tg_user_id не задаётся — будет привязан при входе через Telegram
-        
+
         # Хэшируем пароль
         password_hash = hash_password(data.password)
         
