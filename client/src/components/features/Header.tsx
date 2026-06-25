@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Search, ShoppingCart, Heart, User, X, Plus, BoxIcon } from "lucide-react";
+import { Search, ShoppingCart, Heart, User, X, Plus, BoxIcon, Bell } from "lucide-react";
 import { SearchMenu } from "./search-menu";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adsQueryOptions } from "@/lib/queries/ads";
+import { verifySession } from "@/lib/session";
+import { fetchUnreadCount, markAllRead } from "@/lib/api/client/notifications";
 
 
 
@@ -12,6 +14,7 @@ export default function Header() {
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   // Поиск с debounce
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -64,6 +67,24 @@ export default function Header() {
     setIsSearchOpen(false);
   };
 
+  const { data: session } = useQuery({
+    queryKey: ['session'],
+    queryFn: verifySession,
+    staleTime: 0,
+  });
+
+  const { data: unreadData } = useQuery({
+    queryKey: ['unread-notifications'],
+    queryFn: () => fetchUnreadCount(session!.token!),
+    enabled: !!session?.token,
+    refetchInterval: 30000,
+  });
+
+  const markReadMut = useMutation({
+    mutationFn: () => markAllRead(session!.token!),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['unread-notifications'] }),
+  });
+
   return (
     <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
       <div className="page-wrap">
@@ -112,6 +133,20 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-0.5">
+            {session?.token && (
+              <button
+                onClick={() => markReadMut.mutate()}
+                className="relative rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+                aria-label="Уведомления"
+              >
+                <Bell className="size-4.5" />
+                {(unreadData as any)?.count > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {(unreadData as any).count > 9 ? '9+' : (unreadData as any).count}
+                  </span>
+                )}
+              </button>
+            )}
             <Link 
               to={"/profile"}
               className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">

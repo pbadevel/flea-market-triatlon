@@ -26,6 +26,8 @@ class EmailRegisterRequest(Schema):
     password: str = Field(..., min_length=6, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: Optional[str] = None
+    phone: str = Field(..., min_length=5, max_length=20)
+    preferred_contact: str = Field(..., pattern="^(TELEGRAM|EMAIL|PHONE)$")
 
 
 class EmailLoginRequest(Schema):
@@ -69,6 +71,8 @@ async def register_email(
                 tg_user_id=None,
                 first_name=data.first_name,
                 last_name=data.last_name,
+                phone=data.phone,
+                preferred_contact=data.preferred_contact,
                 agreed_to_terms=True,
                 role=UserRole.USER,
             ),

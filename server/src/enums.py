@@ -6,6 +6,11 @@ class UserRole(StrEnum):
     MODERATOR = "MODERATOR"
     ADMIN = "ADMIN"
 
+class PreferredContact(StrEnum):
+    TELEGRAM = "TELEGRAM"
+    EMAIL = "EMAIL"
+    PHONE = "PHONE"
+
 class MediaFor(StrEnum):
     EVENT = "EVENT"
     ACTION = "ACTION"

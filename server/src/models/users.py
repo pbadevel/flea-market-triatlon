@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List
 from sqlalchemy import BigInteger, Boolean, String, Enum
-from src.enums import UserRole
+from src.enums import UserRole, PreferredContact
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.kit.database.models import RecordModel
 
@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .ad import Ad
     from .interaction import Review
     from .user_credentials import UserCredentials
+    from .notification import Notification
 
 class User(RecordModel):
     tg_user_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
@@ -23,6 +24,7 @@ class User(RecordModel):
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_trusted_seller: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    preferred_contact: Mapped[str | None] = mapped_column(String, nullable=True)
     agreed_to_terms: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     agreed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     subscribed_to_channel: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -37,6 +39,9 @@ class User(RecordModel):
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
+    )
+    notifications: Mapped[List["Notification"]] = relationship(
+        "Notification", back_populates="user", cascade="all, delete-orphan"
     )
 
 class Blacklist(RecordModel):

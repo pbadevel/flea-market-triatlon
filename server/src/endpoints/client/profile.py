@@ -34,6 +34,7 @@ async def get_my_profile(user: WebUser):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "phone": user.phone,
+            "preferred_contact": user.preferred_contact,
             "email": credentials.email if credentials else None,
             "is_email_verified": credentials.is_email_verified if credentials else False,
             "is_moderator": user.role==UserRole.MODERATOR,
@@ -68,6 +69,8 @@ async def update_my_profile(
             update_data["last_name"] = data.last_name
         if data.phone is not None:
             update_data["phone"] = data.phone
+        if hasattr(data, 'preferred_contact') and data.preferred_contact is not None:
+            update_data["preferred_contact"] = data.preferred_contact
         
         if update_data:
             await repository.update(

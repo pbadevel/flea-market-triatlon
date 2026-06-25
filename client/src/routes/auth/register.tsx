@@ -6,6 +6,7 @@ import {
   Mail,
   Lock,
   User,
+  Phone,
   MessageCircle,
   Eye,
   EyeOff,
@@ -51,6 +52,8 @@ function RegisterPage() {
     password: '',
     firstName: '',
     lastName: '',
+    phone: '',
+    preferredContact: 'TELEGRAM' as string,
   })
   const [error, setError] = useState('')
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
@@ -97,6 +100,8 @@ function RegisterPage() {
       password: formData.password,
       firstName: formData.firstName,
       lastName: formData.lastName || undefined,
+      phone: formData.phone,
+      preferredContact: formData.preferredContact,
     }}),
     onSuccess: () => {
       setRegisteredEmail(formData.email)
@@ -127,7 +132,7 @@ function RegisterPage() {
     setError('')
     
     if (method === 'email') {
-      if (!formData.email || !formData.password || !formData.firstName.trim()) {
+      if (!formData.email || !formData.password || !formData.firstName.trim() || !formData.phone.trim()) {
         setError('Заполните все обязательные поля')
         return
       }
@@ -396,6 +401,46 @@ function RegisterPage() {
                   >
                     {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                   </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-(--sea-ink)">Телефон <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    placeholder="+7 (999) 123-45-67"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-(--sea-ink)">Предпочтительный способ связи <span className="text-red-500">*</span></label>
+                <div className="flex gap-3">
+                  {[
+                    { value: 'TELEGRAM', label: 'Telegram', icon: '📱' },
+                    { value: 'EMAIL', label: 'Email', icon: '📧' },
+                    { value: 'PHONE', label: 'Телефон', icon: '📞' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, preferredContact: opt.value })}
+                      className={`flex-1 flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                        formData.preferredContact === opt.value
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span>{opt.icon}</span>
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

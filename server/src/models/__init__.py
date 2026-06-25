@@ -8,6 +8,7 @@ from .interaction import Review, ContactLog, DetailsLog
 from .ad import Ad, AdPhoto, AdEdit, AdEditPhoto, Tag
 from .category import CategoryModel, SubcategoryModel, SubcategoryGroup
 from .user_credentials import UserCredentials
+from .notification import Notification
 
 __all__ = [
     "Model",
@@ -16,4 +17,5 @@ __all__ = [
     "User", "Blacklist", "UserSession", "UserCredentials",
     "DeleteMessage", "Review", "ContactLog", "DetailsLog",
     "Ad", "AdPhoto", "AdEdit", "AdEditPhoto", "Tag", "CategoryModel", "SubcategoryModel", "SubcategoryGroup",
+    "Notification",
 ]

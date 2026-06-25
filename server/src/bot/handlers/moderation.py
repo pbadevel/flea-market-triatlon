@@ -108,6 +108,17 @@ async def handle_moderation_callback(callback: CallbackQuery, bot: Bot):
                         price=ad.price,
                         ad_id=ad.id,
                     )
+                
+                # In-app notification
+                from src.models import Notification
+                session.add(Notification(
+                    user_id=ad.seller_user_id,
+                    title="Объявление одобрено",
+                    message=f"Ваше объявление «{ad.title}» за {ad.price:,} ₽ опубликовано.",
+                    type="success",
+                    ad_id=ad.id,
+                ))
+                await session.commit()
 
 
             # NEED REASON  
@@ -235,6 +246,17 @@ async def continue_confirmation_rejection(cb: CallbackQuery, state: FSMContext):
                         price=ad.price,
                         reason=rejection_reason,
                     )
+                
+                # In-app notification
+                from src.models import Notification
+                session.add(Notification(
+                    user_id=ad.seller_user_id,
+                    title="Объявление отклонено",
+                    message=f"Ваше объявление «{ad.title}» отклонено. Причина: {rejection_reason}",
+                    type="error",
+                    ad_id=ad.id,
+                ))
+                await session.commit()
                 return
         except Exception as e:
             await msg.answer(

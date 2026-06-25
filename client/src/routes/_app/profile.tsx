@@ -411,6 +411,16 @@ function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLink
           label="Телефон"
           value={profile.phone || 'Не указан'}
         />
+        <InfoField
+          icon={<MessageCircle className="size-4" />}
+          label="Предпочтительная связь"
+          value={
+            profile.preferred_contact === 'TELEGRAM' ? 'Telegram' :
+            profile.preferred_contact === 'EMAIL' ? 'Email' :
+            profile.preferred_contact === 'PHONE' ? 'Телефон' :
+            'Не указан'
+          }
+        />
       </div>
       
       <div className="pt-4 border-t border-(--line)">

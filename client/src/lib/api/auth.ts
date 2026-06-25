@@ -45,7 +45,7 @@ export const checkTelegramAuthStatusFn = createServerFn()
 
 // Email Auth
 export const registerEmailFn = createServerFn()
-  .inputValidator((data: { email: string; password: string; firstName?: string; lastName?: string }) => data)
+  .inputValidator((data: { email: string; password: string; firstName: string; lastName?: string; phone: string; preferredContact: string }) => data)
   .handler(async ({ data }) => {
     return await apiCall<{ success: boolean; message: string; email: string }>('/auth/register/email', { method: 'POST', body: data })
   })

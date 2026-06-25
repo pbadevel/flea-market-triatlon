@@ -1,11 +1,12 @@
 // src/types/profile.ts
 export interface UserProfile {
   id: number;
-  tg_user_id: number;
+  tg_user_id: number | null;
   username: string | null;  // Telegram username
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
+  preferred_contact: string | null;
   email: string | null;  // Email
   is_email_verified: boolean;
   is_moderator: boolean;
