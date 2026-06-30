@@ -354,10 +354,6 @@ async def update_ad(
         ad.delivery_method = delivery_method
         ad.contact_method = contact_method
         
-        # Меняем статус на pending (требуется повторная модерация)
-        ad.status = AdStatus.pending.value
-        ad.rejection_reason = None  # Очищаем причину отклонения
-        
         # Управление фото: удаляем только те, что не в keep_photo_ids, добавляем новые
         keep_set = set(keep_photo_ids)
         photos_to_delete = [p for p in ad.photos if p.id not in keep_set]
@@ -396,13 +392,46 @@ async def update_ad(
         
         # Уведомления фоном (чтобы не блокировать ответ)
         background_tasks.add_task(tg_service_notifier.delete_ad_from_channel_by_id, ad.id)
-        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation_by_id, ad.id)
 
         await session.commit()
         
         # Возвращаем обновлённое объявление
         updated_ad = await repository.get_ad_with_photos(ad_id)
         return MyAdOut.from_orm_with_status(updated_ad) # pyright: ignore
+
+
+@router.post("/{ad_id}/submit")
+async def submit_for_moderation(
+    background_tasks: BackgroundTasks,
+    ad_id: int,
+    user: WebUser,
+):
+    """
+    Отправить объявление на модерацию (после редактирования).
+    Статус меняется на pending.
+    """
+    async with database_service.get_session() as session:
+        repository = ad_service.get_repository(session)
+        ad = await repository.get_ad_with_photos(ad_id)
+
+        if not ad:
+            raise HTTPException(404, "Объявление не найдено")
+
+        if ad.seller_user_id != user.id:
+            raise HTTPException(403, "Нет прав")
+
+        if ad.status == AdStatus.pending.value:
+            raise HTTPException(400, "Объявление уже на модерации")
+
+        ad.status = AdStatus.pending.value
+        ad.rejection_reason = None
+
+        background_tasks.add_task(tg_service_notifier.send_ad_for_moderation_by_id, ad.id)
+
+        await session.commit()
+
+        updated_ad = await repository.get_ad_with_photos(ad_id)
+        return MyAdOut.from_orm_with_status(updated_ad)
 
 
 @router.delete("/{ad_id}")

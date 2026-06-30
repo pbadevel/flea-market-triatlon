@@ -30,15 +30,15 @@ export const fetchAds = (filters: AdFilters = {}) => {
   const params = new URLSearchParams()
   if (filters.page) params.set('page', String(filters.page))
   if (filters.limit) params.set('limit', String(filters.limit))
-  if (filters.category) params.set('category', filters.category)
+  if (filters.categories?.length) filters.categories.forEach(c => params.append('category', c))
+  if (filters.subcategories?.length) filters.subcategories.forEach(s => params.append('subcategory', s))
+  if (filters.countries?.length) filters.countries.forEach(c => params.append('country', c))
+  if (filters.cities?.length) filters.cities.forEach(c => params.append('city', c))
   if (filters.search) params.set('search', filters.search)
   if (filters.sort) params.set('sort', filters.sort)
-  if (filters.country) params.set('country', filters.country)
-  if (filters.city) params.set('city', filters.city)
-  if (filters.min_price) params.set('min_price', String(filters.min_price))
-  if (filters.max_price) params.set('max_price', String(filters.max_price))
+  if (filters.minPrice) params.set('min_price', String(filters.minPrice))
+  if (filters.maxPrice) params.set('max_price', String(filters.maxPrice))
   if (filters.condition) params.set('condition', filters.condition)
-  if (filters.subcategory) params.set('subcategory', filters.subcategory)
   if (filters.ad_type) params.set('ad_type', filters.ad_type)
   return serverApi({ data: { path: `/ads?${params.toString()}` } })
 }
@@ -70,3 +70,6 @@ export const deleteAd = (token: string, adId: number) =>
 
 export const resendAd = (token: string, adId: number) =>
   serverApi({ data: { path: `/ads/${adId}/resend`, method: 'POST', token } })
+
+export const submitForModeration = (token: string, adId: number) =>
+  serverApi({ data: { path: `/ads/${adId}/submit`, method: 'POST', token } })

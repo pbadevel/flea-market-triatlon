@@ -10,7 +10,7 @@ import {
   AlertCircle,
   ChevronDown,
 } from 'lucide-react'
-import { fetchAdForEdit, updateAd } from '@/lib/api/client/ads'
+import { fetchAdForEdit, updateAd, submitForModeration } from '@/lib/api/client/ads'
 import { filtersQueryOptions } from '@/lib/queries/ads'
 import { verifySession } from '@/lib/session'
 
@@ -50,6 +50,7 @@ function EditAdPage() {
 
   const [photoItems, setPhotoItems] = useState<PhotoItem[]>([])
   const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
 
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false)
@@ -168,10 +169,22 @@ function EditAdPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-ads'] })
-      navigate({ to: '/my-ads' })
+      queryClient.invalidateQueries({ queryKey: ['ad-edit', adId] })
+      setSaved(true)
     },
     onError: (err) => {
       setError(err.message || 'Ошибка при обновлении объявления')
+    },
+  })
+
+  const submitMut = useMutation({
+    mutationFn: () => submitForModeration(token!, parseInt(adId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-ads'] })
+      navigate({ to: '/my-ads' })
+    },
+    onError: (err) => {
+      setError(err.message || 'Ошибка при отправке на модерацию')
     },
   })
 
@@ -717,14 +730,25 @@ function EditAdPage() {
           )}
 
           <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={updateMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 disabled:opacity-50 transition"
-            >
-              <Save className="size-4" />
-              {updateMutation.isPending ? 'Сохранение...' : 'Сохранить изменения'}
-            </button>
+            {saved ? (
+              <button
+                type="button"
+                onClick={() => submitMut.mutate()}
+                disabled={submitMut.isPending}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-blue-500 py-3 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition"
+              >
+                {submitMut.isPending ? 'Отправка...' : 'Отправить на модерацию'}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 disabled:opacity-50 transition"
+              >
+                <Save className="size-4" />
+                {updateMutation.isPending ? 'Сохранение...' : 'Сохранить изменения'}
+              </button>
+            )}
             <Link
               to="/my-ads"
               className="flex items-center justify-center rounded-lg border border-(--line) px-6 py-3 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover)"
@@ -734,7 +758,9 @@ function EditAdPage() {
           </div>
 
           <p className="text-center text-xs text-(--sea-ink-soft)">
-            После сохранения объявление будет отправлено на повторную модерацию
+            {saved
+              ? 'Изменения сохранены. Отправьте на модерацию когда будете готовы.'
+              : 'После сохранения будет доступна кнопка отправки на модерацию'}
           </p>
         </form>
       </div>
