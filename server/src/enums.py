@@ -10,6 +10,7 @@ class PreferredContact(StrEnum):
     TELEGRAM = "TELEGRAM"
     EMAIL = "EMAIL"
     PHONE = "PHONE"
+    MAX = "MAX"
 
 class MediaFor(StrEnum):
     EVENT = "EVENT"

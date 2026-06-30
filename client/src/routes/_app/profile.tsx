@@ -415,9 +415,10 @@ function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLink
           icon={<MessageCircle className="size-4" />}
           label="Предпочтительная связь"
           value={
-            profile.preferred_contact === 'TELEGRAM' ? 'Telegram' :
-            profile.preferred_contact === 'EMAIL' ? 'Email' :
-            profile.preferred_contact === 'PHONE' ? 'Телефон' :
+            profile.preferred_contact === 'TELEGRAM' ? `Telegram: ${profile.contact_value || 'Не указан'}` :
+            profile.preferred_contact === 'EMAIL' ? `Email: ${profile.contact_value || 'Не указан'}` :
+            profile.preferred_contact === 'PHONE' ? `Телефон: ${profile.contact_value || 'Не указан'}` :
+            profile.preferred_contact === 'MAX' ? `MAX: ${profile.contact_value || 'Не указан'}` :
             'Не указан'
           }
         />
@@ -474,6 +475,8 @@ function EditProfileForm({
     last_name: profile.last_name || '',
     phone: profile.phone || '',
     email: profile.email || '',
+    preferred_contact: profile.preferred_contact || 'TELEGRAM',
+    contact_value: profile.contact_value || '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -527,6 +530,53 @@ function EditProfileForm({
             placeholder="+7 (999) 123-45-67"
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-(--sea-ink)">Предпочтительный способ связи</label>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            { value: 'TELEGRAM', label: 'Telegram', icon: '📱' },
+            { value: 'EMAIL', label: 'Email', icon: '📧' },
+            { value: 'PHONE', label: 'Телефон', icon: '📞' },
+            { value: 'MAX', label: 'MAX', icon: '💬' },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setFormData({ ...formData, preferred_contact: opt.value, contact_value: '' })}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+                formData.preferred_contact === opt.value
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-(--line) text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <span>{opt.icon}</span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-(--sea-ink)">
+          {formData.preferred_contact === 'TELEGRAM' && 'Telegram username или ID'}
+          {formData.preferred_contact === 'EMAIL' && 'Email для связи'}
+          {formData.preferred_contact === 'PHONE' && 'Телефон для связи'}
+          {formData.preferred_contact === 'MAX' && 'Контакт в MAX'}
+        </label>
+        <input
+          type={formData.preferred_contact === 'EMAIL' ? 'email' : formData.preferred_contact === 'PHONE' ? 'tel' : 'text'}
+          value={formData.contact_value}
+          onChange={(e) => setFormData({ ...formData, contact_value: e.target.value })}
+          className="w-full rounded-lg border border-(--line) px-4 py-2 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
+          placeholder={
+            formData.preferred_contact === 'TELEGRAM' ? '@username или 123456789' :
+            formData.preferred_contact === 'EMAIL' ? 'example@mail.ru' :
+            formData.preferred_contact === 'PHONE' ? '+7 (999) 123-45-67' :
+            'Ваш логин в MAX'
+          }
+        />
       </div>
 
       <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">

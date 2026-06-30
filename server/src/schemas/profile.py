@@ -13,6 +13,7 @@ class UserProfileOut(BaseModel):
     last_name: Optional[str] = None
     phone: Optional[str] = None
     preferred_contact: Optional[str] = None
+    contact_value: Optional[str] = None
     email: Optional[str] = None  # Email из credentials
     is_email_verified: bool = False
     is_moderator: bool = False
@@ -31,7 +32,8 @@ class UserProfileUpdate(BaseModel):
     last_name: Optional[str] = Field(None, max_length=100)
     phone: Optional[str] = Field(None, max_length=20)
     email: Optional[str] = Field(None, max_length=255)
-    preferred_contact: Optional[str] = Field(None, pattern="^(TELEGRAM|EMAIL|PHONE)$")
+    preferred_contact: Optional[str] = Field(None, pattern="^(TELEGRAM|EMAIL|PHONE|MAX)$")
+    contact_value: Optional[str] = Field(None, max_length=255)
 
 
 class UserStats(BaseModel):

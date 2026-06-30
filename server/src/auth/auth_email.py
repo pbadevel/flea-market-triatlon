@@ -26,8 +26,9 @@ class EmailRegisterRequest(Schema):
     password: str = Field(..., min_length=6, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: Optional[str] = None
-    phone: str = Field(..., min_length=5, max_length=20)
-    preferred_contact: str = Field(..., pattern="^(TELEGRAM|EMAIL|PHONE)$")
+    phone: Optional[str] = None
+    preferred_contact: str = Field(..., pattern="^(TELEGRAM|EMAIL|PHONE|MAX)$")
+    contact_value: str = Field(..., min_length=1, max_length=255)
 
 
 class EmailLoginRequest(Schema):
@@ -73,6 +74,7 @@ async def register_email(
                 last_name=data.last_name,
                 phone=data.phone,
                 preferred_contact=data.preferred_contact,
+                contact_value=data.contact_value,
                 agreed_to_terms=True,
                 role=UserRole.USER,
             ),

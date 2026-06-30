@@ -205,10 +205,18 @@ function NotificationsBell({ token }: { token: string }) {
 
   const count = (unreadData as any)?.count || 0;
 
+  const handleToggle = () => {
+    const next = !open;
+    setOpen(next);
+    if (next && count > 0) {
+      markReadMut.mutate();
+    }
+  };
+
   return (
     <div ref={bellRef} className="relative">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className="relative rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
         aria-label="Уведомления"
       >

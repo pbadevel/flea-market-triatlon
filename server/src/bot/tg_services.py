@@ -59,10 +59,16 @@ def _format_seller(ad: Ad) -> str:
         "TELEGRAM": "Telegram",
         "EMAIL": "Email",
         "PHONE": "Телефон",
+        "MAX": "MAX",
     }
     preferred = contact_map.get(seller.preferred_contact, "Telegram") if seller.preferred_contact else "Telegram"
+    contact_val = seller.contact_value or ""
     
-    return f"👤 Продавец: {name_part}\n📬 {source} (ID: {seller.id})\n📞 Предпочтительная связь: {preferred}"
+    result = f"👤 Продавец: {name_part}\n📬 {source} (ID: {seller.id})\n📞 Предпочтительная связь: {preferred}"
+    if contact_val:
+        result += f"\n🔗 Контакт: {contact_val}"
+    
+    return result
 
 
 def get_text_for_moderation(ad: Ad):

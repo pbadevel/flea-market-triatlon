@@ -25,6 +25,7 @@ class User(RecordModel):
     is_trusted_seller: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     preferred_contact: Mapped[str | None] = mapped_column(String, nullable=True)
+    contact_value: Mapped[str | None] = mapped_column(String, nullable=True)
     agreed_to_terms: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     agreed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     subscribed_to_channel: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
