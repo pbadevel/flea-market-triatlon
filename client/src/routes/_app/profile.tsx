@@ -185,10 +185,11 @@ function ProfilePage() {
         </div>
       </header>
 
+      <div className="page-wrap py-4 space-y-4">
       {/* Баннер — привязка Telegram */}
       {linkState === 'waiting' && (
-        <div className="bg-blue-50 border-b border-blue-200">
-          <div className="page-wrap py-3">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="py-3 px-4">
             <div className="flex items-center gap-2 text-sm text-blue-700">
               <span className="text-lg">🔗</span>
               <span>
@@ -200,8 +201,8 @@ function ProfilePage() {
       )}
 
       {linkState === 'done' && (
-        <div className="bg-green-50 border-b border-green-200">
-          <div className="page-wrap py-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg">
+          <div className="py-3 px-4">
             <div className="flex items-center gap-2 text-sm text-green-700">
               <span className="text-lg">✅</span>
               <span>Telegram успешно привязан!</span>
@@ -212,8 +213,8 @@ function ProfilePage() {
 
       {/* Баннер — нет способов связи */}
       {hasNoContact && (
-        <div className="bg-red-50 border-b border-red-200">
-          <div className="page-wrap py-3">
+        <div className="bg-red-50 border border-red-200 rounded-lg">
+          <div className="py-3 px-4">
             <div className="flex items-center gap-2 text-sm text-red-700">
               <span className="text-lg">⚠️</span>
               <span>
@@ -226,8 +227,7 @@ function ProfilePage() {
         </div>
       )}
 
-      <div className="page-wrap py-8 space-y-6">
-        {/* Stats Cards */}
+      {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
