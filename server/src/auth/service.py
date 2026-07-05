@@ -43,18 +43,17 @@ class AuthService:
             )
         )
         res = await session.execute(stmt)
-        old_session = res.unique().scalar_one_or_none()
+        old_sessions = res.unique().scalars().all()
         
-        if old_session is None:
-            user_session = UserSession(
-                token=generate_token(), user_agent=user_agent, user=user
-            )
-            session.add(user_session)
-            await session.flush()
-            await session.commit()
-    
-        else:
-            user_session = old_session
+        if old_sessions:
+            return old_sessions[0]
+
+        user_session = UserSession(
+            token=generate_token(), user_agent=user_agent, user=user
+        )
+        session.add(user_session)
+        await session.flush()
+        await session.commit()
 
         return user_session
 
