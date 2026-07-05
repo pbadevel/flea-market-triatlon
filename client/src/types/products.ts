@@ -20,6 +20,8 @@ export interface Seller {
   last_name: string | null
   phone: string | null
   email: string | null
+  preferred_contact: string | null
+  contact_value: string | null
   is_trusted_seller: boolean
   is_moderator: boolean
   rating: number

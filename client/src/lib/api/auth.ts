@@ -60,7 +60,7 @@ export const loginEmailFn = createServerFn()
   })
 
 export const resendConfirmationFn = createServerFn()
-  .inputValidator((data: { email: string; password: string }) => data)
+  .inputValidator((data: { email: string }) => data)
   .handler(async ({ data }) => {
     return await apiCall<{ success: boolean; message: string }>('/auth/resend-confirmation', { method: 'POST', body: data })
   })

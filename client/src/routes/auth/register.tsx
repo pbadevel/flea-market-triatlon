@@ -113,7 +113,7 @@ function RegisterPage() {
   })
 
   const resendMutation = useMutation({
-    mutationFn: (email: string) => resendConfirmationFn({data: { email, password: '' }}),
+    mutationFn: (email: string) => resendConfirmationFn({data: { email }}),
     onSuccess: (data) => {
       alert(data.message || 'Письмо отправлено')
     },

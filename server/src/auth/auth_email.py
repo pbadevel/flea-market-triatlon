@@ -31,6 +31,10 @@ class EmailRegisterRequest(Schema):
     contact_value: str = Field(..., min_length=1, max_length=255)
 
 
+class ResendConfirmationRequest(Schema):
+    email: EmailStr
+
+
 class EmailLoginRequest(Schema):
     email: EmailStr
     password: str
@@ -124,7 +128,7 @@ async def register_email(
 
 @router.post("/resend-confirmation")
 async def resend_confirmation(
-    data: EmailRegisterRequest,
+    data: ResendConfirmationRequest,
 ):
     """
     Повторная отправка письма с подтверждением email."""

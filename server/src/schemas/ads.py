@@ -94,6 +94,8 @@ class SellerOut(BaseModel):
     last_name: Optional[str]
     phone: Optional[str]
     email: Optional[str]
+    preferred_contact: Optional[str] = None
+    contact_value: Optional[str] = None
     is_trusted_seller: bool
     is_moderator: bool
     rating: float
@@ -129,6 +131,8 @@ class SellerOut(BaseModel):
             last_name=user.last_name,
             phone=user.phone,
             email=email,
+            preferred_contact=user.preferred_contact,
+            contact_value=user.contact_value,
             is_trusted_seller=user.is_trusted_seller,
             is_moderator=user.role == UserRole.MODERATOR,
             rating=rating,

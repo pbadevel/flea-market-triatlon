@@ -191,6 +191,32 @@ function ContactSellerButton({ seller }: { seller: Seller | null }) {
 
   if (!seller) return null
 
+  const preferred = seller.preferred_contact
+  const contactVal = seller.contact_value || ''
+
+  // Построить contact по предпочтению
+  const getPreferredContact = (): { icon: React.ReactNode; label: string; href: string } | null => {
+    if (preferred === 'TELEGRAM') {
+      const tg = seller.username || contactVal
+      if (tg) return { icon: <MessageCircle className="size-4" />, label: 'Написать в Telegram', href: `https://t.me/${tg.replace('@', '')}` }
+    }
+    if (preferred === 'EMAIL') {
+      const email = seller.email || contactVal
+      if (email) return { icon: <Mail className="size-4" />, label: 'Написать на Email', href: `mailto:${email}` }
+    }
+    if (preferred === 'PHONE') {
+      const phone = seller.phone || contactVal
+      if (phone) return { icon: <Phone className="size-4" />, label: 'Позвонить', href: `tel:${phone}` }
+    }
+    if (preferred === 'MAX') {
+      if (contactVal) return { icon: <Send className="size-4" />, label: 'Написать в MAX', href: `https://max.ru/user/${contactVal}` }
+    }
+    return null
+  }
+
+  const preferredContact = getPreferredContact()
+
+  // Все доступные контакты
   const contacts: { icon: React.ReactNode; label: string; href: string }[] = []
 
   if (seller.username) {
@@ -200,6 +226,125 @@ function ContactSellerButton({ seller }: { seller: Seller | null }) {
       href: `https://t.me/${seller.username}`,
     })
   }
+  if (seller.email) {
+    contacts.push({
+      icon: <Mail className="size-4" />,
+      label: 'Email',
+      href: `mailto:${seller.email}`,
+    })
+  }
+  if (seller.phone) {
+    contacts.push({
+      icon: <Phone className="size-4" />,
+      label: 'Позвонить',
+      href: `tel:${seller.phone}`,
+    })
+  }
+  if (preferred === 'MAX' && contactVal && !contacts.find(c => c.label === 'MAX')) {
+    contacts.push({
+      icon: <Send className="size-4" />,
+      label: 'MAX',
+      href: `https://max.ru/user/${contactVal}`,
+    })
+  }
+
+  if (contacts.length === 0) {
+    return (
+      <button
+        disabled
+        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm)/50 py-3 text-sm font-medium text-white cursor-not-allowed"
+      >
+        <MessageCircle className="size-4" />
+        Нет контактов
+      </button>
+    )
+  }
+
+  // Если есть предпочтительный — показываем его крупной кнопкой
+  if (preferredContact) {
+    return (
+      <div className="flex flex-col gap-2">
+        <a
+          href={preferredContact.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 transition"
+        >
+          {preferredContact.icon}
+          {preferredContact.label}
+        </a>
+        {contacts.length > 1 && (
+          <button
+            onClick={() => setShowOptions(!showOptions)}
+            className="text-xs text-(--sea-ink-soft) hover:underline"
+          >
+            {showOptions ? 'Скрыть другие способы' : 'Другие способы связи'}
+          </button>
+        )}
+        {showOptions && (
+          <div className="flex flex-col gap-2">
+            {contacts.filter(c => c.label !== preferredContact.label).map((c, i) => (
+              <a
+                key={i}
+                href={c.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg border border-(--line) px-4 py-2 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+              >
+                {c.icon}
+                {c.label}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Fallback — показываем все доступные
+  if (contacts.length === 1) {
+    const c = contacts[0]
+    return (
+      <a
+        href={c.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 transition"
+      >
+        {c.icon}
+        {c.label}
+      </a>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        onClick={() => setShowOptions(!showOptions)}
+        className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-(--palm) py-3 text-sm font-medium text-white hover:bg-(--palm)/90 transition"
+      >
+        <Send className="size-4" />
+        Связаться с продавцом
+      </button>
+      {showOptions && (
+        <div className="flex flex-col gap-2">
+          {contacts.map((c, i) => (
+            <a
+              key={i}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-lg border border-(--line) px-4 py-2 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+            >
+              {c.icon}
+              {c.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
   if (seller.email) {
     contacts.push({
       icon: <Mail className="size-4" />,
