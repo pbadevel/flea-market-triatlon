@@ -37,6 +37,15 @@ export const checkTelegramAuthStatusFn = createServerFn({ method: 'POST' })
     const response = await apiCall<{ status: 'pending' | 'completed' | 'expired'; token?: string; userId?: string; role?: string }>(
       '/auth/telegram/status', { method: 'POST', body: data }
     )
+    // Если статус completed — сохраняем сессию на сервере
+    if (response.status === 'completed' && response.token) {
+      const session = await useAppSession()
+      await session.update({
+        token: response.token,
+        isAdmin: response.role === 'ADMIN',
+        isModerator: response.role === 'MODERATOR',
+      })
+    }
     return response
   })
 

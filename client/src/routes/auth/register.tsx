@@ -81,13 +81,6 @@ function RegisterPage() {
         console.log('[TG Auth] polling:', status)
         
         if (status.status === 'completed' && status.token) {
-          // Сохраняем сессию
-          const session = await import('@/lib/session').then(m => m.useAppSession())
-          await session.update({ 
-            token: status.token, 
-            isAdmin: status.role === 'ADMIN', 
-            isModerator: status.role === 'MODERATOR' 
-          })
           setTgAuthStatus('success')
           navigate({ to: '/' })
         } else if (status.status === 'expired') {
