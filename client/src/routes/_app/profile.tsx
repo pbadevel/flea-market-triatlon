@@ -87,7 +87,12 @@ function ProfilePage() {
       const result = await initTelegramLinkFn({ data: { token: token! } })
       setLinkSessionToken(result.session_token)
       setLinkState('waiting')
-      window.open(result.deeplink, '_blank')
+      const opened = window.open(result.deeplink, '_blank')
+      if (!opened) {
+        // Popup blocked — copy link
+        await navigator.clipboard.writeText(result.deeplink)
+        alert('Ссылка скопирована. Откройте Telegram и перейдите по ссылке.')
+      }
     } catch (err: any) {
       alert(err.message || 'Ошибка при инициализации привязки')
     }
@@ -98,21 +103,27 @@ function ProfilePage() {
     queryKey: ['telegram-link-status', linkSessionToken],
     queryFn: async () => {
       if (!linkSessionToken) return null
-      const res = await checkTelegramAuthStatusFn({ data: { session_token: linkSessionToken } })
-      if (res.status === 'completed') {
-        setLinkState('done')
-        queryClient.invalidateQueries({ queryKey: ['profile'] })
-        return { done: true }
+      try {
+        const res = await checkTelegramAuthStatusFn({ data: { session_token: linkSessionToken } })
+        console.log('[TG Link] status:', res.status, 'linkState:', linkState)
+        if (res.status === 'completed') {
+          setLinkState('done')
+          queryClient.invalidateQueries({ queryKey: ['profile'] })
+          return { done: true }
+        }
+        if (res.status === 'expired') {
+          setLinkState('idle')
+          setLinkSessionToken(null)
+          return null
+        }
+        return { pending: true }
+      } catch (err) {
+        console.error('[TG Link] poll error:', err)
+        return { pending: true }
       }
-      if (res.status === 'expired') {
-        setLinkState('idle')
-        setLinkSessionToken(null)
-        return null
-      }
-      return { pending: true }
     },
     enabled: linkState === 'waiting' && !!linkSessionToken,
-    refetchInterval: 1500,
+    refetchInterval: 2000,
   })
 
   if (!token) {

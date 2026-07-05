@@ -20,17 +20,18 @@ async function apiCall<T>(path: string, options?: { method?: string; body?: unkn
 }
 
 // Telegram Auth
-export const initTelegramAuthFn = createServerFn().handler(async () => {
-  return await apiCall<{ deeplink: string; session_token: string }>('/auth/telegram/init', { method: 'POST' })
-})
+export const initTelegramAuthFn = createServerFn({ method: 'POST' })
+  .handler(async () => {
+    return await apiCall<{ deeplink: string; session_token: string }>('/auth/telegram/init', { method: 'POST' })
+  })
 
-export const initTelegramLinkFn = createServerFn()
+export const initTelegramLinkFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { token: string }) => data)
   .handler(async ({ data }) => {
     return await apiCall<{ deeplink: string; session_token: string }>('/auth/telegram/init', { method: 'POST', token: data.token })
   })
 
-export const checkTelegramAuthStatusFn = createServerFn()
+export const checkTelegramAuthStatusFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { session_token: string }) => data)
   .handler(async ({ data }) => {
     const response = await apiCall<{ status: 'pending' | 'completed' | 'expired'; token?: string; userId?: string; role?: string }>(
@@ -40,13 +41,13 @@ export const checkTelegramAuthStatusFn = createServerFn()
   })
 
 // Email Auth
-export const registerEmailFn = createServerFn()
+export const registerEmailFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { email: string; password: string; firstName: string; lastName?: string; phone?: string; preferredContact: string; contactValue: string }) => data)
   .handler(async ({ data }) => {
     return await apiCall<{ success: boolean; message: string; email: string }>('/auth/register/email', { method: 'POST', body: data })
   })
 
-export const loginEmailFn = createServerFn()
+export const loginEmailFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { email: string; password: string }) => data)
   .handler(async ({ data }) => {
     const response = await apiCall<{ token: string; success: boolean; userId: string; role: string }>(
@@ -59,7 +60,7 @@ export const loginEmailFn = createServerFn()
     return response
   })
 
-export const resendConfirmationFn = createServerFn()
+export const resendConfirmationFn = createServerFn({ method: 'POST' })
   .inputValidator((data: { email: string }) => data)
   .handler(async ({ data }) => {
     return await apiCall<{ success: boolean; message: string }>('/auth/resend-confirmation', { method: 'POST', body: data })
