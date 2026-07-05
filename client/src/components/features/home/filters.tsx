@@ -56,6 +56,7 @@ export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps
     price: false,
     sort: true,
   });
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [citySearch, setCitySearch] = useState('');
 
   const toggleSection = (section: string) => {
@@ -336,50 +337,76 @@ export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps
         </button>
         {expandedSections.category && (
           <div className="space-y-2 border-t border-(--line) p-3">
-            {filters.categories.map((cat) => (
+            {filters.categories.map((cat) => {
+              const hasGroups = (cat.groups?.length ?? 0) > 0;
+              const hasItems = (cat.items?.length ?? 0) > 0;
+              const showArrow = hasGroups || hasItems;
+              return (
               <div key={cat.key} className="space-y-1">
-                {renderSelectable(
-                  `cat-${cat.key}`,
-                  cat.label,
-                  isCategorySelected(cat.key),
-                  () => toggleCategory(cat.key),
-                )}
-                {cat.groups?.map((group) => (
-                  <div key={group.name} className="ml-4 space-y-0.5">
-                    <div className="text-xs font-medium text-(--sea-ink-soft)">
-                      {group.name}
-                    </div>
-                    {group.items?.map((item) =>
-                      renderSelectable(
-                        item.key,
-                        item.label,
-                        isSubcategorySelected(item.key),
-                        () => toggleSubcategory(item.key),
-                        'sm',
-                      ),
+                <div className="flex items-center gap-1">
+                  {showArrow && (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, [cat.key]: !prev[cat.key] }))}
+                      className="shrink-0 p-0.5 text-(--sea-ink-soft) hover:text-(--sea-ink)"
+                    >
+                      {expandedGroups[cat.key] === false ? (
+                        <ChevronDown className="size-3" />
+                      ) : (
+                        <ChevronUp className="size-3" />
+                      )}
+                    </button>
+                  )}
+                  <div className="flex-1">
+                    {renderSelectable(
+                      `cat-${cat.key}`,
+                      cat.label,
+                      isCategorySelected(cat.key),
+                      () => toggleCategory(cat.key),
                     )}
                   </div>
-                ))}
-                {cat.items && cat.items.length > 0 && (
-                  <div className="ml-4 space-y-0.5">
-                    {cat.groups?.length ? (
-                      <div className="text-xs font-medium text-(--sea-ink-soft)">
-                        Прочее
+                </div>
+                {expandedGroups[cat.key] !== false && (
+                  <>
+                    {cat.groups?.map((group) => (
+                      <div key={group.name} className="ml-6 space-y-0.5">
+                        <div className="text-xs font-medium text-(--sea-ink-soft)">
+                          {group.name}
+                        </div>
+                        {group.items?.map((item) =>
+                          renderSelectable(
+                            item.key,
+                            item.label,
+                            isSubcategorySelected(item.key),
+                            () => toggleSubcategory(item.key),
+                            'sm',
+                          ),
+                        )}
                       </div>
-                    ) : null}
-                    {cat.items.map((item) =>
-                      renderSelectable(
-                        item.key,
-                        item.label,
-                        isSubcategorySelected(item.key),
-                        () => toggleSubcategory(item.key),
-                        'sm',
-                      ),
+                    ))}
+                    {cat.items && cat.items.length > 0 && (
+                      <div className="ml-6 space-y-0.5">
+                        {cat.groups?.length ? (
+                          <div className="text-xs font-medium text-(--sea-ink-soft)">
+                            Прочее
+                          </div>
+                        ) : null}
+                        {cat.items.map((item) =>
+                          renderSelectable(
+                            item.key,
+                            item.label,
+                            isSubcategorySelected(item.key),
+                            () => toggleSubcategory(item.key),
+                            'sm',
+                          ),
+                        )}
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -66,14 +66,11 @@ async def list_ads(
             joinedload(Ad.seller).selectinload(User.credentials),
         )
         
-        # Filters (multiple values = OR within group, AND across groups)
-        category_filters: list = []
-        if category:
-            category_filters.append(Ad.category.in_(category))
+        # Filters: subcategory is more specific than category, so use AND
         if subcategory:
-            category_filters.append(Ad.subcategory.in_(subcategory))
-        if category_filters:
-            stmt = stmt.where(or_(*category_filters))
+            stmt = stmt.where(Ad.subcategory.in_(subcategory))
+        elif category:
+            stmt = stmt.where(Ad.category.in_(category))
 
         # City is matched exactly as stored in DB. When cities are chosen, they
         # take precedence — many legacy ads have city set but country empty.

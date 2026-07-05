@@ -545,7 +545,7 @@ function EditProfileForm({
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-(--sea-ink)">Предпочтительный способ связи</label>
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-2 gap-2">
           {[
             { value: 'TELEGRAM', label: 'Telegram', icon: '📱' },
             { value: 'EMAIL', label: 'Email', icon: '📧' },
@@ -556,7 +556,7 @@ function EditProfileForm({
               key={opt.value}
               type="button"
               onClick={() => setFormData({ ...formData, preferred_contact: opt.value, contact_value: '' })}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition ${
                 formData.preferred_contact === opt.value
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-(--line) text-gray-600 hover:bg-gray-50'

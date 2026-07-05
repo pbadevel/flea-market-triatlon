@@ -407,7 +407,7 @@ function RegisterPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-(--sea-ink)">Предпочтительный способ связи <span className="text-red-500">*</span></label>
-                <div className="flex gap-2 flex-wrap">
+                <div className="grid grid-cols-2 gap-2">
                   {[
                     { value: 'TELEGRAM', label: 'Telegram', icon: '📱' },
                     { value: 'EMAIL', label: 'Email', icon: '📧' },
@@ -418,7 +418,7 @@ function RegisterPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => setFormData({ ...formData, preferredContact: opt.value, contactValue: '' })}
-                      className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
                         formData.preferredContact === opt.value
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-300 text-gray-600 hover:bg-gray-50'
