@@ -4,12 +4,10 @@ import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Filters } from "./filters";
-import { useCountry } from "@/contexts/CountryContext";
 import { adsQueryOptions, filtersQueryOptions } from "@/lib/queries/ads";
 import { AdFilters } from "@/types/ad";
 
 export function Bestsellers() {
-  // const { country } = useCountry();
   const [filters, setFilters] = useState<AdFilters>({
     page: 1,
     limit: 20,
@@ -22,7 +20,6 @@ export function Bestsellers() {
   );
 
   const { data: filterConfig } = useQuery(filtersQueryOptions());
-
 
   const totalPages = Math.ceil((adsData?.total || 0) / (filters.limit || 20));
   const ads = adsData?.data || [];
@@ -39,6 +36,14 @@ export function Bestsellers() {
     }));
   };
 
+  const handleCategoryClick = (categoryKey: string) => {
+    const current = filters.categories ?? [];
+    const next = current.includes(categoryKey)
+      ? current.filter(c => c !== categoryKey)
+      : [...current, categoryKey];
+    handleFilterChange({ categories: next.length ? next : undefined, subcategories: undefined });
+  };
+
   if (isError) {
     return (
       <div className="py-8 text-center text-red-500">
@@ -48,7 +53,34 @@ export function Bestsellers() {
   }
 
   return (
-    <section className="py-8">
+    <section className="py-4">
+      {/* Category Tabs */}
+      {filterConfig && (
+        <div className="mb-4 overflow-x-auto scrollbar-none">
+          <div className="page-wrap">
+            <div className="flex gap-2 pb-1" style={{ minWidth: 'max-content' }}>
+              {filterConfig.categories.map((cat) => {
+                const isActive = filters.categories?.includes(cat.key);
+                return (
+                  <button
+                    key={cat.key}
+                    onClick={() => handleCategoryClick(cat.key)}
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-(--palm) text-white shadow-sm'
+                        : 'bg-(--surface-strong) border border-(--line) text-(--sea-ink-soft) hover:border-(--palm)/30 hover:text-(--sea-ink)'
+                    }`}
+                  >
+                    {cat.icon && <span>{cat.icon}</span>}
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="page-wrap">
         {/* Mobile Filter Header */}
         <div className="lg:hidden mb-4 flex items-center justify-between">
@@ -94,7 +126,6 @@ export function Bestsellers() {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Header with pagination */}
             <div className="mb-4 hidden lg:flex items-center justify-between">
               <h2 className="text-lg font-semibold text-(--sea-ink)">
                 Товары {adsData?.total ? `(${adsData.total})` : ''}
@@ -120,7 +151,6 @@ export function Bestsellers() {
               </div>
             </div>
 
-            {/* Products Grid */}
             {isLoading ? (
               <div className="text-center py-8 text-(--sea-ink-soft)">Загрузка...</div>
             ) : ads.length === 0 ? (
@@ -167,7 +197,6 @@ export function Bestsellers() {
                         </span>
                       )}
                     </div>
-                    {/* Meta */}
                     <div className="mt-1 flex items-center gap-2 text-[10px] text-(--sea-ink-soft)">
                       {product.city && <span>{product.city}</span>}
                       {product.condition && (
