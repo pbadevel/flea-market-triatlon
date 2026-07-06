@@ -1,4 +1,3 @@
-// src/routes/_app/profile.tsx
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -48,7 +47,6 @@ function ProfilePage() {
     try {
       const result = await logoutFn();
       if (result.success) {
-        // Перенаправляем пользователя на главную на стороне клиента
         await navigate({ to: "/" });
       }
     } catch (error) {
@@ -56,7 +54,6 @@ function ProfilePage() {
     }
   };
 
-  
   const { data: profile, isLoading: profileLoading } = useQuery(
     myProfileQueryOptions(token!),
   )
@@ -89,7 +86,6 @@ function ProfilePage() {
       setLinkState('waiting')
       const opened = window.open(result.deeplink, '_blank')
       if (!opened) {
-        // Popup blocked — copy link
         await navigator.clipboard.writeText(result.deeplink)
         alert('Ссылка скопирована. Откройте Telegram и перейдите по ссылке.')
       }
@@ -98,14 +94,12 @@ function ProfilePage() {
     }
   }
 
-  // Polling for link completion
   useQuery({
     queryKey: ['telegram-link-status', linkSessionToken],
     queryFn: async () => {
       if (!linkSessionToken) return null
       try {
         const res = await checkTelegramAuthStatusFn({ data: { session_token: linkSessionToken } })
-        console.log('[TG Link] status:', res.status, 'linkState:', linkState)
         if (res.status === 'completed') {
           setLinkState('done')
           queryClient.invalidateQueries({ queryKey: ['profile'] })
@@ -118,7 +112,6 @@ function ProfilePage() {
         }
         return { pending: true }
       } catch (err) {
-        console.error('[TG Link] poll error:', err)
         return { pending: true }
       }
     },
@@ -157,41 +150,40 @@ function ProfilePage() {
     )
   }
 
-  // Проверка на наличие способов связи
   const hasNoContact = !profile.username && !(profile.email && profile.is_email_verified) && !profile.phone
 
   return (
-    <div className="min-h-screen bg-(--bg)">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-40 bg-(--header-bg) backdrop-blur-xl">
         <div className="page-wrap">
           <div className="flex h-14 items-center justify-between">
             <h1 className="text-lg font-semibold text-(--sea-ink)">Профиль</h1>
-            <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 text-(--sea-ink-soft) hover:text-red-500 transition-colors"
-                  title="Выйти"
-                >
-                  <LogOut className="size-5" />
-                  <span className="text-sm">Выйти</span>
-                </button>
-            <Link
-              to="/"
-              className="text-sm text-(--sea-ink-soft) hover:text-(--sea-ink)"
-            >
-              На главную
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-(--sea-ink-soft) hover:text-red-500 transition-colors"
+                title="Выйти"
+              >
+                <LogOut className="size-5" />
+                <span className="text-sm">Выйти</span>
+              </button>
+              <Link
+                to="/"
+                className="text-sm text-(--sea-ink-soft) hover:text-(--sea-ink)"
+              >
+                На главную
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="page-wrap py-4 space-y-4">
-      {/* Баннер — привязка Telegram */}
       {linkState === 'waiting' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl">
           <div className="py-3 px-4">
             <div className="flex items-center gap-2 text-sm text-blue-700">
-              <span className="text-lg">🔗</span>
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
               <span>
                 Откройте Telegram и подтвердите привязку. <strong>Ожидание...</strong>
               </span>
@@ -201,22 +193,21 @@ function ProfilePage() {
       )}
 
       {linkState === 'done' && (
-        <div className="bg-green-50 border border-green-200 rounded-lg">
+        <div className="bg-green-50 border border-green-200 rounded-xl">
           <div className="py-3 px-4">
             <div className="flex items-center gap-2 text-sm text-green-700">
-              <span className="text-lg">✅</span>
+              <CheckCircle className="size-4" />
               <span>Telegram успешно привязан!</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Баннер — нет способов связи */}
       {hasNoContact && (
-        <div className="bg-red-50 border border-red-200 rounded-lg">
+        <div className="bg-red-50 border border-red-200 rounded-xl">
           <div className="py-3 px-4">
             <div className="flex items-center gap-2 text-sm text-red-700">
-              <span className="text-lg">⚠️</span>
+              <div className="w-2 h-2 rounded-full bg-red-500" />
               <span>
                 У вас нет способов связи. <strong>Клиенты не смогут с вами связаться.</strong>{' '}
                 <Link to="/profile" className="underline font-medium">Добавьте контакты</Link>
@@ -227,9 +218,8 @@ function ProfilePage() {
         </div>
       )}
 
-      {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StatCard
               icon={<Package className="size-5" />}
               label="Всего объявлений"
@@ -256,8 +246,7 @@ function ProfilePage() {
           </div>
         )}
 
-        {/* Profile Info */}
-        <div className="rounded-lg border border-(--line) bg-white p-6">
+        <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-6">
           <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
               Информация о пользователе
@@ -293,8 +282,7 @@ function ProfilePage() {
           )}
         </div>
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           {profile.is_moderator && (
             <Badge icon={<Shield className="size-4" />} label="Модератор" color="blue" />
           )}
@@ -303,8 +291,7 @@ function ProfilePage() {
           )}
         </div>
 
-        {/* My Ads */}
-        <div className="rounded-lg border border-(--line) bg-white p-6 mb-10">
+        <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-6 mb-10">
           <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
             <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
               Мои объявления
@@ -341,8 +328,6 @@ function ProfilePage() {
   )
 }
 
-/* ─── Вспомогательные компоненты ── */
-
 function StatCard({
   icon,
   label,
@@ -362,7 +347,7 @@ function StatCard({
   }
 
   return (
-    <div className="rounded-lg border border-(--line) bg-white p-4">
+    <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-4">
       <div className={`flex items-center gap-2 ${colorMap[color]} mb-2`}>
         {icon}
         <span className="text-sm">{label}</span>
@@ -409,8 +394,8 @@ function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLink
           value={profile.email || 'Не указан'}
         />
         {profile.email && !profile.is_email_verified && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
-            <span className="text-yellow-600 text-lg">⚠️</span>
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+            <div className="w-2 h-2 rounded-full bg-yellow-500" />
             <div className="text-sm text-yellow-800">
               <p className="font-medium">Email не подтверждён</p>
               <p className="text-xs mt-0.5">Проверьте почту {profile.email} и перейдите по ссылке из письма</p>
@@ -504,7 +489,7 @@ function EditProfileForm({
             type="text"
             value={formData.first_name}
             onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-            className="w-full rounded-lg border border-(--line) px-4 py-2 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
+            className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
             placeholder="Иван"
           />
         </div>
@@ -515,7 +500,7 @@ function EditProfileForm({
             type="text"
             value={formData.last_name}
             onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-            className="w-full rounded-lg border border-(--line) px-4 py-2 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
+            className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
             placeholder="Иванов"
           />
         </div>
@@ -526,7 +511,7 @@ function EditProfileForm({
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full rounded-lg border border-(--line) px-4 py-2 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
+            className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
             placeholder="example@mail.ru"
           />
         </div>
@@ -537,7 +522,7 @@ function EditProfileForm({
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full rounded-lg border border-(--line) px-4 py-2 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
+            className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
             placeholder="+7 (999) 123-45-67"
           />
         </div>
@@ -547,22 +532,21 @@ function EditProfileForm({
         <label className="text-sm font-medium text-(--sea-ink)">Предпочтительный способ связи</label>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { value: 'TELEGRAM', label: 'Telegram', icon: '📱' },
-            { value: 'EMAIL', label: 'Email', icon: '📧' },
-            { value: 'PHONE', label: 'Телефон', icon: '📞' },
-            { value: 'MAX', label: 'MAX', icon: '💬' },
+            { value: 'TELEGRAM', label: 'Telegram' },
+            { value: 'EMAIL', label: 'Email' },
+            { value: 'PHONE', label: 'Телефон' },
+            { value: 'MAX', label: 'MAX' },
           ].map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => setFormData({ ...formData, preferred_contact: opt.value, contact_value: '' })}
-              className={`flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
                 formData.preferred_contact === opt.value
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-(--line) text-gray-600 hover:bg-gray-50'
+                  ? 'border-(--palm) bg-(--palm)/10 text-(--palm)'
+                  : 'border-(--line) text-(--sea-ink-soft) hover:bg-(--link-bg-hover)'
               }`}
             >
-              <span>{opt.icon}</span>
               {opt.label}
             </button>
           ))}
@@ -580,7 +564,7 @@ function EditProfileForm({
           type={formData.preferred_contact === 'EMAIL' ? 'email' : formData.preferred_contact === 'PHONE' ? 'tel' : 'text'}
           value={formData.contact_value}
           onChange={(e) => setFormData({ ...formData, contact_value: e.target.value })}
-          className="w-full rounded-lg border border-(--line) px-4 py-2 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
+          className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
           placeholder={
             formData.preferred_contact === 'TELEGRAM' ? '@username или 123456789' :
             formData.preferred_contact === 'EMAIL' ? 'example@mail.ru' :
@@ -590,9 +574,9 @@ function EditProfileForm({
         />
       </div>
 
-      <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
-        <p className="font-medium mb-1">Telegram Username</p>
-        <p className="text-blue-600">
+      <div className="p-4 bg-(--palm)/5 rounded-xl text-sm">
+        <p className="font-medium mb-1 text-(--sea-ink)">Telegram Username</p>
+        <p className="text-(--palm)">
           {profile.username ? `@${profile.username}` : 'Не указан'}
         </p>
         {profile.tg_user_id == null ? (
@@ -604,7 +588,7 @@ function EditProfileForm({
             Привязать Telegram
           </button>
         ) : (
-          <p className="text-xs text-blue-500 mt-1">
+          <p className="text-xs text-(--sea-ink-soft) mt-1">
             Изменяется только через Telegram
           </p>
         )}
@@ -614,7 +598,7 @@ function EditProfileForm({
         <button
           type="submit"
           disabled={isPending}
-          className="flex items-center gap-2 rounded-lg bg-(--palm) px-6 py-2 text-sm font-medium text-white hover:bg-(--palm)/90 disabled:opacity-50"
+          className="flex items-center gap-2 rounded-xl bg-(--palm) px-6 py-2.5 text-sm font-medium text-white hover:bg-(--palm)/90 disabled:opacity-50"
         >
           <Save className="size-4" />
           {isPending ? 'Сохранение...' : 'Сохранить'}
@@ -622,7 +606,7 @@ function EditProfileForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-(--line) px-6 py-2 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover)"
+          className="rounded-xl border border-(--line) px-6 py-2.5 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover)"
         >
           Отмена
         </button>
@@ -653,46 +637,6 @@ function Badge({
   )
 }
 
-function ContactInfo({ contactMethod }: { contactMethod: string }) {
-  // Определяем тип контакта
-  let type = 'Контакт'
-  let displayValue = contactMethod
-  let link = null
-
-  if (contactMethod.startsWith('@')) {
-    type = 'Telegram'
-    displayValue = contactMethod
-    link = `https://t.me/${contactMethod.substring(1)}`
-  } else if (contactMethod.startsWith('tg://user?id=')) {
-    type = 'Telegram'
-    const userId = contactMethod.replace('tg://user?id=', '')
-    displayValue = `ID: ${userId}`
-    link = contactMethod
-  } else if (/^\+?\d{10,15}$/.test(contactMethod.replace(/\s/g, ''))) {
-    type = 'Телефон'
-    displayValue = contactMethod
-    link = `tel:${contactMethod}`
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-(--sea-ink-soft)">{type}:</span>
-      {link ? (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm font-medium text-(--palm) hover:underline"
-        >
-          {displayValue}
-        </a>
-      ) : (
-        <span className="text-sm font-medium text-(--sea-ink)">{displayValue}</span>
-      )}
-    </div>
-  )
-}
-
 
 function AdCard({ ad }: { ad: MyAd }) {
   const statusConfig = {
@@ -709,18 +653,15 @@ function AdCard({ ad }: { ad: MyAd }) {
     <Link
       to="/product/$productId"
       params={{ productId: String(ad.id) }}
-      className="flex gap-2 rounded-lg border border-(--line) p-4 hover:bg-(--link-bg-hover) transition"
+      className="flex gap-2 rounded-2xl border border-(--line) p-4 hover:bg-(--link-bg-hover) transition"
     >
-      {/* Добавили w-full для растягивания и justify-between для разнесения по краям */}
       <div className="flex w-full justify-between items-start"> 
-        
-        {/* ЛЕВАЯ ЧАСТЬ: Картинка + Характеристики */}
         <div className="flex">
           {ad.cover_url && (
             <img
               src={ad.cover_url}
               alt={ad.title}
-              className="h-20 w-20 shrink-0 rounded-lg object-cover"
+              className="h-20 w-20 shrink-0 rounded-xl object-cover"
             />
           )}
           <div className="flex flex-col px-3 justify-start">
@@ -734,8 +675,6 @@ function AdCard({ ad }: { ad: MyAd }) {
           </div>
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ: Статус (одобрено) + Дата */}
-        {/* Изменено на items-end, чтобы текст внутри выравнивался по правому краю */}
         <div className="flex flex-col gap-2 items-end justify-between h-full min-h-[80px]">
           <span className={`rounded-full px-2 py-1 text-xs text-center font-medium ${color}`}>
             {label}
@@ -744,7 +683,6 @@ function AdCard({ ad }: { ad: MyAd }) {
             {new Date(ad.created_at).toLocaleDateString('ru-RU')}
           </span>
         </div>
-
       </div>
     </Link>
   )

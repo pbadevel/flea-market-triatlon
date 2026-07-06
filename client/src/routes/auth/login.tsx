@@ -140,12 +140,12 @@ function LoginPage() {
               }}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                 method === 'telegram'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-(--palm) bg-(--palm)/5'
+                  : 'border-(--line) hover:border-(--palm)/30'
               }`}
             >
               <div className={`flex size-10 items-center justify-center rounded-full ${
-                method === 'telegram' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                method === 'telegram' ? 'bg-(--palm) text-white' : 'bg-(--link-bg-hover) text-(--sea-ink-soft)'
               }`}>
                 <MessageCircle className="size-5" />
               </div>
@@ -153,19 +153,19 @@ function LoginPage() {
                 <div className="font-medium text-(--sea-ink)">Telegram</div>
                 <div className="text-xs text-(--sea-ink-soft)">Быстрый вход через бота</div>
               </div>
-              {method === 'telegram' && <CheckCircle className="size-5 text-blue-500" />}
+              {method === 'telegram' && <CheckCircle className="size-5 text-(--palm)" />}
             </button>
 
             <button
               onClick={() => setMethod('email')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                 method === 'email'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-(--palm) bg-(--palm)/5'
+                  : 'border-(--line) hover:border-(--palm)/30'
               }`}
             >
               <div className={`flex size-10 items-center justify-center rounded-full ${
-                method === 'email' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                method === 'email' ? 'bg-(--palm) text-white' : 'bg-(--link-bg-hover) text-(--sea-ink-soft)'
               }`}>
                 <Mail className="size-5" />
               </div>
@@ -173,7 +173,7 @@ function LoginPage() {
                 <div className="font-medium text-(--sea-ink)">Email</div>
                 <div className="text-xs text-(--sea-ink-soft)">Классический вход</div>
               </div>
-              {method === 'email' && <CheckCircle className="size-5 text-blue-500" />}
+              {method === 'email' && <CheckCircle className="size-5 text-(--palm)" />}
             </button>
           </div>
 
@@ -262,7 +262,7 @@ function LoginPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-(--line) focus:border-(--palm) focus:ring-2 focus:ring-(--palm)/20 outline-none transition bg-(--chip-bg) text-(--sea-ink)"
                     placeholder="example@mail.ru"
                   />
                 </div>
@@ -276,7 +276,7 @@ function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-(--line) focus:border-(--palm) focus:ring-2 focus:ring-(--palm)/20 outline-none transition bg-(--chip-bg) text-(--sea-ink)"
                     placeholder="••••••••"
                   />
                   <button

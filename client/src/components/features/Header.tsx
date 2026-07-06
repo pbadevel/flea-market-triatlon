@@ -7,8 +7,6 @@ import { adsQueryOptions } from "@/lib/queries/ads";
 import { verifySession } from "@/lib/session";
 import { fetchUnreadCount, fetchNotifications, markAllRead } from "@/lib/api/client/notifications";
 
-
-
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -21,27 +19,21 @@ export default function Header() {
     staleTime: 0,
   });
 
-  // Поиск с debounce
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
     }, 300);
-
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Загрузка результатов поиска с правильным enabled
   const { data: searchData, isLoading } = useQuery(
     adsQueryOptions(
       { search: debouncedQuery.length >= 2 ? debouncedQuery : undefined, limit: 10 },
     )
   );
-  
 
-
-  // Закрытие поиска при клике вне
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -53,7 +45,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Сброс поиска при закрытии
   useEffect(() => {
     if (!isSearchOpen) {
       setSearchQuery("");
@@ -73,16 +64,14 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
+    <header className="sticky top-0 z-40 bg-(--header-bg) backdrop-blur-xl">
       <div className="page-wrap">
         <div className="flex h-14 items-center gap-3 justify-center">
-          {/* Logo */}
           <Link to="/" className="shrink-0">
             <span className="text-lg font-bold text-(--sea-ink)">TB</span>
             <span className="text-lg font-semibold text-(--palm)">SALE</span>
           </Link>
 
-          {/* Search */}
           <div ref={searchRef} className="relative flex-1 max-w-md">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-(--sea-ink-soft)" />
             
@@ -95,7 +84,7 @@ export default function Header() {
                 if (searchQuery.length > 0) setIsSearchOpen(true);
               }}
               placeholder="Поиск товаров..."
-              className="w-full rounded border border-(--line) bg-(--chip-bg) py-1.5 pl-8 pr-8 text-sm text-(--sea-ink) placeholder:text-(--sea-ink-soft) focus:border-(--palm) focus:outline-none"
+              className="w-full rounded-xl border border-(--line) bg-(--chip-bg) py-2 pl-8 pr-8 text-sm text-(--sea-ink) placeholder:text-(--sea-ink-soft) focus:border-(--palm) focus:outline-none"
             />
             
             {(searchQuery || isFocused) && (
@@ -118,43 +107,32 @@ export default function Header() {
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-0.5">
             {session?.token && (
               <NotificationsBell token={session.token} />
             )}
             <Link 
               to={"/profile"}
-              className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
-              
+              className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
               <User className="size-4.5" />
-            
             </Link>
             <Link 
               to={"/my-ads"}
-              className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
-              
+              className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Мои объявления">
               <BoxIcon className="size-4.5" />
-            
             </Link>
             <Link 
               to={"/create-ad"}
-              className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
-              
+              className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Создать">
               <Plus className="size-4.5" />
-            
             </Link>
-            <button className="rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
+            <button className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
               <Heart className="size-4.5" />
             </button>
-            <div className="hidden sm:block ml-0.5">
-              {/* <ThemeToggle /> */}
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Overlay */}
       {isSearchOpen && (
         <div
           className="fixed inset-0 z-30"
@@ -217,7 +195,7 @@ function NotificationsBell({ token }: { token: string }) {
     <div ref={bellRef} className="relative">
       <button
         onClick={handleToggle}
-        className="relative rounded p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+        className="relative rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
         aria-label="Уведомления"
       >
         <Bell className="size-4.5" />
@@ -229,7 +207,7 @@ function NotificationsBell({ token }: { token: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-lg border border-(--line) bg-white shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-(--line) bg-(--surface-strong) shadow-xl z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-(--line)">
             <h3 className="font-bold text-sm text-(--sea-ink)">Уведомления</h3>
             {count > 0 && (
@@ -242,21 +220,27 @@ function NotificationsBell({ token }: { token: string }) {
             )}
           </div>
           {(!notifications || (notifications as any[]).length === 0) ? (
-            <div className="px-4 py-8 text-center text-sm text-gray-400">
+            <div className="px-4 py-8 text-center text-sm text-(--sea-ink-soft)">
               Нет уведомлений
             </div>
           ) : (
             <div className="divide-y divide-(--line)">
               {(notifications as any[]).map((n: any) => (
-                <div key={n.id} className={`px-4 py-3 ${!n.is_read ? 'bg-blue-50' : ''}`}>
+                <div key={n.id} className={`px-4 py-3 ${!n.is_read ? 'bg-(--palm)/5' : ''}`}>
                   <div className="flex items-start gap-2">
-                    <span className="mt-0.5">
-                      {n.type === 'success' ? '✅' : n.type === 'error' ? '❌' : 'ℹ️'}
-                    </span>
+                    <div className="mt-0.5">
+                      {n.type === 'success' ? (
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                      ) : n.type === 'error' ? (
+                        <div className="w-2 h-2 rounded-full bg-red-500" />
+                      ) : (
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-(--sea-ink)">{n.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-(--sea-ink-soft) mt-0.5 line-clamp-2">{n.message}</p>
+                      <p className="text-xs text-(--sea-ink-soft) mt-1">
                         {new Date(n.created_at).toLocaleString('ru-RU')}
                       </p>
                     </div>
