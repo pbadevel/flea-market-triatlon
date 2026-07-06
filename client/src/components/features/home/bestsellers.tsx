@@ -37,11 +37,8 @@ export function Bestsellers() {
       ...newFilters,
       page: 1,
     }));
-  };
-
-  const handleMobileFilterApply = () => {
+    // Auto-close mobile filter on any change
     setIsMobileFilterOpen(false);
-    handlePageChange(1);
   };
 
   if (isError) {
@@ -214,14 +211,6 @@ export function Bestsellers() {
                   activeFilters={filters}
                   onFilterChange={handleFilterChange}
                 />
-              </div>
-              <div className="border-t border-(--line) p-4">
-                <button
-                  onClick={handleMobileFilterApply}
-                  className="w-full rounded-xl bg-(--palm) py-2.5 text-sm font-medium text-white hover:bg-(--palm)/90"
-                >
-                  Показать результаты
-                </button>
               </div>
             </div>
           </div>
