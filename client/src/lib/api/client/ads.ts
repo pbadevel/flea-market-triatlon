@@ -31,7 +31,11 @@ export const fetchAds = (filters: AdFilters = {}) => {
   if (filters.page) params.set('page', String(filters.page))
   if (filters.limit) params.set('limit', String(filters.limit))
   if (filters.categories?.length) filters.categories.forEach(c => params.append('category', c))
-  if (filters.subcategories?.length) filters.subcategories.forEach(s => params.append('subcategory', s))
+  if (filters.subcategories?.length) filters.subcategories.forEach(s => {
+    // Extract actual subcategory key from composite key (category:subcategory)
+    const actualKey = s.includes(':') ? s.split(':').pop()! : s;
+    params.append('subcategory', actualKey);
+  })
   if (filters.countries?.length) filters.countries.forEach(c => params.append('country', c))
   if (filters.cities?.length) filters.cities.forEach(c => params.append('city', c))
   if (filters.search) params.set('search', filters.search)

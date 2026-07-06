@@ -32,15 +32,17 @@ function countActiveFilters(f: AdFilters): number {
 }
 
 function findSubcategoryLabel(config: FilterConfig, key: string): string {
+  // Handle composite keys (category:subcategory)
+  const actualKey = key.includes(':') ? key.split(':').pop()! : key;
   for (const cat of config.categories) {
     for (const group of cat.groups ?? []) {
-      const item = group.items?.find((i) => i.key === key);
+      const item = group.items?.find((i) => i.key === actualKey);
       if (item) return item.label;
     }
-    const item = cat.items?.find((i) => i.key === key);
+    const item = cat.items?.find((i) => i.key === actualKey);
     if (item) return item.label;
   }
-  return key;
+  return actualKey;
 }
 
 const selectedClass =
@@ -68,8 +70,10 @@ export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps
     onFilterChange({ categories: next.length ? next : undefined });
   };
 
-  const toggleSubcategory = (subcategoryKey: string) => {
-    const next = toggleInList(activeFilters.subcategories, subcategoryKey);
+  const toggleSubcategory = (subcategoryKey: string, categoryKey?: string) => {
+    // Use composite key to make subcategories unique per category
+    const compositeKey = categoryKey ? `${categoryKey}:${subcategoryKey}` : subcategoryKey;
+    const next = toggleInList(activeFilters.subcategories, compositeKey);
     onFilterChange({ subcategories: next.length ? next : undefined });
   };
 
@@ -156,8 +160,10 @@ export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps
   const isCategorySelected = (key: string) =>
     activeFilters.categories?.includes(key) ?? false;
 
-  const isSubcategorySelected = (key: string) =>
-    activeFilters.subcategories?.includes(key) ?? false;
+  const isSubcategorySelected = (key: string, categoryKey?: string) => {
+    const compositeKey = categoryKey ? `${categoryKey}:${key}` : key;
+    return activeFilters.subcategories?.includes(compositeKey) ?? false;
+  };
 
   const isCountrySelected = (key: string) =>
     activeFilters.countries?.includes(key) ?? false;
@@ -375,10 +381,10 @@ export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps
                         </div>
                         {group.items?.map((item) =>
                           renderSelectable(
-                            item.key,
+                            `${cat.key}:${item.key}`,
                             item.label,
-                            isSubcategorySelected(item.key),
-                            () => toggleSubcategory(item.key),
+                            isSubcategorySelected(item.key, cat.key),
+                            () => toggleSubcategory(item.key, cat.key),
                             'sm',
                           ),
                         )}
@@ -393,10 +399,10 @@ export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps
                         ) : null}
                         {cat.items.map((item) =>
                           renderSelectable(
-                            item.key,
+                            `${cat.key}:${item.key}`,
                             item.label,
-                            isSubcategorySelected(item.key),
-                            () => toggleSubcategory(item.key),
+                            isSubcategorySelected(item.key, cat.key),
+                            () => toggleSubcategory(item.key, cat.key),
                             'sm',
                           ),
                         )}

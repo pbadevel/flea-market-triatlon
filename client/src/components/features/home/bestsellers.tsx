@@ -37,8 +37,6 @@ export function Bestsellers() {
       ...newFilters,
       page: 1,
     }));
-    // Auto-close mobile filter on any change
-    setIsMobileFilterOpen(false);
   };
 
   if (isError) {
