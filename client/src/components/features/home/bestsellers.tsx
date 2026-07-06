@@ -71,7 +71,6 @@ export function Bestsellers() {
                         : 'bg-(--surface-strong) border border-(--line) text-(--sea-ink-soft) hover:border-(--palm)/30 hover:text-(--sea-ink)'
                     }`}
                   >
-                    {cat.icon && <span>{cat.icon}</span>}
                     {cat.label}
                   </button>
                 );
