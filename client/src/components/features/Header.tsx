@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Search, Heart, User, X, Plus, BoxIcon, Bell } from "lucide-react";
+import { Search, Heart, User, X, Plus, BoxIcon, Bell, Shield } from "lucide-react";
 import { SearchMenu } from "./search-menu";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adsQueryOptions } from "@/lib/queries/ads";
@@ -68,8 +68,7 @@ export default function Header() {
       <div className="page-wrap">
         <div className="flex h-14 items-center gap-3 justify-center">
           <Link to="/" className="shrink-0">
-            <span className="text-lg font-bold text-(--sea-ink)">TB</span>
-            <span className="text-lg font-semibold text-(--palm)">SALE</span>
+            <img src="/image.png" alt="TBSALE" className="h-8 w-auto" />
           </Link>
 
           <div ref={searchRef} className="relative flex-1 max-w-md">
@@ -110,6 +109,13 @@ export default function Header() {
           <div className="flex items-center gap-0.5">
             {session?.token && (
               <NotificationsBell token={session.token} />
+            )}
+            {session?.isAdmin && (
+              <Link 
+                to="/admin"
+                className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--palm)" aria-label="Админ">
+                <Shield className="size-4.5" />
+              </Link>
             )}
             <Link 
               to={"/profile"}
