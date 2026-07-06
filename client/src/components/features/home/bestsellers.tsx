@@ -62,7 +62,7 @@ export function Bestsellers() {
           </h2>
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-(--line) bg-white px-3 py-1.5 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover)"
+            className="flex items-center gap-1.5 rounded-xl border border-(--line) bg-(--surface-strong) px-3 py-1.5 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover)"
           >
             <Filter className="size-4" />
             Фильтры
@@ -100,7 +100,7 @@ export function Bestsellers() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Header with pagination */}
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 hidden lg:flex items-center justify-between">
               <h2 className="text-lg font-semibold text-(--sea-ink)">
                 Товары {adsData?.total ? `(${adsData.total})` : ''}
               </h2>
@@ -145,7 +145,7 @@ export function Bestsellers() {
                     key={product.id}
                     to="/product/$productId"
                     params={{ productId: String(product.id) }}
-                    className="group rounded-lg border border-(--line) bg-white p-2 hover:bg-(--foam)"
+                    className="group rounded-2xl border border-(--line) bg-(--surface-strong) p-2 hover:bg-(--foam)"
                   >
                     <div className="relative mb-2 aspect-square overflow-hidden rounded bg-gray-50">
                       {product.discount && (
@@ -197,7 +197,7 @@ export function Bestsellers() {
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setIsMobileFilterOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-full bg-white shadow-xl lg:hidden">
+          <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-full bg-(--surface-strong) shadow-xl lg:hidden">
             <div className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-(--line) px-4 py-3">
                 <h3 className="text-base font-semibold text-(--sea-ink)">Фильтры</h3>
@@ -218,7 +218,7 @@ export function Bestsellers() {
               <div className="border-t border-(--line) p-4">
                 <button
                   onClick={handleMobileFilterApply}
-                  className="w-full rounded-lg bg-(--palm) py-2.5 text-sm font-medium text-white hover:bg-(--palm)/90"
+                  className="w-full rounded-xl bg-(--palm) py-2.5 text-sm font-medium text-white hover:bg-(--palm)/90"
                 >
                   Показать результаты
                 </button>
