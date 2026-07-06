@@ -64,11 +64,11 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-(--header-bg) backdrop-blur-xl">
+    <header className="sticky top-0 z-40 bg-(--header-bg) backdrop-blur-xl border-b border-(--line)">
       <div className="page-wrap">
         <div className="flex h-14 items-center gap-3 justify-center">
           <Link to="/" className="shrink-0">
-            <img src="/image.png" alt="TBSALE" className="h-8 w-auto" />
+            <img src="/image.png" alt="TBSALE" className="h-10 w-auto rounded-lg" />
           </Link>
 
           <div ref={searchRef} className="relative flex-1 max-w-md">
