@@ -183,10 +183,25 @@ function NotificationsBell({ token }: { token: string }) {
 
   const count = (unreadData as any)?.count || 0;
 
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+
   const handleToggle = () => {
     const next = !open;
-    setOpen(next);
-    if (next && count > 0) {
+    if (!next) {
+      setOpen(false);
+      return;
+    }
+    // Calculate position from button
+    const btn = bellRef.current?.querySelector('button');
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen(true);
+    if (count > 0) {
       markReadMut.mutate();
     }
   };
@@ -207,7 +222,12 @@ function NotificationsBell({ token }: { token: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-(--line) bg-(--surface-strong) shadow-xl z-50">
+        <>
+          <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
+          <div
+            className="fixed z-[100] w-[calc(100vw-2rem)] max-w-80 max-h-96 overflow-y-auto rounded-2xl border border-(--line) bg-(--surface-strong) shadow-2xl"
+            style={{ top: dropdownPos.top, right: dropdownPos.right }}
+          >
           <div className="flex items-center justify-between px-4 py-3 border-b border-(--line)">
             <h3 className="font-bold text-sm text-(--sea-ink)">Уведомления</h3>
             {count > 0 && (
@@ -249,7 +269,8 @@ function NotificationsBell({ token }: { token: string }) {
               ))}
             </div>
           )}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
