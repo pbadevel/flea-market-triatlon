@@ -197,13 +197,14 @@ function NotificationsBell({ token }: { token: string }) {
       setOpen(false);
       return;
     }
-    // Calculate position from button
     const btn = bellRef.current?.querySelector('button');
     if (btn) {
       const rect = btn.getBoundingClientRect();
+      const dropdownWidth = Math.min(320, window.innerWidth - 32);
+      const rightPos = Math.max(16, window.innerWidth - rect.right);
       setDropdownPos({
         top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
+        right: Math.min(rightPos, window.innerWidth - dropdownWidth - 16),
       });
     }
     setOpen(true);
@@ -231,8 +232,12 @@ function NotificationsBell({ token }: { token: string }) {
         <>
           <div className="fixed inset-0 z-[90]" onClick={() => setOpen(false)} />
           <div
-            className="fixed z-[100] w-[calc(100vw-2rem)] max-w-80 max-h-96 overflow-y-auto rounded-2xl border border-(--line) bg-(--surface-strong) shadow-2xl"
-            style={{ top: dropdownPos.top, right: dropdownPos.right }}
+            className="fixed z-[100] max-w-80 max-h-[60vh] overflow-y-auto rounded-2xl border border-(--line) bg-(--surface-strong) shadow-2xl"
+            style={{
+              top: dropdownPos.top,
+              right: dropdownPos.right,
+              width: `min(320px, calc(100vw - 32px))`,
+            }}
           >
           <div className="flex items-center justify-between px-4 py-3 border-b border-(--line)">
             <h3 className="font-bold text-sm text-(--sea-ink)">Уведомления</h3>
