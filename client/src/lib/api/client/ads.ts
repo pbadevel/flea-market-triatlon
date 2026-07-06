@@ -30,12 +30,33 @@ export const fetchAds = (filters: AdFilters = {}) => {
   const params = new URLSearchParams()
   if (filters.page) params.set('page', String(filters.page))
   if (filters.limit) params.set('limit', String(filters.limit))
-  if (filters.categories?.length) filters.categories.forEach(c => params.append('category', c))
-  if (filters.subcategories?.length) filters.subcategories.forEach(s => {
-    // Extract actual subcategory key from composite key (category:subcategory)
-    const actualKey = s.includes(':') ? s.split(':').pop()! : s;
-    params.append('subcategory', actualKey);
-  })
+  
+  // Extract categories from composite subcategory keys (category:subcategory)
+  const compositeSubs = filters.subcategories ?? []
+  const extractedCategories = new Set<string>()
+  const extractedSubcategories: string[] = []
+  
+  for (const s of compositeSubs) {
+    if (s.includes(':')) {
+      const [catKey, subKey] = s.split(':')
+      extractedCategories.add(catKey)
+      extractedSubcategories.push(subKey)
+    } else {
+      extractedSubcategories.push(s)
+    }
+  }
+  
+  // Send categories (from explicit selection + extracted from subcategories)
+  const allCategories = new Set([...(filters.categories ?? []), ...extractedCategories])
+  if (allCategories.size > 0) {
+    allCategories.forEach(c => params.append('category', c))
+  }
+  
+  // Send subcategories (actual keys, not composite)
+  if (extractedSubcategories.length > 0) {
+    extractedSubcategories.forEach(s => params.append('subcategory', s))
+  }
+  
   if (filters.countries?.length) filters.countries.forEach(c => params.append('country', c))
   if (filters.cities?.length) filters.cities.forEach(c => params.append('city', c))
   if (filters.search) params.set('search', filters.search)
