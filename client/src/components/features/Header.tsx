@@ -110,13 +110,6 @@ export default function Header() {
             {session?.token && (
               <NotificationsBell token={session.token} />
             )}
-            {session?.isAdmin && (
-              <Link 
-                to="/admin"
-                className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--palm)" aria-label="Админ">
-                <Shield className="size-4.5" />
-              </Link>
-            )}
             <Link 
               to={"/profile"}
               className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Профиль">
@@ -135,6 +128,13 @@ export default function Header() {
             <button className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
               <Heart className="size-4.5" />
             </button>
+            {session?.isAdmin && (
+              <Link 
+                to="/admin"
+                className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--palm)" aria-label="Админ">
+                <Shield className="size-4.5" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
