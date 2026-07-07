@@ -71,7 +71,7 @@ function NotificationsPage() {
     sendMutation.mutate()
   }
 
-  const users = usersData?.items || []
+  const users = usersData?.data || []
   const filteredUsers = searchTerm
     ? users.filter((u: any) =>
         u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
