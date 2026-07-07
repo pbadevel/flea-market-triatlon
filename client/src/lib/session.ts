@@ -1,25 +1,7 @@
 // src/lib/session.ts
 import { createServerFn } from "@tanstack/react-start";
-import { useSession } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
-
-type SessionUser = {
-  token?: string;
-  isAdmin?: boolean;
-  isModerator?: boolean;
-};
-
-export function useAppSession() {
-  return useSession<SessionUser>({
-    password: process.env.SESSION_PASSWORD!,
-    maxAge: 60 * 60 * 24 * 7,
-    cookie: {
-      // Set to false for HTTP IP-address testing, true for HTTPS production
-      secure: false, // CHANGE IT WHEN PRODUCION
-      sameSite: "lax",
-    },
-  });
-}
+import { useAppSession } from "./session.server";
 
 
 export const logoutFn = createServerFn().handler(async () => {
@@ -46,8 +28,6 @@ export const getSession = createServerFn().handler(async () => {
 
 export const verifySession = createServerFn().handler(async () => {
   const session = await useAppSession();
-
-  // console.log("verifying", session.data)
   
   if (!session.data?.token) {
     throw redirect({ to: "/auth/login" });
