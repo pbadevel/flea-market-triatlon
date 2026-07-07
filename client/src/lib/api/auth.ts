@@ -1,6 +1,6 @@
 // src/lib/api/auth.ts
 import { createServerFn } from '@tanstack/react-start';
-import { useAppSession } from '../session';
+import { useAppSession } from '../session.server';
 
 const API = 'http://127.0.0.1:8000/v1'
 

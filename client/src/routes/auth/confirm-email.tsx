@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useEffect, useState } from 'react'
 import { CheckCircle, XCircle } from 'lucide-react'
-import { useAppSession } from '@/lib/session'
+import { useAppSession } from '@/lib/session.server'
 
 const confirmEmailFn = createServerFn()
   .inputValidator((data: { token: string }) => data)
