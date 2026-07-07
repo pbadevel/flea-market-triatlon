@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Send, Users, User, Bell, CheckCircle } from 'lucide-react'
 import { verifySession } from '@/lib/session'
-import { usersQueryOptions } from '@/lib/queries/admin/users'
+import { fetchUsers } from '@/lib/api/admin/users'
 import { sendAdminNotification, broadcastAdminNotification } from '@/lib/api/admin/notifications'
 
 export const Route = createFileRoute('/_admin/admin/notifications')({
@@ -27,7 +27,8 @@ function NotificationsPage() {
   const [sent, setSent] = useState(false)
 
   const { data: usersData } = useQuery({
-    ...usersQueryOptions(token!, 1, 100, searchTerm),
+    queryKey: ['admin-users', searchTerm],
+    queryFn: () => fetchUsers(token!, searchTerm || undefined),
     enabled: !!token,
   })
 
