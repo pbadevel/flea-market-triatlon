@@ -9,6 +9,7 @@ import {
   Users,
   Layers,
   Eye,
+  Bell,
 } from 'lucide-react'
 import {
   adminStatsQueryOptions,
@@ -145,6 +146,13 @@ function AdminPage() {
             >
               <Users className="size-4" />
               Пользователи
+            </Link>
+            <Link
+              to="/admin/notifications"
+              className="flex items-center gap-2 rounded-lg border border-(--line) bg-white px-4 py-3 text-sm font-medium text-(--sea-ink) hover:bg-(--link-bg-hover) transition"
+            >
+              <Bell className="size-4" />
+              Уведомления
             </Link>
           </div>
         )}
