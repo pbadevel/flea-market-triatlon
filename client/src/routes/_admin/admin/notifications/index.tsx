@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Send, Users, User, Bell, CheckCircle } from 'lucide-react'
@@ -84,8 +84,13 @@ function NotificationsPage() {
     <div className="min-h-screen bg-(--bg)">
       <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg) backdrop-blur-xl">
         <div className="page-wrap">
-          <div className="flex h-14 items-center">
-            <h1 className="text-lg font-semibold text-(--sea-ink)">Уведомления</h1>
+          <div className="flex h-14 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link to="/admin" className="text-sm text-(--sea-ink-soft) hover:text-(--sea-ink)">
+                ← Админ
+              </Link>
+              <h1 className="text-lg font-semibold text-(--sea-ink)">Уведомления</h1>
+            </div>
           </div>
         </div>
       </header>
