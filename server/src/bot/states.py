@@ -33,3 +33,12 @@ class SearchState(StatesGroup):
 
 class ModeratorRejectionState(StatesGroup):
     wait_for_reason = State()
+
+
+class AdminPanelState(StatesGroup):
+    """FSM для админ-панели."""
+    wait_user_id = State()
+    wait_username = State()
+    wait_mod_id = State()
+    wait_admin_id = State()
+    wait_trusted_id = State()

@@ -23,6 +23,14 @@ def create_dispatcher() -> Dispatcher:
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     
+    # Register middleware
+    from src.bot.middlewares.ban import BanMiddleware
+    from src.bot.middlewares.agreement import AgreementMiddleware
+    dp.message.middleware(BanMiddleware())
+    dp.callback_query.middleware(BanMiddleware())
+    dp.message.middleware(AgreementMiddleware())
+    dp.callback_query.middleware(AgreementMiddleware())
+    
     # Register handlers (order matters!) 
     from src.bot.handlers import start as start_handler
     from src.bot.handlers import add_ad
@@ -31,6 +39,7 @@ def create_dispatcher() -> Dispatcher:
     from src.bot.handlers import reviews
     from src.bot.handlers import moderation
     from src.bot.handlers import admin as admin_handler
+    from src.bot.handlers import admin_panel
     from src.bot.handlers import echo
 
     dp.include_router(start_handler.router)
@@ -40,7 +49,8 @@ def create_dispatcher() -> Dispatcher:
     dp.include_router(reviews.router)
     dp.include_router(moderation.router)
     dp.include_router(admin_handler.router)
-    dp.include_router(echo.router)  # echo всегда последним
+    dp.include_router(admin_panel.router)
+    dp.include_router(echo.router)  # echo always last
     
     return dp
 
@@ -69,7 +79,37 @@ async def setup_bot():
     log.info("Setting up Telegram bot...")
     bot = get_bot()
     dp = get_dispatcher()
-    log.info("Telegram bot ready (polling mode for tests)")
+    
+    # Error handler
+    @dp.errors()
+    async def error_handler(event):
+        from aiogram.types import ErrorEvent
+        import traceback
+        exception = event.exception
+        tb = "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+        log.error(f"Bot error: {type(exception).__name__}: {exception}\n{tb}")
+        
+        # Notify developers
+        for dev_id in settings.DEVELOPER_IDS:
+            try:
+                await bot.send_message(dev_id, f"Bot error:\n{type(exception).__name__}: {exception}")
+            except Exception:
+                pass
+        return True
+    
+    log.info("Telegram bot ready (polling mode)")
+    
+    # Set bot commands
+    from aiogram.types import BotCommand
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Запуск"),
+        BotCommand(command="cancel", description="Отмена"),
+        BotCommand(command="help", description="Помощь"),
+        BotCommand(command="rules", description="Правила"),
+        BotCommand(command="oferta", description="Оферта"),
+        BotCommand(command="admin", description="Админ-панель"),
+    ])
+    
     print("@", (await bot.me()).username, sep='')
     await dp.start_polling(bot)
 

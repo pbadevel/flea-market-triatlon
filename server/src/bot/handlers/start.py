@@ -3,10 +3,11 @@ Handler: /start — главное меню + deeplink авторизация / 
 """
 
 from aiogram import Router
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 import httpx
 
 from src.config import settings
@@ -20,6 +21,50 @@ from src.bot.handlers.moderation import proceed_promote_reject
 
 router = Router()
 log = get_logger()
+
+
+# ===========================
+#  Agreement handlers
+# ===========================
+
+@router.callback_query(lambda c: c.data == "agree_accept")
+async def agree_accept(callback: CallbackQuery):
+    tg_user = callback.from_user
+    if not tg_user:
+        return
+
+    async with database_service.get_session() as session:
+        user = await user_service.get_or_create_by_tg(session, tg_user)
+        if user:
+            from datetime import datetime
+            user.agreed_to_terms = True
+            user.agreed_at = datetime.utcnow()
+            await session.commit()
+
+    try:
+        await callback.message.edit_text(
+            START_MESSAGE,
+            reply_markup=await main_menu_kb(callback.from_user.id)
+        )
+    except TelegramBadRequest:
+        await callback.message.answer(
+            START_MESSAGE,
+            reply_markup=await main_menu_kb(callback.from_user.id)
+        )
+    await callback.answer("Условия приняты!")
+
+
+@router.callback_query(lambda c: c.data == "agree_oferta")
+async def agree_oferta(callback: CallbackQuery):
+    from src.bot.handlers.echo import OFERTA_MESSAGE
+    kb = InlineKeyboardBuilder()
+    kb.row(InlineKeyboardButton(text="Принять условия", callback_data="agree_accept"))
+    kb.row(InlineKeyboardButton(text="Назад", callback_data="menu:main"))
+    try:
+        await callback.message.edit_text(OFERTA_MESSAGE, reply_markup=kb.as_markup(), parse_mode="html")
+    except TelegramBadRequest:
+        await callback.message.answer(OFERTA_MESSAGE, reply_markup=kb.as_markup(), parse_mode="html")
+    await callback.answer()
 
 
 # ===========================
@@ -107,6 +152,17 @@ async def _show_main_menu(message: Message):
 
     if user and user.is_banned:
         await message.answer("⛔ Ваш аккаунт заблокирован. Обратитесь к администрации.")
+        return
+
+    # Check agreement
+    if user and not user.agreed_to_terms:
+        kb = InlineKeyboardBuilder()
+        kb.row(InlineKeyboardButton(text="Принять условия", callback_data="agree_accept"))
+        kb.row(InlineKeyboardButton(text="Оферта", callback_data="agree_oferta"))
+        await message.answer(
+            "Для использования бота необходимо принять условия обработки персональных данных.",
+            reply_markup=kb.as_markup()
+        )
         return
 
     await message.answer(
