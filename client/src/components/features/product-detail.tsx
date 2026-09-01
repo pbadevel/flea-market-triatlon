@@ -20,7 +20,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   return (
     <div className="space-y-4">
       {/* Main image - используем flex и ограничиваем высоту */}
-      <div className="relative w-full overflow-hidden rounded-lg bg-gray-50 flex items-center justify-center" style={{ minHeight: '300px', maxHeight: '65vh' }}>
+      <div className="relative w-4xl overflow-hidden rounded-lg bg-gray-50 flex items-center justify-center" style={{ minHeight: '300px', maxHeight: '65vh' }}>
         <img
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
