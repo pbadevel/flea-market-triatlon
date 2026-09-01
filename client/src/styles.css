@@ -197,16 +197,3 @@ html, body {
   margin: 0;
   padding: 0;
 }
-
-/* 3. Жесткие ограничения для медиа-файлов */
-img, video, svg {
-  max-width: 100%;
-  height: auto;
-  display: block; /* Убирает магический нижний отступ у строчных элементов */
-}
-
-/* 4. Ваш отличный контейнер, он правильный, оставляем как есть */
-.page-wrap {
-  width: min(1080px, calc(100% - 2rem));
-  margin-inline: auto;
-}
