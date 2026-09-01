@@ -1,36 +1,74 @@
 // src/components/features/product-detail.tsx
 import { useParams } from '@tanstack/react-router'
-import { ArrowLeft, Heart, Share2, MessageCircle, Star, User, CheckCircle, Shield, Send, Mail, Phone } from 'lucide-react'
+import { ArrowLeft, MessageCircle, Star, User, CheckCircle, Shield, Send, Mail, Phone, X } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productQueryOptions } from '@/lib/queries/ads'
 import { createReview } from '@/lib/api/client/reviews'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Review, Seller, ReviewCreate } from '@/types/products'
 
-// Компонент карусели изображений
+// Компонент карусели изображений с полноэкранным просмотром
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Блокировка скролла при открытом fullscreen
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isFullscreen])
+
+  // Закрытие по Escape
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
 
   if (!images.length) return null
 
   const next = () => setCurrentIndex((i) => (i + 1) % images.length)
   const prev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length)
 
+  // Свайпы для мобильных
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX)
+  }
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return
+    const touchEnd = e.changedTouches[0].clientX
+    const diff = touchStart - touchEnd
+    
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) next()
+      else prev()
+    }
+    setTouchStart(null)
+  }
+
   return (
-    <div className="space-y-4 w-full">
-      {/* Main image - ЖЕСТКИЕ ограничения ширины */}
+    <>
+      {/* Main image */}
       <div className="relative w-full max-w-full mx-auto overflow-hidden rounded-lg bg-gray-50">
-        {/* Контейнер с адаптивной высотой */}
-        <div className="relative w-full" style={{ 
-          maxHeight: 'min(65vh, 500px)',
-          minHeight: '250px'
-        }}>
+        <div className="relative w-full" style={{ maxHeight: 'min(65vh, 500px)', minHeight: '250px' }}>
           <img
             src={images[currentIndex]}
             alt={`${alt} ${currentIndex + 1}`}
-            className="absolute inset-0 w-full h-full object-contain"
+            className="absolute inset-0 w-full h-full object-contain cursor-zoom-in"
             style={{ maxWidth: '100%', maxHeight: '100%' }}
+            onClick={() => setIsFullscreen(true)}
           />
         </div>
         
@@ -84,9 +122,94 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
           ))}
         </div>
       )}
-    </div>
+
+      {/* Fullscreen Modal */}
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          onClick={() => setIsFullscreen(false)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setIsFullscreen(false)}
+            className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition z-10"
+            aria-label="Закрыть"
+          >
+            <X className="size-6" />
+          </button>
+
+          {/* Counter */}
+          <div className="absolute top-4 left-4 rounded bg-black/50 px-3 py-1 text-sm text-white backdrop-blur-sm z-10">
+            {currentIndex + 1} / {images.length}
+          </div>
+
+          {/* Navigation buttons */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  prev()
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition z-10"
+                aria-label="Предыдущее фото"
+              >
+                <ArrowLeft className="size-6" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  next()
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition z-10"
+                aria-label="Следующее фото"
+              >
+                <ArrowLeft className="size-6 rotate-180" />
+              </button>
+            </>
+          )}
+
+          {/* Fullscreen image */}
+          <img
+            src={images[currentIndex]}
+            alt={`${alt} ${currentIndex + 1}`}
+            className="max-w-[95vw] max-h-[90vh] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Thumbnails in fullscreen */}
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] scrollbar-none">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setCurrentIndex(idx)
+                  }}
+                  className={`shrink-0 aspect-square w-12 overflow-hidden rounded border-2 transition ${
+                    currentIndex === idx
+                      ? 'border-white'
+                      : 'border-white/30 hover:border-white/60'
+                  }`}
+                >
+                  <img
+                    src={img}
+                    alt={`${alt} thumb ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </>
   )
 }
+
 // Компонент рейтинга
 // Кликабельные звёзды для формы отзыва
 function ClickableStars({ value, onChange }: { value: number; onChange: (v: number) => void }) {

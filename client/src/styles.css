@@ -187,7 +187,7 @@ a {
 
 
 /* === ДИАГНОСТИКА === */
-* {
+/* * {
   outline: 1px solid rgba(255, 0, 0, 0.2) !important;
 }
 
@@ -202,6 +202,6 @@ body::after {
   pointer-events: none;
   z-index: 99999;
   border-left: 2px solid lime;
-}
+} */
 
 
