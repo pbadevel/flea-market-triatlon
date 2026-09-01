@@ -184,3 +184,29 @@ a {
     transform: translateY(0) scale(1);
   }
 }
+
+/* 1. Безопасный глобальный сброс */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* 2. Используем width: 100%, а не 100vw, чтобы избежать бага со скроллбаром */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* 3. Жесткие ограничения для медиа-файлов */
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+  display: block; /* Убирает магический нижний отступ у строчных элементов */
+}
+
+/* 4. Ваш отличный контейнер, он правильный, оставляем как есть */
+.page-wrap {
+  width: min(1080px, calc(100% - 2rem));
+  margin-inline: auto;
+}

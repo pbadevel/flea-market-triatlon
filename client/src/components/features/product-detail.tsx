@@ -18,17 +18,15 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const prev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length)
 
   return (
-    <div className="space-y-4">
-      {/* Main image */}
-      {/* ИЗМЕНЕНО: aspect-[4/5] для мобильных, aspect-square для десктопа (sm:), max-h-[65vh] чтобы не занимать весь экран */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-square max-h-[65vh] overflow-hidden rounded-lg bg-gray-50">
+    <div className="space-y-4 w-full">
+      {/* Главный контейнер: w-full + overflow-hidden гарантируют, что ничего не вылезет */}
+      <div className="relative w-full overflow-hidden rounded-lg bg-gray-50 aspect-[4/5] sm:aspect-square max-h-[65vh]">
         <img
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
-          className="h-full w-full object-contain"
+          className="block w-full h-full object-cover" /* block критически важен! */
         />
         
-        {/* Navigation buttons */}
         {images.length > 1 && (
           <>
             <button
@@ -48,7 +46,6 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
           </>
         )}
         
-        {/* Counter */}
         {images.length > 1 && (
           <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm">
             {currentIndex + 1} / {images.length}
@@ -56,10 +53,8 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
         )}
       </div>
 
-      {/* Thumbnails */}
       {images.length > 1 && (
-        /* ДОБАВЛЕНО: scrollbar-none для скрытия полосы прокрутки (как в bestsellers) */
-        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2 w-full">
           {images.map((img, idx) => (
             <button
               key={idx}
@@ -73,7 +68,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
               <img
                 src={img}
                 alt={`${alt} thumb ${idx + 1}`}
-                className="h-full w-full object-cover"
+                className="block h-full w-full object-cover"
               />
             </button>
           ))}
