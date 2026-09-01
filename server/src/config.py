@@ -19,7 +19,7 @@ env_file = ".env.testing" if env == Environment.testing else ".env"
 
 
 class Settings(BaseSettings):
-    ENV: Environment = Environment.development
+    ENV: Environment = Environment.development.value
     LOG_LEVEL: str = "DEBUG"
 
     # User session
