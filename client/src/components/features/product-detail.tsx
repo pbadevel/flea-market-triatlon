@@ -485,7 +485,7 @@ export function ProductDetail({ token }: { token?: string | null }) {
   }
 
   return (
-    <div className="min-h-screen bg-(--bg) overflow-x-hidden max-w-full">
+    <div className="min-h-screen bg-(--bg)">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
         <div className="page-wrap">
@@ -502,7 +502,7 @@ export function ProductDetail({ token }: { token?: string | null }) {
       </header>
 
       {/* Product Content */}
-      <div className="page-wrap py-8 w-full max-w-full overflow-x-hidden">
+      <div className="page-wrap py-8">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Image Gallery */}
           <div>
@@ -565,42 +565,42 @@ export function ProductDetail({ token }: { token?: string | null }) {
 
             {/* Specifications */}
             <div className="rounded-lg bg-(--link-bg-hover) p-4 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex justify-between">
-                  <span className="text-(--sea-ink-soft)">Артикул:</span>
-                  <span className="font-medium text-(--sea-ink)">#{product.id}</span>
+              <div className="space-y-2">
+                <div className="flex justify-between gap-2">
+                  <span className="text-(--sea-ink-soft) shrink-0">Артикул:</span>
+                  <span className="font-medium text-(--sea-ink) text-right break-words">#{product.id}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-(--sea-ink-soft)">Категория:</span>
-                  <span className="font-medium text-(--sea-ink)">{product.category}</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-(--sea-ink-soft) shrink-0">Категория:</span>
+                  <span className="font-medium text-(--sea-ink) text-right break-words">{product.category}</span>
                 </div>
                 {product.subcategory && (
-                  <div className="flex justify-between">
-                    <span className="text-(--sea-ink-soft)">Подкатегория:</span>
-                    <span className="font-medium text-(--sea-ink)">{product.subcategory}</span>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-(--sea-ink-soft) shrink-0">Подкатегория:</span>
+                    <span className="font-medium text-(--sea-ink) text-right break-words">{product.subcategory}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-(--sea-ink-soft)">Город:</span>
-                  <span className="font-medium text-(--sea-ink)">{product.city}</span>
+                <div className="flex justify-between gap-2">
+                  <span className="text-(--sea-ink-soft) shrink-0">Город:</span>
+                  <span className="font-medium text-(--sea-ink) text-right break-words">{product.city}</span>
                 </div>
                 {product.size && (
-                  <div className="flex justify-between">
-                    <span className="text-(--sea-ink-soft)">Размер:</span>
-                    <span className="font-medium text-(--sea-ink)">{product.size}</span>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-(--sea-ink-soft) shrink-0">Размер:</span>
+                    <span className="font-medium text-(--sea-ink) text-right break-words">{product.size}</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-(--sea-ink-soft)">Состояние:</span>
-                  <span className="font-medium text-(--sea-ink)">
+                <div className="flex justify-between gap-2">
+                  <span className="text-(--sea-ink-soft) shrink-0">Состояние:</span>
+                  <span className="font-medium text-(--sea-ink) text-right break-words">
                     {product.condition === 'new' ? 'Новое' : 
-                     product.condition === 'used' ? 'Б/У' : 
-                     product.condition === 'unknown' ? 'Не указано' : product.condition}
+                    product.condition === 'used' ? 'Б/У' : 
+                    product.condition === 'unknown' ? 'Не указано' : product.condition}
                   </span>
                 </div>
-                <div className="flex justify-between col-span-2">
-                  <span className="text-(--sea-ink-soft)">Добавлено:</span>
-                  <span className="font-medium text-(--sea-ink)">
+                <div className="flex justify-between gap-2">
+                  <span className="text-(--sea-ink-soft) shrink-0">Добавлено:</span>
+                  <span className="font-medium text-(--sea-ink) text-right break-words">
                     {new Date(product.created_at).toLocaleDateString('ru-RU')}
                   </span>
                 </div>
