@@ -1,58 +1,65 @@
-from aiogram import Router
-from aiogram.types import Message
+from aiogram import types, Dispatcher, F
 from aiogram.filters import Command
-
-from src.logging import get_logger
-from src.bot.keyboards import main_menu_kb
-from src.bot.texts import START_MESSAGE, RULES_MESSAGE
-
-router = Router()
-log = get_logger()
-
-OFERTA_MESSAGE = """<b>ОФЕРТА</b>
-
-1. Настоящее соглашение является публичной офертой.
-
-2. Размещая объявление через бота, Пользователь подтверждает согласие на обработку персональных данных в соответствии с 152-ФЗ.
-
-3. Администрация не несёт ответственности за сделки между пользователями.
-
-4. Запрещается размещение объявлений, нарушающих законодательство РФ.
-
-5. Администрация оставляет за собой право удалять объявления без объяснения причин."""
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from src.bot.loader import logger, bot
+from src.models import *
 
 
-@router.message(Command("help"))
-async def cmd_help(message: Message):
-    text = (
-        "/start — главное меню\n"
-        "/cancel — отменить текущее действие\n"
-        "/help — эта справка\n"
-        "/rules — правила барахолки\n"
-        "/oferta — оферта\n"
-        "/stats — статистика (админы)\n"
-        "/admin — админ-панель (админы/модераторы)\n"
-        "/ban /unban — управление баном (админы)\n"
-        "/moderator — назначить модератора (админы)\n"
-        "/logs — логи (админы)\n"
-    )
-    await message.answer(text, reply_markup=await main_menu_kb(message.from_user.id))
+async def delete_message(user_id: int, session: AsyncSession) -> None:
+    """
+    Асинхронно удаляет сообщения из чата по заданному user_id.
+
+    Функция находит сообщения для удаления, хранящиеся в базе данных с моделью DeleteMessage.
+    Если идентификатор сообщения содержит '&', он обрабатывается как несколько идентификаторов,
+    разделённых '&', и удаляется каждый из них. В случае ошибки при удалении любого сообщения,
+    ошибка логируется, но не прерывает выполнение цикла удаления.
+
+    :param user_id: int: Идентификатор пользователя, для которого выполняется удаление сообщений.
+    :param session: AsyncSession: Асинхронная сессия для выполнения запросов SQLAlchemy.
+    """
+    try:
+        result = await session.execute(select(DeleteMessage).where(DeleteMessage.chat_id == user_id))
+        messages = result.scalars().all()
+
+        for mess in messages:
+            if '&' in mess.message_id:
+                mes_ids = mess.message_id.split('&')
+                for elem in mes_ids:
+                    try:
+                        await bot.delete_message(chat_id=mess.chat_id, message_id=int(elem))
+                    except Exception as e:
+                        logger.warning(f"Не удалось удалить сообщение {elem} для чата {mess.chat_id}", exc_info=e)
+            else:
+                try:
+                    await bot.delete_message(chat_id=mess.chat_id, message_id=int(mess.message_id))
+                except Exception as e:
+                    logger.warning(f"Не удалось удалить сообщение {mess.message_id} для чата {mess.chat_id}",
+                                   exc_info=e)
+
+            await session.delete(mess)
+        await session.commit()
+
+    except Exception as error:
+        logger.error('В работе бота возникло исключение', exc_info=error)
 
 
-@router.message(Command("rules"))
-async def cmd_rules(message: Message):
-    await message.answer(RULES_MESSAGE, reply_markup=await main_menu_kb(message.from_user.id))
+async def echo_handler(message: types.Message) -> None:
+    """
+    Удаляет полученное сообщение.
+
+    Функция предназначена для немедленного удаления сообщения, которое отправлено боту.
+    Используется, чтобы не сохранять ненужные сообщения в чате с ботом.
+
+    :param message: types.Message: Сообщение, которое будет удалено.
+    """
+    # Не удаляем команды - они должны обрабатываться специальными обработчиками
+    if message.text and message.text.startswith('/'):
+        return
+    await message.delete()
 
 
-@router.message(Command("oferta"))
-async def cmd_oferta(message: Message):
-    await message.answer(OFERTA_MESSAGE, reply_markup=await main_menu_kb(message.from_user.id), parse_mode="html")
-
-
-@router.message()
-async def echo_fallback(message: Message):
-    """Catches everything not handled by other handlers."""
-    await message.answer(
-        "Используй кнопки меню",
-        reply_markup=await main_menu_kb(message.from_user.id)
-    )
+def register_echo_handlers(dp: Dispatcher) -> None:
+    # Регистрируем echo handler для всех текстовых сообщений
+    # В самом обработчике проверяем, не является ли сообщение командой
+    dp.message.register(echo_handler, F.text)

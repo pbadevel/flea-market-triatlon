@@ -124,39 +124,6 @@ class TgService:
                 # Send as media group if multiple photos
                 if len(ad.photos) > 1:
                     pass
-
-                    # media = []
-                    
-                    # for i, photo in enumerate(ad.photos[:10]):  # Max 10 photos
-                    #     if photo.storage_path:
-                    #         async with aiofiles.open(f"uploads/{photo.storage_path}", 'rb') as f:
-                    #             photo_bytes = await f.read()
-                            
-                    #         if i == 0:
-                    #             media.append(InputMediaPhoto(
-                    #                 media=BufferedInputFile(photo_bytes, filename="photo.jpg"),
-                    #                 caption=text,
-                    #                 parse_mode=ParseMode.HTML
-                    #             ))
-                    #         else:
-                    #             media.append(InputMediaPhoto(
-                    #                 media=BufferedInputFile(photo_bytes, filename="photo.jpg")
-                    #             ))
-                    
-                    # messages = await self.bot.send_media_group(channel_id, media)
-                    # message_id = messages[0].message_id
-                    
-                    # # Send contact button separately
-                    # if builder.as_markup().inline_keyboard:
-                    #     await self.bot.send_message(
-                    #         channel_id,
-                    #         "👆 Нажмите для связи с продавцом",
-                    #         reply_markup=builder.as_markup(),
-                    #         reply_to_message_id=message_id,
-                    #     )
-                    
-                    # return message_id
-                # else:
                 
                 # Single photo
                 photo = ad.photos[0]
