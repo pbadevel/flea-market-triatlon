@@ -4,13 +4,14 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
+import { nitro } from "nitro/vite";
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
-const config = defineConfig({
+const config = defineConfig(({ mode }) => ({
   server: {
-    port: 3000,
+    port: 3001,
     allowedHosts: true,
   },
   plugins: [
@@ -18,6 +19,7 @@ const config = defineConfig({
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
     tanstackStart(),
+    mode === "production" ? nitro() : null,
     viteReact(),
   ],
   resolve: {
@@ -25,6 +27,6 @@ const config = defineConfig({
       '@': path.resolve(__dirname, './src'), // Должен указывать на src
     },
   }
-})
+}));
 
-export default config
+export default config;
