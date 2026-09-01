@@ -28,7 +28,10 @@ export const serverApi = createServerFn({ method: 'POST' })
   }) => data)
   .handler(async ({ data }) => {
     const url = `${API_HOST}/v1${data.path}`
-    
+    console.log({
+      data,
+      url
+    })
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     }
