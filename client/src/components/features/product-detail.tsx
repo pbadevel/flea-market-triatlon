@@ -4,11 +4,9 @@ import { ArrowLeft, Heart, Share2, MessageCircle, Star, User, CheckCircle, Shiel
 import { Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productQueryOptions } from '@/lib/queries/ads'
-import { verifySession } from '@/lib/session'
 import { createReview } from '@/lib/api/client/reviews'
 import { useState } from 'react'
 import { Review, Seller, ReviewCreate } from '@/types/products'
-
 
 // Компонент карусели изображений
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
@@ -22,7 +20,8 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   return (
     <div className="space-y-4">
       {/* Main image */}
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-50">
+      {/* ИЗМЕНЕНО: aspect-[4/5] для мобильных, aspect-square для десктопа (sm:), max-h-[65vh] чтобы не занимать весь экран */}
+      <div className="relative w-full aspect-[4/5] sm:aspect-square max-h-[65vh] overflow-hidden rounded-lg bg-gray-50">
         <img
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
@@ -51,7 +50,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
         
         {/* Counter */}
         {images.length > 1 && (
-          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white">
+          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm">
             {currentIndex + 1} / {images.length}
           </div>
         )}
@@ -59,7 +58,8 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        /* ДОБАВЛЕНО: scrollbar-none для скрытия полосы прокрутки (как в bestsellers) */
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2">
           {images.map((img, idx) => (
             <button
               key={idx}
@@ -183,7 +183,6 @@ function ReviewForm({ adId, sellerId, token }: { adId: number; sellerId: number;
     </div>
   )
 }
-
 
 // Умная кнопка связи — показывает доступные способы
 function ContactSellerButton({ seller }: { seller: Seller | null }) {
@@ -346,7 +345,6 @@ function ContactSellerButton({ seller }: { seller: Seller | null }) {
   )
 }
 
-
 function StarRating({ rating, count }: { rating: number; count?: number }) {
   return (
     <div className="flex items-center gap-1">
@@ -424,7 +422,6 @@ function SellerInfo({ seller, adId, token }: { seller: Seller; adId: number; tok
         )}
       </div>
 
-      {/* Reviews */}
       {/* Отзывы */}
       <div className="mt-4 space-y-3">
         <h4 className="text-sm font-semibold text-(--sea-ink)">
@@ -543,12 +540,12 @@ export function ProductDetail({ token }: { token?: string | null }) {
             {/* Actions — умная кнопка связи */}
             <div className="flex gap-3">
               <ContactSellerButton seller={product.seller} />
-              <button 
+              {/* <button 
                 className="rounded-lg border border-(--line) p-3 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
                 aria-label="Добавить в избранное"
               >
                 <Heart className="size-5" />
-              </button>
+              </button> */}
             </div>
 
             {/* Seller Info */}

@@ -125,9 +125,9 @@ export default function Header() {
               className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Создать">
               <Plus className="size-4.5" />
             </Link>
-            <button className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
+            {/* <button className="rounded-xl p-2 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)" aria-label="Избранное">
               <Heart className="size-4.5" />
-            </button>
+            </button> */}
             {session?.isAdmin && (
               <Link 
                 to="/admin"
