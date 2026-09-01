@@ -18,28 +18,35 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const prev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length)
 
   return (
-    <div className="space-y-4">
-      {/* Main image - используем flex и ограничиваем высоту */}
-      <div className="relative w-4xl overflow-hidden rounded-lg bg-gray-50 flex items-center justify-center" style={{ minHeight: '300px', maxHeight: '65vh' }}>
-        <img
-          src={images[currentIndex]}
-          alt={`${alt} ${currentIndex + 1}`}
-          className="max-h-full max-w-full object-contain"
-        />
+    <div className="space-y-4 w-full">
+      {/* Main image - ЖЕСТКИЕ ограничения ширины */}
+      <div className="relative w-full max-w-full mx-auto overflow-hidden rounded-lg bg-gray-50">
+        {/* Контейнер с адаптивной высотой */}
+        <div className="relative w-full" style={{ 
+          maxHeight: 'min(65vh, 500px)',
+          minHeight: '250px'
+        }}>
+          <img
+            src={images[currentIndex]}
+            alt={`${alt} ${currentIndex + 1}`}
+            className="absolute inset-0 w-full h-full object-contain"
+            style={{ maxWidth: '100%', maxHeight: '100%' }}
+          />
+        </div>
         
         {/* Navigation buttons */}
         {images.length > 1 && (
           <>
             <button
               onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-(--sea-ink) shadow hover:bg-white"
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-(--sea-ink) shadow hover:bg-white z-10"
               aria-label="Предыдущее фото"
             >
               <ArrowLeft className="size-5" />
             </button>
             <button
               onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-(--sea-ink) shadow hover:bg-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-(--sea-ink) shadow hover:bg-white z-10"
               aria-label="Следующее фото"
             >
               <ArrowLeft className="size-5 rotate-180" />
@@ -49,7 +56,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
         
         {/* Counter */}
         {images.length > 1 && (
-          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm">
+          <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm z-10">
             {currentIndex + 1} / {images.length}
           </div>
         )}
@@ -57,12 +64,12 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2 w-full">
           {images.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`shrink-0 aspect-square w-16 overflow-hidden rounded border-2 transition ${
+              className={`shrink-0 aspect-square w-14 sm:w-16 overflow-hidden rounded border-2 transition ${
                 currentIndex === idx
                   ? 'border-(--palm)'
                   : 'border-(--line) hover:border-(--palm)/50'
