@@ -22,6 +22,7 @@ import { Route as AppCreateAdRouteImport } from './routes/_app/create-ad'
 import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as AppProductProductIdRouteImport } from './routes/_app/product/$productId'
 import { Route as AdminAdminUsersIndexRouteImport } from './routes/_admin/admin/users/index'
+import { Route as AdminAdminNotificationsIndexRouteImport } from './routes/_admin/admin/notifications/index'
 import { Route as AdminAdminCategoriesIndexRouteImport } from './routes/_admin/admin/categories/index'
 import { Route as AppAdsAdIdEditRouteImport } from './routes/_app/ads/$adId/edit'
 import { Route as AdminAdminUsersUserIdRouteImport } from './routes/_admin/admin/users/$userId'
@@ -90,6 +91,12 @@ const AdminAdminUsersIndexRoute = AdminAdminUsersIndexRouteImport.update({
   path: '/admin/users/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminNotificationsIndexRoute =
+  AdminAdminNotificationsIndexRouteImport.update({
+    id: '/admin/notifications/',
+    path: '/admin/notifications/',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminAdminCategoriesIndexRoute =
   AdminAdminCategoriesIndexRouteImport.update({
     id: '/admin/categories/',
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$userId': typeof AdminAdminUsersUserIdRoute
   '/ads/$adId/edit': typeof AppAdsAdIdEditRoute
   '/admin/categories/': typeof AdminAdminCategoriesIndexRoute
+  '/admin/notifications/': typeof AdminAdminNotificationsIndexRoute
   '/admin/users/': typeof AdminAdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -144,6 +152,7 @@ export interface FileRoutesByTo {
   '/admin/users/$userId': typeof AdminAdminUsersUserIdRoute
   '/ads/$adId/edit': typeof AppAdsAdIdEditRoute
   '/admin/categories': typeof AdminAdminCategoriesIndexRoute
+  '/admin/notifications': typeof AdminAdminNotificationsIndexRoute
   '/admin/users': typeof AdminAdminUsersIndexRoute
 }
 export interface FileRoutesById {
@@ -164,6 +173,7 @@ export interface FileRoutesById {
   '/_admin/admin/users/$userId': typeof AdminAdminUsersUserIdRoute
   '/_app/ads/$adId/edit': typeof AppAdsAdIdEditRoute
   '/_admin/admin/categories/': typeof AdminAdminCategoriesIndexRoute
+  '/_admin/admin/notifications/': typeof AdminAdminNotificationsIndexRoute
   '/_admin/admin/users/': typeof AdminAdminUsersIndexRoute
 }
 export interface FileRouteTypes {
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/admin/users/$userId'
     | '/ads/$adId/edit'
     | '/admin/categories/'
+    | '/admin/notifications/'
     | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/admin/users/$userId'
     | '/ads/$adId/edit'
     | '/admin/categories'
+    | '/admin/notifications'
     | '/admin/users'
   id:
     | '__root__'
@@ -219,6 +231,7 @@ export interface FileRouteTypes {
     | '/_admin/admin/users/$userId'
     | '/_app/ads/$adId/edit'
     | '/_admin/admin/categories/'
+    | '/_admin/admin/notifications/'
     | '/_admin/admin/users/'
   fileRoutesById: FileRoutesById
 }
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminUsersIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/admin/notifications/': {
+      id: '/_admin/admin/notifications/'
+      path: '/admin/notifications'
+      fullPath: '/admin/notifications/'
+      preLoaderRoute: typeof AdminAdminNotificationsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/admin/categories/': {
       id: '/_admin/admin/categories/'
       path: '/admin/categories'
@@ -359,6 +379,7 @@ interface AdminRouteChildren {
   AdminAdminAdsAdIdRoute: typeof AdminAdminAdsAdIdRoute
   AdminAdminUsersUserIdRoute: typeof AdminAdminUsersUserIdRoute
   AdminAdminCategoriesIndexRoute: typeof AdminAdminCategoriesIndexRoute
+  AdminAdminNotificationsIndexRoute: typeof AdminAdminNotificationsIndexRoute
   AdminAdminUsersIndexRoute: typeof AdminAdminUsersIndexRoute
 }
 
@@ -367,6 +388,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminAdsAdIdRoute: AdminAdminAdsAdIdRoute,
   AdminAdminUsersUserIdRoute: AdminAdminUsersUserIdRoute,
   AdminAdminCategoriesIndexRoute: AdminAdminCategoriesIndexRoute,
+  AdminAdminNotificationsIndexRoute: AdminAdminNotificationsIndexRoute,
   AdminAdminUsersIndexRoute: AdminAdminUsersIndexRoute,
 }
 

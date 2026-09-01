@@ -1,0 +1,61 @@
+from fastapi import Request
+from sqlalchemy import select, and_
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth.schemas import ServerAuthResponse
+from src.kit.crypto import generate_token
+from src.kit.utils import utc_now
+from src.logging import get_logger
+from src.models import User, UserSession
+
+log = get_logger()
+
+
+class AuthService:
+    async def authenticate(
+        self, session: AsyncSession, token: str
+    ) -> UserSession | None:
+        stmt = select(UserSession).where(
+            UserSession.token == token, UserSession.expires_at > utc_now()
+        )
+        result = await session.execute(stmt)
+        ans = result.unique().scalar_one_or_none()
+        return ans
+
+    async def get_login_response(
+        self, session: AsyncSession, user: User, request: Request, 
+        custom_user_agent: None | str = None
+    ):
+        ua = custom_user_agent or request.headers.get("User-Agent", "")
+        user_session = await self._create_user_session(
+            session=session, user=user, user_agent=ua
+        )
+
+        return ServerAuthResponse(token=user_session.token, success=True, role=user.role, userId=str(user.id))
+
+    async def _create_user_session(
+        self, session: AsyncSession, user: User, user_agent: str = ""
+    ) -> UserSession:
+        stmt = select(UserSession).where(
+            and_(
+                UserSession.user_id == user.id,
+                UserSession.expires_at > utc_now(),
+            )
+        )
+        res = await session.execute(stmt)
+        old_sessions = res.unique().scalars().all()
+        
+        if old_sessions:
+            return old_sessions[0]
+
+        user_session = UserSession(
+            token=generate_token(), user_agent=user_agent, user=user
+        )
+        session.add(user_session)
+        await session.flush()
+        await session.commit()
+
+        return user_session
+
+
+auth = AuthService()

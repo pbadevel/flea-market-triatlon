@@ -70,7 +70,7 @@ function ConfirmEmailPage() {
         {status === 'success' && (
           <>
             <CheckCircle className="size-16 mx-auto text-green-500 mb-4" />
-            <h1 className="text-xl font-bold text-(--sea-ink) mb-2">{message}</h1>
+            <h1 className="text-xl font-bold text-(--sea-channink) mb-2">{message}</h1>
             <p className="text-sm text-(--sea-ink-soft)">Сейчас перенаправим в профиль...</p>
             <Link
               to="/profile"

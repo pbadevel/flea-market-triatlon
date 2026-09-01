@@ -9,8 +9,8 @@ export const fetchPendingAds = (token: string) =>
 export const fetchAllAds = (token: string) =>
   serverApi({ data: { path: '/admin/ads/all', token } })
 
-export const moderateAd = (token: string, adId: number, action: string, rejection_reason?: string) =>
-  serverApi({ data: { path: `/admin/ads/${adId}/moderate`, method: 'POST', token, body: { action, rejection_reason } } })
+export const moderateAd = (token: string, adId: number, data: {action: string, rejection_reason?: string}) =>
+  serverApi({ data: { path: `/admin/ads/${adId}/moderate`, method: 'POST', token, body: data } })
 
 export const fetchAdminAdDetail = (token: string, adId: number) =>
   serverApi({ data: { path: `/admin/ads/${adId}`, token } })

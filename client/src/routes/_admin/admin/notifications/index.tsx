@@ -6,7 +6,7 @@ import { verifySession } from '@/lib/session'
 import { fetchUsers } from '@/lib/api/admin/users'
 import { sendAdminNotification, broadcastAdminNotification } from '@/lib/api/admin/notifications'
 
-export const Route = createFileRoute('/_admin/admin/notifications')({
+export const Route = createFileRoute('/_admin/admin/notifications/')({
   component: NotificationsPage,
   loader: async () => {
     const session = await verifySession()
