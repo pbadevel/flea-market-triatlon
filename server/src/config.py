@@ -14,7 +14,7 @@ class Environment(StrEnum):
     production = "production"
 
 
-env = Environment(os.getenv("ANGAR_ENV", Environment.development))
+env = Environment(os.getenv("ENV", Environment.development))
 env_file = ".env.testing" if env == Environment.testing else ".env"
 
 
