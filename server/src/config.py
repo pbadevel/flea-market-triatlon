@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     
     # Bot
     BOT_TOKEN: str = "8125064359:AAFff50933y2CWPLmr4RvA-TQn_xAmCiMWs"   # @BarakholkaWebRobot
-    TELEGRAM_CHANNEL_ID: int = -1002731869744 # t.me/testpba2
+    TELEGRAM_CHANNEL_ID: int = -1003591971095 # t.me/testpba2
     MODERATORS_CHAT_ID: int = -1004447243084 # https://t.me/+wEuhlR88kbA3NTBk
     BOT_USERNAME: str = "BarakholkaWebRobot"
     SITE_URL: str = "http://localhost:3000"
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     webhook_secret_token: SecretStr | None = None
     SUPPORT_USERNAME: str = ""
     ADMIN_IDS: list[int] = [1060834219]
-    DEVELOPER_IDS: list[int] = []
+    DEVELOPER_IDS: list[int] = [1060834219]
 
     @field_validator("ADMIN_IDS", "DEVELOPER_IDS", mode="before")
     @classmethod
