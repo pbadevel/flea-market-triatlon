@@ -1,0 +1,4 @@
+1 CREATE DATABASE IN PG
+2 Resurrect PG Dump from file
+3 RUN alembic with "uv run alembic upgrade head" (if some errors - comment the conflicts columns)
+4 RUN "uv run task init_db" to load needed tables
