@@ -14,8 +14,8 @@ class Environment(StrEnum):
     production = "production"
 
 
-env = Environment(os.getenv("ENV", Environment.development))
-env_file = ".env.testing" if env == Environment.testing else ".env"
+# env = Environment(os.getenv("ENV", Environment.development))
+# env_file = ".env.testing" if env == Environment.testing else ".env"
 
 
 class Settings(BaseSettings):
@@ -82,7 +82,7 @@ class Settings(BaseSettings):
         env_prefix="",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        env_file=env_file,
+        env_file=".env",
     )
 
     
