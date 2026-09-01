@@ -185,15 +185,21 @@ a {
   }
 }
 
-/* 1. Безопасный глобальный сброс */
-*, *::before, *::after {
-  box-sizing: border-box;
+
+/* === ДИАГНОСТИКА === */
+* {
+  outline: 1px solid rgba(255, 0, 0, 0.2) !important;
 }
 
-/* 2. Используем width: 100%, а не 100vw, чтобы избежать бага со скроллбаром */
-html, body {
-  width: 100%;
-  overflow-x: hidden;
-  margin: 0;
-  padding: 0;
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 255, 0, 0.1);
+  pointer-events: none;
+  z-index: 99999;
+  border-left: 2px solid lime;
 }
