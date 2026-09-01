@@ -6,7 +6,7 @@ export const Route = createFileRoute('/_app/')({
 })
 
 function RouteComponent() {
-  return <div>
+  return <div className='w-full max-w-full overflow-x-hidden'>
       <Bestsellers />
   </div>
 }

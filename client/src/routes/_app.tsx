@@ -34,12 +34,12 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main className="pb-24 lg:pb-0">
-        <Outlet />
-      </main>
-      <UserTabbar />
-    </div>
+     <div className="min-h-screen overflow-x-hidden max-w-full">
+        <Header />
+        <main className="pb-24 lg:pb-0 w-full max-w-full overflow-x-hidden">
+          <Outlet />
+        </main>
+        <UserTabbar />
+      </div>
   )
 }
