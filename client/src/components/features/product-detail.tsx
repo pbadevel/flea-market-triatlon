@@ -485,7 +485,7 @@ export function ProductDetail({ token }: { token?: string | null }) {
   }
 
   return (
-    <div className="min-h-screen bg-(--bg)">
+    <div className="min-h-screen bg-(--bg) overflow-x-hidden max-w-full">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-(--line) bg-(--header-bg)">
         <div className="page-wrap">
@@ -502,7 +502,7 @@ export function ProductDetail({ token }: { token?: string | null }) {
       </header>
 
       {/* Product Content */}
-      <div className="page-wrap py-8">
+      <div className="page-wrap py-8 w-full max-w-full overflow-x-hidden">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Image Gallery */}
           <div>
