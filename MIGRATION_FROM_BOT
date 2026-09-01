@@ -2,3 +2,4 @@
 2 Resurrect PG Dump from file
 3 RUN alembic with "uv run alembic upgrade head" (if some errors - comment the conflicts columns)
 4 RUN "uv run task init_db" to load needed tables
+5 RUN "uv run -m scripts.seed_categories" to seed categories in site
