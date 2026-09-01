@@ -25,7 +25,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
         <img
           src={images[currentIndex]}
           alt={`${alt} ${currentIndex + 1}`}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
         
         {/* Navigation buttons */}
