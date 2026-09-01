@@ -7,6 +7,92 @@ import { Filters } from "./filters";
 import { adsQueryOptions, filtersQueryOptions } from "@/lib/queries/ads";
 import { AdFilters } from "@/types/ad";
 
+// --- Компонент пагинации ---
+function Pagination({
+  page,
+  totalPages,
+  onPageChange,
+}: {
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const handlePageClick = (p: number) => {
+    onPageChange(p);
+    // Плавная прокрутка наверх при смене страницы
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPageButton = (p: number) => (
+    <button
+      key={p}
+      onClick={() => handlePageClick(p)}
+      className={`min-w-[2.5rem] rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+        p === page
+          ? 'bg-(--palm) border-(--palm) text-white'
+          : 'border-(--line) bg-(--surface-strong) text-(--sea-ink) hover:bg-(--link-bg-hover)'
+      }`}
+    >
+      {p}
+    </button>
+  );
+
+  const renderEllipsis = (key: string) => (
+    <span key={key} className="px-2 text-(--sea-ink-soft)">
+      ...
+    </span>
+  );
+
+  const pages: (number | string)[] = [];
+  const maxVisible = 5;
+  
+  if (totalPages <= maxVisible) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (page > 3) pages.push('ellipsis-start');
+    
+    const start = Math.max(2, page - 1);
+    const end = Math.min(totalPages - 1, page + 1);
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    if (page < totalPages - 2) pages.push('ellipsis-end');
+    pages.push(totalPages);
+  }
+
+  return (
+    <div className="flex items-center justify-center gap-1 mt-8 mb-4 flex-wrap">
+      <button
+        onClick={() => handlePageClick(Math.max(1, page - 1))}
+        disabled={page <= 1}
+        className="flex items-center gap-1 rounded-lg border border-(--line) bg-(--surface-strong) px-3 py-2 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover) disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="size-4" />
+        <span className="hidden sm:inline">Назад</span>
+      </button>
+
+      {pages.map((p) =>
+        typeof p === 'string' ? renderEllipsis(p) : renderPageButton(p)
+      )}
+
+      <button
+        onClick={() => handlePageClick(Math.min(totalPages, page + 1))}
+        disabled={page >= totalPages}
+        className="flex items-center gap-1 rounded-lg border border-(--line) bg-(--surface-strong) px-3 py-2 text-sm text-(--sea-ink) hover:bg-(--link-bg-hover) disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <span className="hidden sm:inline">Вперед</span>
+        <ChevronRight className="size-4" />
+      </button>
+    </div>
+  );
+}
+// ---------------------------
+
 export function Bestsellers() {
   const [filters, setFilters] = useState<AdFilters>({
     page: 1,
@@ -32,7 +118,7 @@ export function Bestsellers() {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
-      page: 1,
+      page: 1, // Сброс на первую страницу при изменении фильтров
     }));
   };
 
@@ -125,29 +211,16 @@ export function Bestsellers() {
 
           {/* Main Content */}
           <div className="flex-1">
-            <div className="mb-4 hidden lg:flex items-center justify-between">
+            {/* Responsive Header with Page Info */}
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-(--sea-ink)">
                 Товары {adsData?.total ? `(${adsData.total})` : ''}
               </h2>
-              <div className="flex gap-1">
-                <div className="flex rounded p-1.5 text-(--sea-ink-soft)">
-                  {filters.page || 1}/{totalPages || 1}
+              {totalPages > 1 && (
+                <div className="text-sm font-medium text-(--sea-ink-soft)">
+                  Страница {filters.page || 1} из {totalPages}
                 </div>
-                <button
-                  onClick={() => handlePageChange(Math.max(1, (filters.page || 1) - 1))}
-                  disabled={!filters.page || filters.page <= 1}
-                  className="rounded p-1.5 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) disabled:opacity-30"
-                >
-                  <ChevronLeft className="size-4" />
-                </button>
-                <button
-                  onClick={() => handlePageChange(Math.min(totalPages, (filters.page || 1) + 1))}
-                  disabled={!totalPages || (filters.page || 1) >= totalPages}
-                  className="rounded p-1.5 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) disabled:opacity-30"
-                >
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
+              )}
             </div>
 
             {isLoading ? (
@@ -156,58 +229,67 @@ export function Bestsellers() {
               <div className="text-center py-12">
                 <p className="text-(--sea-ink-soft)">Товары не найдены</p>
                 <button
-                  onClick={() => setFilters({ page: 1, limit: 20 })}
+                  onClick={() => setFilters({ page: 1, limit: 20, sort: filters.sort || 'created_at_desc' })}
                   className="mt-4 text-sm text-(--palm) hover:underline"
                 >
                   Сбросить фильтры
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3">
-                {ads.map((product) => (
-                  <Link
-                    key={product.id}
-                    to="/product/$productId"
-                    params={{ productId: String(product.id) }}
-                    className="group rounded-2xl border border-(--line) bg-(--surface-strong) p-2 hover:bg-(--foam)"
-                  >
-                    <div className="relative mb-2 aspect-square overflow-hidden rounded bg-gray-50">
-                      {product.discount && (
-                        <span className="absolute left-1.5 top-1.5 rounded bg-red-500 px-1 py-0.5 text-[9px] font-semibold text-white">
-                          -{product.discount}%
+              <>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4">
+                  {ads.map((product) => (
+                    <Link
+                      key={product.id}
+                      to="/product/$productId"
+                      params={{ productId: String(product.id) }}
+                      className="group rounded-2xl border border-(--line) bg-(--surface-strong) p-2 hover:bg-(--foam)"
+                    >
+                      <div className="relative mb-2 aspect-square overflow-hidden rounded bg-gray-50">
+                        {product.discount && (
+                          <span className="absolute left-1.5 top-1.5 rounded bg-red-500 px-1 py-0.5 text-[9px] font-semibold text-white">
+                            -{product.discount}%
+                          </span>
+                        )}
+                        <img
+                          src={product.cover_url}
+                          alt={product.title}
+                          className="h-full w-full object-cover transition group-hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="line-clamp-2 text-[11px] font-medium text-(--sea-ink) leading-tight">
+                        {product.title}
+                      </h3>
+                      <div className="mt-1 flex items-baseline gap-1">
+                        <span className="text-xs font-semibold text-(--sea-ink)">
+                          {product.price.toLocaleString()} ₽
                         </span>
-                      )}
-                      <img
-                        src={product.cover_url}
-                        alt={product.title}
-                        className="h-full w-full object-cover transition group-hover:scale-105"
-                      />
-                    </div>
-                    <h3 className="line-clamp-2 text-[11px] font-medium text-(--sea-ink) leading-tight">
-                      {product.title}
-                    </h3>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-xs font-semibold text-(--sea-ink)">
-                        {product.price.toLocaleString()} ₽
-                      </span>
-                      {product.old_price && (
-                        <span className="text-[10px] text-(--sea-ink-soft) line-through">
-                          {product.old_price.toLocaleString()} ₽
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 flex items-center gap-2 text-[10px] text-(--sea-ink-soft)">
-                      {product.city && <span>{product.city}</span>}
-                      {product.condition && (
-                        <span className="rounded bg-gray-100 px-1 py-0.5">
-                          {product.condition === 'new' ? 'Новое' :
-                          product.condition === 'used' ? 'Б/У' : 'Не указано'}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                        {product.old_price && (
+                          <span className="text-[10px] text-(--sea-ink-soft) line-through">
+                            {product.old_price.toLocaleString()} ₽
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 text-[10px] text-(--sea-ink-soft)">
+                        {product.city && <span>{product.city}</span>}
+                        {product.condition && (
+                          <span className="rounded bg-gray-100 px-1 py-0.5">
+                            {product.condition === 'new' ? 'Новое' :
+                             product.condition === 'used' ? 'Б/У' : 'Не указано'}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* Полноценная пагинация внизу списка (видна на всех устройствах) */}
+                <Pagination
+                  page={filters.page || 1}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </>
             )}
           </div>
         </div>
