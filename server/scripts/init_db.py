@@ -12,10 +12,10 @@ async def init_db() -> None:
     """
     async with database_service.get_engine().begin() as conn:
         # В production используем Alembic миграции
-        if not settings.is_production():
-            print('init db running...')
-            await conn.run_sync(Model.metadata.create_all)
-            print('db initialized')
+        print('init db running...')
+        await conn.run_sync(Model.metadata.create_all)
+        print('db initialized')
+        # if not settings.is_production():
 
 
 if __name__ == "__main__":
