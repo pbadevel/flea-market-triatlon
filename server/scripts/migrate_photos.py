@@ -77,7 +77,7 @@ async def process_single_record(record, model_name: str, http_session: ClientSes
 
         try:
             # Сохраняем на диск сервера
-            storage_path = await storage.save(file_bytes, ".jpg")
+            storage_path = await storage.save(file_bytes=file_bytes, filename=record.file_id, extension=".jpg")
             record.storage_path = storage_path
             log.info(f"✅ Успешно: {model_name} id={record.id} -> {storage_path}")
         except Exception as e:
