@@ -54,7 +54,7 @@ pythonpath = "."
 asyncio_mode = "strict"
 
 [tool.taskipy.tasks]
-api = { cmd = "uvicorn src.app:app --reload --workers 1 --host localhost --port 8000", help = "run api service" }
+api = { cmd = "uvicorn src.app:app --reload --workers 1 --host localhost --port 8001", help = "run api service" }
 bot = { cmd = "uv run -m src.bot.main", help = "run bot" }
 
 migrate_tg = { cmd = "uv run -m scripts.migrate_photos", help = "downloading photos" }
