@@ -7,7 +7,7 @@ import { useAppSession } from '@/lib/session.server'
 const confirmEmailFn = createServerFn()
   .inputValidator((data: { token: string }) => data)
   .handler(async ({ data }) => {
-    const resp = await fetch(`http://127.0.0.1:8000/v1/auth/confirm-email?token=${encodeURIComponent(data.token)}`)
+    const resp = await fetch(`http://127.0.0.1:8001/v1/auth/confirm-email?token=${encodeURIComponent(data.token)}`)
     const result = await resp.json()
     if (result.success) {
         const session = await useAppSession()

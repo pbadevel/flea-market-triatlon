@@ -2,7 +2,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { useAppSession } from '../session.server';
 
-const API = 'http://127.0.0.1:8000/v1'
+const API = 'http://127.0.0.1:8001/v1'
 
 async function apiCall<T>(path: string, options?: { method?: string; body?: unknown; token?: string }): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
