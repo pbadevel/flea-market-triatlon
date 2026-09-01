@@ -18,7 +18,7 @@ type ProcessName = Literal["app"]
 def create_async_engine(process_name: ProcessName) -> AsyncEngine:
     return _create_async_engine(
         dsn=str(settings.get_postgres_dsn("asyncpg")),
-        application_name=f"{settings.ENV.value}.{process_name}",
+        application_name=f"{settings.ENV}.{process_name}",
         pool_size=settings.DATABASE_POOL_SIZE,
         pool_recycle=settings.DATABASE_POOL_RECYCLE_SECONDS,
         command_timeout=settings.DATABASE_COMMAND_TIMEOUT_SECONDS,
