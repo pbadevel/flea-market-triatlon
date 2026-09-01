@@ -19,7 +19,7 @@ class Environment(StrEnum):
 
 
 class Settings(BaseSettings):
-    ENV: Environment = Environment.development.value
+    ENV: str = Environment.development
     LOG_LEVEL: str = "DEBUG"
 
     # User session
