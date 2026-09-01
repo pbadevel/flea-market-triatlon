@@ -14,12 +14,12 @@ class Environment(StrEnum):
     production = "production"
 
 
-# env = Environment(os.getenv("ENV", Environment.development))
-# env_file = ".env.testing" if env == Environment.testing else ".env"
+env = Environment(os.getenv("B_ENV", Environment.development))
+env_file = ".env.testing" if env == Environment.testing else ".env"
 
 
 class Settings(BaseSettings):
-    ENV: str = Environment.development
+    ENV: Environment = Environment.development
     LOG_LEVEL: str = "DEBUG"
 
     # User session
@@ -41,13 +41,13 @@ class Settings(BaseSettings):
     # TOKENS
     
     # Bot
-    BOT_TOKEN: str = "8125064359:AAFff50933y2CWPLmr4RvA-TQn_xAmCiMWs"   # @BarakholkaWebRobot
-    TELEGRAM_CHANNEL_ID: int = -1003591971095 # t.me/testpba2
+    BOT_TOKEN: SecretStr
+    TELEGRAM_CHANNEL_ID: int = -1003591971095
     MODERATORS_CHAT_ID: int = -1004447243084 # https://t.me/+wEuhlR88kbA3NTBk
     BOT_USERNAME: str = "BarakholkaWebRobot"
     SITE_URL: str = "http://localhost:3000"
-    WEBHOOK_PATH: str = "ada"
-    WEBHOOK_URL: str = "adad"
+    WEBHOOK_PATH: str = "/telegram"
+    WEBHOOK_URL: str = "/telegram"
     webhook_secret_token: SecretStr | None = None
     SUPPORT_USERNAME: str = ""
     ADMIN_IDS: list[int] = [1060834219]
@@ -82,7 +82,7 @@ class Settings(BaseSettings):
         env_prefix="",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        env_file=".env",
+        env_file=env_file,
     )
 
     

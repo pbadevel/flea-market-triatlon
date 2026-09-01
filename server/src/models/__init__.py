@@ -9,7 +9,7 @@ from .ad import Ad, AdPhoto, AdEdit, AdEditPhoto, Tag
 from .category import CategoryModel, SubcategoryModel, SubcategoryGroup
 from .user_credentials import UserCredentials
 from .notification import Notification
-
+from .boost import BoostSettings, BoostLog, ChannelBoostQueue
 __all__ = [
     "Model",
     "AdStatus", "AdCondition", "Category", "ContactMethod", "AdType",
@@ -18,4 +18,7 @@ __all__ = [
     "DeleteMessage", "Review", "ContactLog", "DetailsLog",
     "Ad", "AdPhoto", "AdEdit", "AdEditPhoto", "Tag", "CategoryModel", "SubcategoryModel", "SubcategoryGroup",
     "Notification",
+    "BoostSettings", 
+    "BoostLog", 
+    "ChannelBoostQueue"
 ]

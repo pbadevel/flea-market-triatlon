@@ -11,15 +11,20 @@ class LocalFileStorage:
         self.base_dir = base_dir
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
-    async def save(self, file_bytes: bytes, extension: str = ".jpg") -> str:
-        filename = f"{uuid.uuid4().hex}{extension}"
+    async def save(self, file_bytes: bytes, filename: str|None = None, extension: str = ".jpg") -> str:
+        if filename is None:
+            filename = f"{uuid.uuid4().hex}{extension}"
+        else:
+            filename = filename + extension
+
         dir_path = self.base_dir / "ads"
         dir_path.mkdir(parents=True, exist_ok=True)
         file_path = dir_path / filename
         
         async with aio_open(file_path, "wb") as f:
             await f.write(file_bytes)
+        
         return str(file_path.relative_to(self.base_dir))  # относительный путь
 
     def get_url(self, storage_path: str) -> str:
-        return f"static/uploads/{storage_path}"  # отдавай через nginx/fastapi stati
+        return f"static/uploads/{storage_path}"

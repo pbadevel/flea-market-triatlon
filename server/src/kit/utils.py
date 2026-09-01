@@ -83,7 +83,7 @@ def get_ru_condition(condition_from_db: str):
 
 def get_bot() -> Bot:
     return Bot(
-        token=settings.BOT_TOKEN,
+        token=settings.BOT_TOKEN.get_secret_value(),
         default=DefaultBotProperties(parse_mode='html')
     )
 

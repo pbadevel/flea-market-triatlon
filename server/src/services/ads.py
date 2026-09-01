@@ -63,6 +63,20 @@ class AdService:
         
         return ad
 
+    async def get_ad_by_id(
+        self,
+        session: AsyncSession,
+        id: int,
+        with_photos = True
+        ):
+        options = []
+        if with_photos:
+            options.append(selectinload(Ad.photos))
+        repository = AdRepository(session)
+        return await repository.get_by_id(id=id, options=(*options,))
+        
+
+
     async def get_user_ads(
         self,
         session: AsyncSession,
@@ -115,10 +129,11 @@ class AdService:
     async def upload_photo(
         self,
         file_bytes: bytes,
+        filename: str | None = None,
         extension: str = ".jpg",
     ) -> str:
         """Upload photo and return storage path"""
-        return await self.storage.save(file_bytes, extension)
+        return await self.storage.save(file_bytes=file_bytes, filename=filename, extension=extension)
     
     def get_repository(self, session: AsyncSession):
         return AdRepository(session)

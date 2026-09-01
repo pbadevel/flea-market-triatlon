@@ -37,7 +37,10 @@ class AdCreate(BaseModel):
     @field_validator('condition')
     @classmethod
     def validate_condition(cls, v):
-        allowed = ['new', 'used', 'unknown', 'Новое', 'Б/У', 'Не указано']
+        allowed = [
+            'new', 'used', 'unknown', "excellent", "good",
+            'Новое', 'Есть следы использования', 'Не указано', "Отличное", "Хорошее"
+        ]
         if v not in allowed:
             raise ValueError(f'Condition must be one of {allowed}')
         return v

@@ -6,10 +6,14 @@ class AdStatus(enum.StrEnum):
     rejected = "rejected"
     sold = "sold"
     removed = "removed"
+    unpublished = "unpublished"
+    paused = "paused"
 
 class AdCondition(enum.StrEnum):
     new = "Новое"
-    used = "Б/У"
+    excellent = "Отличное"
+    good = "Хорошее"
+    used = "Есть следы использования"
     unknown = "Не указано"
     
 class Category(enum.StrEnum):

@@ -29,9 +29,9 @@ async def get_pending_ads(
     async with database_service.get_session() as session:
         repository = AdRepository(session)
         ads, total = await repository.get_pending_ads(limit=limit, page=page)
-        
+        ads_with_photos = [await ad_service.get_ad_by_id(session, ad.id, with_photos=True) for ad in ads]
         return {
-            "data": [MyAdOut.from_orm_with_status(ad) for ad in ads],
+            "data": [MyAdOut.from_orm_with_status(ad) for ad in ads_with_photos],
             "total": total,
             "page": page,
             "limit": limit,

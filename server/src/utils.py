@@ -1,15 +1,16 @@
 import base64
 import os
 import pytz
-import random
-import string
 from io import BytesIO
 from datetime import datetime, UTC
-
 from PIL import Image
-
+from aiohttp import ClientSession
 from src.enums import QrType
+from src.config import settings
+from src.models import AdPhoto
+from src.services.storage import LocalFileStorage
 
+BOT_TOKEN = settings.BOT_TOKEN.get_secret_value()
 
 def get_now():
     return datetime.now(UTC)
@@ -37,7 +38,7 @@ def parse_base64_qr_data(base64_str: str):
 
 
 
-LOGO_PATH = "assets/logo.png"
+LOGO_PATH = "src/bot/assets/logo.png"
 
 
 def add_logo_to_image(image_bytes: bytes) -> bytes:
@@ -76,15 +77,35 @@ def crop_center(image_bytes: bytes, size: int = 800) -> bytes:
         return image_bytes
 
 
-def generate_card_number(user_id: int) -> str:
-    """
-    generating like "ANGAR-ST-{timestamp}-{user_id % 10000:04d}-{random_part}"
-    
-    :param user_id: Description
-    :type user_id: int
-    :return: Description
-    :rtype: str
-    """
-    timestamp = datetime.now().strftime("%y%m%d")
-    random_part = ''.join(random.choices(string.digits, k=4))
-    return f"ANGAR-ST-{timestamp}-{user_id % 10000:04d}-{random_part}"
+async def _download_from_telegram(file_id: str) -> bytes | None:
+    async with ClientSession() as session:
+        async with session.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={file_id}") as resp:
+            data = await resp.json()
+            if not data.get("ok"):
+                print(f"❌ getFile failed for {file_id}: {data.get('description')}")
+                return None
+            file_path = data["result"]["file_path"]
+
+        # 2. Скачиваем бинарник
+        url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
+        async with session.get(url) as resp:
+            resp.raise_for_status()
+            return await resp.read()
+
+async def download_file_from_telegram(file_id: str) -> str:
+        """
+        returns storage_path to photo
+        """
+        file_bytes = await _download_from_telegram(file_id) # pyright: ignore
+
+        if not file_bytes:
+            raise
+            
+        # Определяем расширение (Telegram не отдаёт его в API, подставляем .jpg по умолчанию или парсишь content-type)
+        storage_path = await LocalFileStorage().save(
+            file_bytes=file_bytes, 
+            filename=file_id, 
+            extension=".jpg"
+        )
+        return storage_path
+        # ✅ id={record.id} -> {storage_path}

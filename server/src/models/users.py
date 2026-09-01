@@ -45,6 +45,25 @@ class User(RecordModel):
         "Notification", back_populates="user", cascade="all, delete-orphan"
     )
 
+    @property
+    def is_moderator(self) -> bool:
+        """Проверяет, является ли пользователь модератором или администратором."""
+        return self.role in (UserRole.MODERATOR, UserRole.ADMIN)
+
+    # @is_moderator.setter
+    # def is_moderator(self, value: bool):
+    #     """Позволяет устанавливать значение. Если True, то делает модератором."""
+    #     if value:
+    #         # Если у вас ADMIN не должен превращаться в MODERATOR, добавьте проверку:
+    #         if self.role != UserRole.ADMIN:
+    #             self.role = UserRole.MODERATOR
+    #     else:
+    #         self.role = UserRole.USER
+
+
+
+
+
 class Blacklist(RecordModel):
     """Забаненные пользователи."""
     __tablename__ = "blacklist" # pyright: ignore # явное имя, чтобы не стало "blacklists" по авто-правилу

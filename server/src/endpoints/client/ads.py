@@ -375,9 +375,8 @@ async def update_ad(
                 raise HTTPException(400, f"Invalid photo format: {photo.content_type}")
             
             file_bytes = await photo.read()
-            extension = f".{photo.filename.split('.')[-1]}" if photo.filename and '.' in photo.filename else ".jpg"
             
-            storage_path = await ad_service.upload_photo(file_bytes, extension)
+            storage_path = await ad_service.upload_photo(file_bytes=file_bytes)
             
             new_photo = AdPhoto(
                 ad_id=ad.id,

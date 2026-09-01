@@ -13,7 +13,7 @@ from src.config import settings
 
 # from src.bot.main import bot, dp, setup_bot, shutdown_bot
 # from src.bot.webhook import router as webhook_router
-from src.bot.main import setup_bot, shutdown_bot
+# from src.bot.main import setup_bot, shutdown_bot
 
 
 # from src.bot.setup import setup_bot_application
@@ -100,7 +100,6 @@ def create_app() -> FastAPI:
         allow_origins=[
             "http://localhost:5173", 
             "http://localhost:3000", 
-            "http://localhost:3001", 
             "http://193.42.39.164:3000"
             "https://pbadev-app.gigabyteschatbots.ru"
         ], # Add your frontend URL

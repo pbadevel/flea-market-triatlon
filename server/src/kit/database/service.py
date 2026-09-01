@@ -21,7 +21,7 @@ class DatabaseService:
         if process_name not in self._engines:
             self._engines[process_name] = _create_async_engine(
                 dsn=str(settings.get_postgres_dsn("asyncpg")),
-                application_name=f"{settings.ENV}.{process_name}",
+                application_name=f"{settings.ENV.value}.{process_name}",
                 pool_size=settings.DATABASE_POOL_SIZE,
                 pool_recycle=settings.DATABASE_POOL_RECYCLE_SECONDS,
                 command_timeout=settings.DATABASE_COMMAND_TIMEOUT_SECONDS,
