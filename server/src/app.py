@@ -100,6 +100,7 @@ def create_app() -> FastAPI:
         allow_origins=[
             "http://localhost:5173", 
             "http://localhost:3000", 
+            "http://localhost:3001", 
             "http://193.42.39.164:3000"
             "https://pbadev-app.gigabyteschatbots.ru"
         ], # Add your frontend URL
