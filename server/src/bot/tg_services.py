@@ -221,7 +221,7 @@ class TgService:
         builder = InlineKeyboardBuilder()
 
         # Callbacks
-        builder.button(text="✅ Одобрить", callback_data=f"moderate:approve:{ad.id}")
+        builder.button(text="✅ Одобрить", callback_data=f"mod_approve:{ad.id}")
         builder.button(text="❌ Отклонить", url=f"https://t.me/{settings.BOT_USERNAME}?start=promoteReject_{ad.id}")
 
         # builder.button(text="Открыть Web", url=f"{settings.SITE_URL}/admin/ads/{ad.id}")
