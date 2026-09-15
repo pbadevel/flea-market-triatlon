@@ -371,10 +371,6 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
             # Остальные фото не публикуем в канале
             logger.info(f"отправляю обложку (первое фото) с кнопками в {channel_target}")
             try:
-                logger.info(chat_id=channel_target,
-                            photo=first_photo_file_id,
-                            caption=caption,
-                            )
                 channel_msg = await bot.send_photo(
                     chat_id=channel_target,
                     photo=first_photo_file_id,
