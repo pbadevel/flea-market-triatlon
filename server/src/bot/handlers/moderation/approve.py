@@ -380,7 +380,7 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
             # logger.info(f"обложка отправлена с кнопками, message_id: {channel_msg.message_id}")
             # channel_msg_id = channel_msg.message_id
         
-        channel_msg_id = 0
+        # channel_msg_id = 0
         # CHANGE!!!
         
         # одобряем объявление
