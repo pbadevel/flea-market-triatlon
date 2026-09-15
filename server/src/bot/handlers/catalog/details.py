@@ -24,7 +24,7 @@ from src.bot.keyboards.keyboards import *
 from src.bot.keyboards.key_text import *
 from src.bot.settings.constants import *
 from src.bot.loader import bot
-from src.bot.utils.helpers import format_phone_for_display
+from src.bot.utils.helpers import format_phone_for_display, get_fsinput_photo, get_full_storage_path
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 
@@ -279,9 +279,14 @@ async def show_ad_details(message: types.Message, ad_id: int, state: FSMContext 
             media_group = []
             for i, photo in enumerate(photos):
                 if i == 0:
-                    media_group.append(types.InputMediaPhoto(media=photo.file_id, caption=text, parse_mode='HTML'))
+                    media_group.append(types.InputMediaPhoto(
+                        media=photo.file_id if photo.file_id else get_fsinput_photo(get_full_storage_path(photo.storage_path)), 
+                        caption=text, parse_mode='HTML')
+                    )
                 else:
-                    media_group.append(types.InputMediaPhoto(media=photo.file_id))
+                    media_group.append(types.InputMediaPhoto(
+                        media=photo.file_id  if photo.file_id else get_fsinput_photo(get_full_storage_path(photo.storage_path))
+                                ))
             
             sent_messages = await message.answer_media_group(media_group)
             # Сохраняем ID первого сообщения с фото для последующего удаления
