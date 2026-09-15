@@ -2,9 +2,9 @@
 import os
 
 from fastapi import APIRouter, Query, Form, File, Depends, UploadFile, HTTPException, BackgroundTasks
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func, or_, delete
 from sqlalchemy.orm import joinedload, selectinload
-from src.models import Ad, AdStatus, Review, User, AdPhoto
+from src.models import Ad, AdStatus, Review, User, AdPhoto, DetailsLog
 from src.auth.dependencies import WebUser, WebAdmin
 
 from src.kit.database.service import database_service
@@ -463,7 +463,12 @@ async def delete_ad(
             await session.delete(photo)
         
         # Удаляем объявление
-        await session.delete(ad)
+        await session.execute(delete(DetailsLog).where(DetailsLog.ad_id == ad_id))
+
+        # 2. Удаляем само объявление
+        await session.execute(delete(Ad).where(Ad.id == ad_id))
+
+        # 3. Фиксируем изменения
         await session.commit()
         
         background_tasks.add_task(tg_service_notifier.delete_ad_from_channel_by_id, ad.id)
