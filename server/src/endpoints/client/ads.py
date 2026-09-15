@@ -143,6 +143,7 @@ async def create_ad(
     Create new ad (requires authentication)
     Photos are uploaded and stored locally
     """
+    log.info(f"CREATIN AD: {photos}")
     async with database_service.get_session() as session:
         # Upload photos
         photo_data_list: List[AdPhotoCreate] = []
