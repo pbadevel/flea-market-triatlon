@@ -194,7 +194,7 @@ async def get_ad_by_id(ad_id: int):
     """Получить объявление по ID"""
     async with async_session() as session:
         result = await session.execute(
-            select(Ad).where(Ad.id == ad_id).options((selectinload(Ad.photos),))
+            select(Ad).where(Ad.id == ad_id).options(selectinload(Ad.photos))
         )
         return result.scalars().first()
 
