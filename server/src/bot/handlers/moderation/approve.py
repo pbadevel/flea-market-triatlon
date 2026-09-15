@@ -373,7 +373,8 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
                     parse_mode='HTML',
                     reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME)
                 )
-            except:
+            except Exception as e:
+                logger.error(f"ERROR WHILE SENDING POSTS!! {e}")
                 pass
                 # CHANGE!!! 
             # logger.info(f"обложка отправлена с кнопками, message_id: {channel_msg.message_id}")
@@ -389,7 +390,7 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
 
         # Устанавливаем next_boost_at только если ещё не задан (первичная публикация).
         # При повторном одобрении (после снятия с публикации) сохраняем уже имеющийся
-        # next_boost_at — таймер продолжает отсчёт, пока объявление было неактивно.
+        # next_boost_at — таймер прchannel_targetодолжает отсчёт, пока объявление было неактивно.
         try:
             from src.bot.database.methods import get_boost_settings, update_ad, get_ad_by_id as _get_ad
             from datetime import timedelta, datetime as _dt
