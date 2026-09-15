@@ -273,34 +273,34 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
     channel_msg = None
     
     try:
-        # Используем обработанную обложку (обрезанную с логотипом) из cover_file_id
-        # Если её нет, накладываем логотип на лету для старых объявлений
-        if ad.cover_file_id:
-            logger.debug(f"использую обработанную обложку для публикации (обрезана и с логотипом)")
-            first_photo_file_id = ad.cover_file_id
-        else:
-            # Для старых объявлений без cover_file_id накладываем логотип на лету
-            logger.debug(f"cover_file_id отсутствует, накладываю логотип на первое фото на лету")
-            try:
-                from src.bot.utils.image_utils import add_logo_watermark_to_photo
-                # Определяем тип объявления для выбора логотипа
-                ad_type_text = getattr(ad, 'ad_type', 'Продажа')
-                if ad_type_text == 'Аренда':
-                    logo_path = "assets/logo_rent.png"
-                else:
-                    logo_path = "assets/logo_sale.png"
-                # Накладываем логотип на первое фото
-                first_photo_file_id = await add_logo_watermark_to_photo(
-                    file_id=photos[0].file_id,
-                    chat_id=MODERATION_CHAT_ID,  # Используем чат модерации как временный
-                    bot=bot,
-                    logo_path=logo_path
-                )
-                logger.debug(f"логотип наложен на лету, новый file_id: {first_photo_file_id}")
-            except Exception as e:
-                logger.error(f"ошибка при наложении логотипа на лету: {e}, использую первое фото без логотипа")
-                # В случае ошибки используем первое фото без логотипа
-                first_photo_file_id = photos[0].file_id
+    #     # Используем обработанную обложку (обрезанную с логотипом) из cover_file_id
+    #     # Если её нет, накладываем логотип на лету для старых объявлений
+    #     if ad.cover_file_id:
+    #         logger.debug(f"использую обработанную обложку для публикации (обрезана и с логотипом)")
+    #         first_photo_file_id = ad.cover_file_id
+    #     else:
+    #         # Для старых объявлений без cover_file_id накладываем логотип на лету
+    #         logger.debug(f"cover_file_id отсутствует, накладываю логотип на первое фото на лету")
+    #         try:
+    #             from src.bot.utils.image_utils import add_logo_watermark_to_photo
+    #             # Определяем тип объявления для выбора логотипа
+    #             ad_type_text = getattr(ad, 'ad_type', 'Продажа')
+    #             if ad_type_text == 'Аренда':
+    #                 logo_path = "assets/logo_rent.png"
+    #             else:
+    #                 logo_path = "assets/logo_sale.png"
+    #             # Накладываем логотип на первое фото
+    #             first_photo_file_id = await add_logo_watermark_to_photo(
+    #                 file_id=photos[0].file_id,
+    #                 chat_id=MODERATION_CHAT_ID,  # Используем чат модерации как временный
+    #                 bot=bot,
+    #                 logo_path=logo_path
+    #             )
+    #             logger.debug(f"логотип наложен на лету, новый file_id: {first_photo_file_id}")
+    #         except Exception as e:
+    #             logger.error(f"ошибка при наложении логотипа на лету: {e}, использую первое фото без логотипа")
+    #             # В случае ошибки используем первое фото без логотипа
+    #             first_photo_file_id = photos[0].file_id
 
         if ad.photos[0].storage_path:
             first_photo_file_id = get_fsinput_photo(get_full_storage_path(ad.photos[0].storage_path))
@@ -344,16 +344,7 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
                 except Exception as del_e:
                     logger.warning(f"не удалось удалить сообщение #{old_message_id}: {del_e}")
 
-                # if photos[0].storage_path:
-                #     channel_msg = await bot.send_photo(
-                #         chat_id=channel_target,
-                #         photo=first_photo_file_id,
-                #         caption=caption,
-                #         parse_mode='HTML',
-                #         reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME)
-                #     )
-                # else:
-                try:
+                if photos[0].storage_path:
                     channel_msg = await bot.send_photo(
                         chat_id=channel_target,
                         photo=first_photo_file_id,
@@ -361,11 +352,20 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
                         parse_mode='HTML',
                         reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME)
                     )
-                    channel_msg_id = channel_msg.message_id
-                    logger.info(f"новое сообщение отправлено, message_id: {channel_msg_id}")
-                except:
-                    pass
-                    # CHANGE!!!
+                else:
+                    try:
+                        channel_msg = await bot.send_photo(
+                            chat_id=channel_target,
+                            photo=first_photo_file_id,
+                            caption=caption,
+                            parse_mode='HTML',
+                            reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME)
+                        )
+                        channel_msg_id = channel_msg.message_id
+                        logger.info(f"новое сообщение отправлено, message_id: {channel_msg_id}")
+                    except:
+                        pass
+                        # CHANGE!!!
         else:
             # Отправляем только обложку (первое фото) с текстом и кнопками
             # Остальные фото не публикуем в канале

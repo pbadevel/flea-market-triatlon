@@ -17,7 +17,7 @@ async def download_file_by_id(file_id: str, destination_path: str, bot: Bot):
     await bot.download_file(file.file_path, destination_path)
 
 
-async def add_logo_watermark_to_photo(file_id: str, chat_id: int, bot: Bot, logo_path: str = "assets/logo.png") -> str:
+async def add_logo_watermark_to_photo(storage_path: str, chat_id: int, bot: Bot, logo_path: str = "assets/logo.png") -> str:
     """
     Обрезает изображение по центру, затем добавляет логотип и возвращает новый file_id
     
@@ -44,10 +44,11 @@ async def add_logo_watermark_to_photo(file_id: str, chat_id: int, bot: Bot, logo
             temp_output_path = tmp_output.name
         
         # скачиваем файл
-        await download_file_by_id(file_id=file_id, destination_path=temp_input_path, bot=bot)
+        # @deprecated - уже скачан
+        # await download_file_by_id(file_id=file_id, destination_path=temp_input_path, bot=bot)
         
         # открываем изображение
-        img = Image.open(temp_input_path).convert("RGB")
+        img = Image.open(storage_path).convert("RGB")
         
         # СНАЧАЛА обрезаем изображение по центру (квадрат по меньшей стороне)
         width, height = img.size
@@ -104,8 +105,8 @@ async def add_logo_watermark_to_photo(file_id: str, chat_id: int, bot: Bot, logo
         
     except Exception as e:
         logger.error(f"ошибка при добавлении логотипа: {e}", exc_info=True)
-        # в случае ошибки возвращаем исходный file_id
-        return file_id
+        # в случае ошибки возвращаем исходный storage_path
+        return storage_path
     finally:
         # очистка временных файлов
         if temp_input_path and os.path.exists(temp_input_path):
@@ -372,9 +373,9 @@ async def crop_image_center(file_id: str, chat_id: int, bot: Bot) -> str:
         return new_file_id
         
     except Exception as e:
-        logger.error(f"ошибка при обрезке изображения: {e}", exc_info=True)
+        logger.error(f"ошибка при обрезке изображения storage_path: {e}", exc_info=True)
         # в случае ошибки возвращаем исходный file_id
-        return file_id
+        return new_file_id
     finally:
         # очистка временных файлов
         if temp_input_path and os.path.exists(temp_input_path):
