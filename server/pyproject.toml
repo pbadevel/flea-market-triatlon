@@ -32,6 +32,7 @@ dependencies = [
   "websockets>=15.0.1",
   "yookassa>=3.8.0",
   "pillow>=12.2.0",
+  "loguru>=0.7.3",
 ]
 
 [tool.pyright]

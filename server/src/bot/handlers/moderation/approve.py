@@ -25,7 +25,7 @@ from src.bot.loader import bot
 
 
 
-from src.bot.utils.helpers import get_fsinput_photo, format_file_id_to_storage_path
+from src.bot.utils.helpers import get_fsinput_photo, get_full_storage_path
 
 
 
@@ -301,6 +301,11 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
                 logger.error(f"ошибка при наложении логотипа на лету: {e}, использую первое фото без логотипа")
                 # В случае ошибки используем первое фото без логотипа
                 first_photo_file_id = photos[0].file_id
+
+        if ad.photos[0].storage_path:
+            first_photo_file_id = get_fsinput_photo(get_full_storage_path(ad.photos[0].storage_path))
+
+            
         
         # Логотип «Доверенный продавец» уже на обложке: он накладывается при подтверждении обложки
         # пользователем (add_ad) и сохраняется в ad.cover_file_id. Здесь используем обложку как есть.
@@ -366,6 +371,10 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
             # Остальные фото не публикуем в канале
             logger.info(f"отправляю обложку (первое фото) с кнопками в {channel_target}")
             try:
+                logger.info(chat_id=channel_target,
+                            photo=first_photo_file_id,
+                            caption=caption,
+                            )
                 channel_msg = await bot.send_photo(
                     chat_id=channel_target,
                     photo=first_photo_file_id,

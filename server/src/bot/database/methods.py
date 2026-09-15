@@ -2,6 +2,7 @@ from aiogram.types import Message
 from src.bot.settings.settings import *
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy import update, delete, func, or_
 from typing import Optional, List
 from datetime import datetime
@@ -193,7 +194,7 @@ async def get_ad_by_id(ad_id: int):
     """Получить объявление по ID"""
     async with async_session() as session:
         result = await session.execute(
-            select(Ad).where(Ad.id == ad_id)
+            select(Ad).where(Ad.id == ad_id).options((selectinload(Ad.photos),))
         )
         return result.scalars().first()
 
