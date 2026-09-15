@@ -378,12 +378,12 @@ async def approve_ad_callback(callback: types.CallbackQuery, state: FSMContext):
                     parse_mode='HTML',
                     reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME)
                 )
+                channel_msg_id = channel_msg.message_id
             except Exception as e:
                 logger.error(f"ERROR WHILE SENDING POSTS!! {e}")
                 pass
                 # CHANGE!!! 
             # logger.info(f"обложка отправлена с кнопками, message_id: {channel_msg.message_id}")
-            # channel_msg_id = channel_msg.message_id
         
         # channel_msg_id = 0
         # CHANGE!!!
