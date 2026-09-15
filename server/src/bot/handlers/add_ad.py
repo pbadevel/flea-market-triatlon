@@ -22,7 +22,7 @@ from src.bot.settings.settings import MODERATION_CHAT_ID
 from src.bot.loader import bot
 from src.bot.utils.image_utils import add_logo_watermark_to_photo, crop_image_center
 from src.bot.utils.helpers import get_fsinput_photo, format_file_id_to_storage_path, format_contact_for_display
-
+from src.utils import download_file_from_telegram
 
 
 
@@ -129,13 +129,13 @@ async def cover_photo_handler(message: types.Message, state: FSMContext):
     try:
         logger.debug(f"начинаю обработку обложки: сначала обрезка...")
         # Сначала обрезаем изображение по центру
-        cropped_file_id = await crop_image_center(
-            file_id=original_file_id,
-            chat_id=message.chat.id,
-            bot=bot
-        )
-        logger.debug(f"обложка обрезана, новый file_id: {cropped_file_id}")
-        
+        # cropped_file_id = await crop_image_center(
+        #     file_id=original_file_id,
+        #     chat_id=message.chat.id,
+        #     bot=bot
+        # )
+        # logger.debug(f"обложка обрезана, новый file_id: {cropped_file_id}")
+        # 
         # Определяем тип объявления для выбора логотипа
         data = await state.get_data()
         ad_type = data.get('ad_type', 'Продажа')
@@ -147,12 +147,12 @@ async def cover_photo_handler(message: types.Message, state: FSMContext):
             logger.debug("накладываю логотип на обрезанную обложку (assets/logo_sale.png)...")
         
         # Добавляем логотип типа объявления (Продажа/Аренда) на обрезанное изображение
-        processed_cover_file_id = await add_logo_watermark_to_photo(
-            file_id=cropped_file_id,
-            chat_id=message.chat.id,
-            bot=bot,
-            logo_path=logo_path
-        )
+        # processed_cover_file_id = await add_logo_watermark_to_photo(
+        #     file_id=cropped_file_id,
+        #     chat_id=message.chat.id,
+        #     bot=bot,
+        #     logo_path=logo_path
+        # )
         logger.debug(f"обложка обработана (обрезана и с логотипом типа), новый file_id: {processed_cover_file_id}")
         
         # Если у пользователя статус «Доверенный продавец» — накладываем логотип доверенного продавца (18% от ширины)
@@ -180,7 +180,8 @@ async def cover_photo_handler(message: types.Message, state: FSMContext):
     # Обработанную обложку (обрезка + лого типа Продажа/Аренда + при наличии статуса лого «Доверенный продавец»)
     # сохраняем в cover_photo_file_id. При создании объявления (create_ad) это значение попадёт в ad.cover_file_id в БД
     # и будет использоваться в канале и каталоге без повторного наложения логотипов.
-    photos = [{'file_id': original_file_id, 'position': 1}]
+    storage_path = await download_file_from_telegram(original_file_id)
+    photos = [{'file_id': original_file_id, "storage_path":storage_path, 'position': 1}]
     await state.update_data(photos=photos, cover_photo_file_id=processed_cover_file_id)
     
     # Получаем ID предыдущего сообщения для редактирования
