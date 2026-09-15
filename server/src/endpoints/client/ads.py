@@ -15,6 +15,9 @@ from src.bot.tg_services import tg_service_notifier
 from src.schemas.ads import AdOut, MyAdOut, AdCreate, AdPhotoCreate, AdModerate
 from datetime import datetime
 from typing import Optional, List, Annotated
+from src.logging import get_logger
+
+log = get_logger()
 
 
 UPLOAD_DIR = "uploads"
@@ -148,9 +151,9 @@ async def create_ad(
                 raise HTTPException(400, f"Invalid photo format: {photo.content_type}")
             
             file_bytes = await photo.read()
-            extension = f".{photo.filename.split('.')[-1]}" if photo.filename and '.' in photo.filename else ".jpg"
             
-            storage_path = await ad_service.upload_photo(file_bytes, extension)
+            storage_path = await ad_service.upload_photo(file_bytes)
+            log.info(f"STORAGE PATH: {storage_path}")
             
             # ИСПРАВЛЕНО: создаем объект AdPhotoCreate
             photo_data_list.append(
