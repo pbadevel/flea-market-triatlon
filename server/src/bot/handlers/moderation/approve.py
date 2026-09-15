@@ -572,6 +572,10 @@ async def approve_edit_callback(callback: types.CallbackQuery, state: FSMContext
     cap = format_active_caption(ad, is_trusted)
 
     first_file_id = getattr(ad, 'cover_file_id', None) or photos[0].file_id
+
+    if ad.photos[0].storage_path:
+        first_file_id = get_fsinput_photo(get_full_storage_path(ad.photos[0].storage_path))
+
     if old_msg_id:
         # Редактируем карточку в канале (фото + подпись + кнопки), не удаляя сообщение
         try:
@@ -597,26 +601,23 @@ async def approve_edit_callback(callback: types.CallbackQuery, state: FSMContext
                 logger.warning(f"не удалось удалить сообщение #{old_msg_id}: {del_e}")
 
 
-            # channel_msg = await bot.send_photo(
-            #     chat_id=channel_target,
-            #     photo=first_file_id,
-            #     caption=cap,
-            #     parse_mode="HTML",
-            #     reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME),
-            # )
-            # CHANGE!!!
-            message_id = 0
+            channel_msg = await bot.send_photo(
+                chat_id=channel_target,
+                photo=first_file_id,
+                caption=cap,
+                parse_mode="HTML",
+                reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME),
+            )
             await approve_ad(ad_id, message_id)
     else:
         # Нет старого message_id (на случай сбоя) — отправляем новую карточку
-        # channel_msg = await bot.send_photo(
-        #     chat_id=channel_target,
-        #     photo=first_file_id,
-        #     caption=cap,
-        #     parse_mode="HTML",
-        #     reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME),
-        # )
-        # CHANGE!!!
+        channel_msg = await bot.send_photo(
+            chat_id=channel_target,
+            photo=first_file_id,
+            caption=cap,
+            parse_mode="HTML",
+            reply_markup=ad_in_channel_kb(ad_id, BOT_USERNAME),
+        )
         message_id = 0
         
         await approve_ad(ad_id, message_id)
