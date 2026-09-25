@@ -26,10 +26,12 @@ export const getSession = createServerFn().handler(async () => {
 
 
 
-export const verifySession = createServerFn().handler(async () => {
+export const verifySession = createServerFn()
+.inputValidator((data?: { passLogin?: boolean }) => data ?? {passLogin: false})
+.handler(async ({ data: { passLogin } = {} }) => {
   const session = await useAppSession();
   
-  if (!session.data?.token) {
+  if (!session.data?.token && !passLogin) {
     throw redirect({ to: "/auth/login" });
   }
   

@@ -4,7 +4,7 @@ import { verifySession } from '@/lib/session'
 
 export const Route = createFileRoute('/_app/product/$productId')({
   loader: async () => {
-    const session = await verifySession()
+    const session = await verifySession({data:{passLogin:true}})
     return { token: session?.token }
   },
   component: ProductPage,

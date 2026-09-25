@@ -3,8 +3,8 @@ import { serverApi } from '../server-proxy'
 export const fetchAdminStats = (token: string) =>
   serverApi({ data: { path: '/admin/stats', token } })
 
-export const fetchPendingAds = (token: string) =>
-  serverApi({ data: { path: '/admin/ads/pending', token } })
+export const fetchPendingAds = (token: string, params: { page: number; limit: number },) =>
+  serverApi({ data: { path: `/admin/ads/pending?page=${params.page}&limit=${params.limit}`, token } })
 
 export const fetchAllAds = (token: string) =>
   serverApi({ data: { path: '/admin/ads/all', token } })

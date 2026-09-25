@@ -1,4 +1,4 @@
-"""merge heads
+q"""merge heads
 
 Revision ID: d7a7626345ee
 Revises: 5ff7a3ba3d23, z_make_tg_user_id_nullable

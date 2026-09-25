@@ -665,15 +665,17 @@ export function ProductDetail({ token }: { token?: string | null }) {
             </div>
 
             {/* Actions — умная кнопка связи */}
-            <div className="flex gap-3">
-              <ContactSellerButton seller={product.seller} />
-              {/* <button 
-                className="rounded-lg border border-(--line) p-3 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
-                aria-label="Добавить в избранное"
-              >
-                <Heart className="size-5" />
-              </button> */}
-            </div>
+            {token ? (
+              <div className="flex gap-3">
+                <ContactSellerButton seller={product.seller} />
+                {/* <button 
+                  className="rounded-lg border border-(--line) p-3 text-(--sea-ink-soft) hover:bg-(--link-bg-hover) hover:text-(--sea-ink)"
+                  aria-label="Добавить в избранное"
+                >
+                  <Heart className="size-5" />
+                </button> */}
+              </div>) : null
+            }
 
             {/* Seller Info */}
             {product.seller && <SellerInfo seller={product.seller} adId={product.id} token={token ?? null} />}

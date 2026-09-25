@@ -11,15 +11,16 @@ export const adminStatsQueryOptions = (token: string) =>
     enabled: !!token,
   });
 
-export const pendingAdsQueryOptions = (token: string, page: number = 1) =>
-  queryOptions({
-    queryKey: ['admin', 'pending-ads', page],
-    queryFn: () => fetchPendingAds(token, page),
-    staleTime: 0, // Всегда свежие данные для модерации
-    gcTime: 5 * 60 * 1000,
-    enabled: !!token,
-  });
-
+export function pendingAdsQueryOptions(
+  token: string,
+  params: { page: number; limit: number } = { page: 1, limit: 10 },
+) {
+  return {
+    queryKey: ['admin', 'pending-ads', params.page, params.limit],
+    queryFn: () => fetchPendingAds(token, params),
+    staleTime: 1000 * 60 * 5, // 5 минут
+  }
+}
 export const allAdsQueryOptions = (
   token: string,
   filters: { status?: string; page?: number; limit?: number } = {},
