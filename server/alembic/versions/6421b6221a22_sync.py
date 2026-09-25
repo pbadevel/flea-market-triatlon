@@ -39,7 +39,10 @@ def upgrade() -> None:
                existing_server_default=sa.text('now()'))
     op.create_index(op.f('ix_boost_settings_created_at'), 'boost_settings', ['created_at'], unique=False)
     op.create_index(op.f('ix_boost_settings_updated_at'), 'boost_settings', ['updated_at'], unique=False)
-    op.add_column('user_credentials', sa.Column('email_confirm_token', sa.String(length=132), nullable=True))
+    try:
+        op.add_column('user_credentials', sa.Column('email_confirm_token', sa.String(length=132), nullable=True))
+    except Exception as e:
+        print(f"[WARN] {e}")
     # ### end Alembic commands ###
 
 
