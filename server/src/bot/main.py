@@ -105,9 +105,6 @@ async def main():
         # --- ГРАЦЕФУЛЬНОЕ ЗАКРЫТИЕ (Убирает Unclosed client session) ---
         logger.info("Завершение работы бота, закрытие сессий...")
         
-        # Отменяем фоновые задачи, чтобы не зависали
-        scheduler_task.get_coro().close()
-        
         # Закрываем сессию бота aiogram (внутри нее лежит aiohttp ClientSession)
         await bot.session.close()
         logger.info("Сессия бота успешно закрыта.")
