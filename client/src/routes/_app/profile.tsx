@@ -1,3 +1,5 @@
+// src/routes/_app/profile.tsx
+
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -17,6 +19,7 @@ import {
   MessageCircle,
   LogOut,
   Link as LinkIcon,
+  ShieldCheck,
 } from 'lucide-react'
 import { logoutFn, verifySession } from '@/lib/session'
 import { myProfileQueryOptions, myStatsQueryOptions } from '@/lib/queries/profile'
@@ -25,6 +28,9 @@ import { initTelegramLinkFn, checkTelegramAuthStatusFn } from '@/lib/api/auth'
 import { fetchMyAds } from '@/lib/api/client/ads'
 import type { UserProfile, UserProfileUpdate } from '@/types/profile'
 import type { MyAd } from '@/types/ad'
+import { PhoneVerificationModal } from '@/components/features/profile/phone-verification-modal'
+import { PhoneInput } from '@/components/ui/phone-input'
+import { normalizePhone, formatPhone } from '@/lib/utils'
 
 export const Route = createFileRoute('/_app/profile')({
   loader: async () => {
@@ -34,34 +40,37 @@ export const Route = createFileRoute('/_app/profile')({
   component: ProfilePage,
 })
 
+// ─── Тип для мутации с флагом смены телефона ─────────────────────────────
+type ProfileUpdatePayload = UserProfileUpdate & { phoneChanged?: boolean }
+
 function ProfilePage() {
   const { token } = Route.useLoaderData()
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [linkState, setLinkState] = useState<'idle' | 'waiting' | 'done'>('idle')
+  const [showPhoneVerify, setShowPhoneVerify] = useState(false)
+  const [pendingPhone, setPendingPhone] = useState<string | null>(null) // для передачи нового номера в модалку
   const [linkSessionToken, setLinkSessionToken] = useState<string | null>(null)
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     try {
-      const result = await logoutFn();
+      const result = await logoutFn()
       if (result.success) {
-        await navigate({ to: "/" });
+        await navigate({ to: '/' })
       }
     } catch (error) {
-      console.error("Ошибка при выходе:", error);
+      console.error('Ошибка при выходе:', error)
     }
-  };
+  }
 
   const { data: profile, isLoading: profileLoading } = useQuery(
     myProfileQueryOptions(token!),
   )
-  
-  const { data: stats } = useQuery(
-    myStatsQueryOptions(token!),
-  )
-  
+
+  const { data: stats } = useQuery(myStatsQueryOptions(token!))
+
   const { data: adsData } = useQuery({
     queryKey: ['my-ads'],
     queryFn: () => fetchMyAds(token!),
@@ -69,10 +78,20 @@ function ProfilePage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: (data: UserProfileUpdate) => updateMyProfile(token!, data),
-    onSuccess: () => {
+    mutationFn: (data: ProfileUpdatePayload) => {
+      // Убираем служебный флаг перед отправкой на бэкенд
+      const { phoneChanged, ...payload } = data
+      return updateMyProfile(token!, payload)
+    },
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       setIsEditing(false)
+
+      // Если пользователь сменил номер — открываем модалку верификации
+      if (variables.phoneChanged) {
+        // setTimeout нужен, чтобы профиль успел обновиться из queryClient
+        setTimeout(() => setShowPhoneVerify(true), 300)
+      }
     },
     onError: (err) => {
       alert(`Ошибка: ${err.message}`)
@@ -99,7 +118,9 @@ function ProfilePage() {
     queryFn: async () => {
       if (!linkSessionToken) return null
       try {
-        const res = await checkTelegramAuthStatusFn({ data: { session_token: linkSessionToken } })
+        const res = await checkTelegramAuthStatusFn({
+          data: { session_token: linkSessionToken },
+        })
         if (res.status === 'completed') {
           setLinkState('done')
           queryClient.invalidateQueries({ queryKey: ['profile'] })
@@ -123,9 +144,7 @@ function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-(--sea-ink) mb-4">
-            Требуется авторизация
-          </h1>
+          <h1 className="text-2xl font-bold text-(--sea-ink) mb-4">Требуется авторизация</h1>
           <Link to="/auth/login" className="text-(--palm) hover:underline">
             Войти
           </Link>
@@ -150,7 +169,8 @@ function ProfilePage() {
     )
   }
 
-  const hasNoContact = !profile.username && !(profile.email && profile.is_email_verified) && !profile.phone
+  const hasNoContact =
+    !profile.username && !(profile.email && profile.is_email_verified) && !profile.phone
 
   return (
     <div className="min-h-screen">
@@ -167,10 +187,7 @@ function ProfilePage() {
                 <LogOut className="size-5" />
                 <span className="text-sm">Выйти</span>
               </button>
-              <Link
-                to="/"
-                className="text-sm text-(--sea-ink-soft) hover:text-(--sea-ink)"
-              >
+              <Link to="/" className="text-sm text-(--sea-ink-soft) hover:text-(--sea-ink)">
                 На главную
               </Link>
             </div>
@@ -179,78 +196,84 @@ function ProfilePage() {
       </header>
 
       <div className="page-wrap py-4 space-y-4">
-      {linkState === 'waiting' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl">
-          <div className="py-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-blue-700">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              <span>
-                Откройте Telegram и подтвердите привязку. <strong>Ожидание...</strong>
-              </span>
+        {/* Telegram linking banners */}
+        {linkState === 'waiting' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="py-3 px-4">
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span>
+                  Откройте Telegram и подтвердите привязку. <strong>Ожидание...</strong>
+                </span>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {linkState === 'done' && (
-        <div className="bg-green-50 border border-green-200 rounded-xl">
-          <div className="py-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-green-700">
-              <CheckCircle className="size-4" />
-              <span>Telegram успешно привязан!</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {hasNoContact && (
-        <div className="bg-red-50 border border-red-200 rounded-xl">
-          <div className="py-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-red-700">
-              <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span>
-                У вас нет способов связи. <strong>Клиенты не смогут с вами связаться.</strong>{' '}
-                <Link to="/profile" className="underline font-medium">Добавьте контакты</Link>
-                , чтобы получать отклики.
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard
-              icon={<Package className="size-5" />}
-              label="Всего объявлений"
-              value={stats.total_ads}
-            />
-            <StatCard
-              icon={<CheckCircle className="size-5" />}
-              label="Активные"
-              value={stats.active_ads}
-              color="green"
-            />
-            <StatCard
-              icon={<Clock className="size-5" />}
-              label="На модерации"
-              value={stats.pending_ads}
-              color="yellow"
-            />
-            <StatCard
-              icon={<TrendingUp className="size-5" />}
-              label="Продано"
-              value={stats.sold_ads}
-              color="blue"
-            />
           </div>
         )}
 
+        {linkState === 'done' && (
+          <div className="bg-green-50 border border-green-200 rounded-xl">
+            <div className="py-3 px-4">
+              <div className="flex items-center gap-2 text-sm text-green-700">
+                <CheckCircle className="size-4" />
+                <span>Telegram успешно привязан!</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Phone verification banner */}
+        {profile.phone && !profile.phone_verified && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl">
+            <div className="py-3 px-4 flex items-center gap-2 text-sm text-yellow-800">
+              <Phone className="size-4 shrink-0" />
+              <span>
+                Номер <strong>{profile.phone}</strong> не подтверждён. Без подтверждения вы не
+                сможете размещать объявления.
+              </span>
+              <button
+                onClick={() => {
+                  setPendingPhone(profile.phone)
+                  setShowPhoneVerify(true)
+                }}
+                className="ml-auto shrink-0 font-medium underline"
+              >
+                Подтвердить
+              </button>
+            </div>
+          </div>
+        )}
+
+        {hasNoContact && (
+          <div className="bg-red-50 border border-red-200 rounded-xl">
+            <div className="py-3 px-4">
+              <div className="flex items-center gap-2 text-sm text-red-700">
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                <span>
+                  У вас нет способов связи. <strong>Клиенты не смогут с вами связаться.</strong>{' '}
+                  <Link to="/profile" className="underline font-medium">
+                    Добавьте контакты
+                  </Link>
+                  , чтобы получать отклики.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stats */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard icon={<Package className="size-5" />} label="Всего объявлений" value={stats.total_ads} />
+            <StatCard icon={<CheckCircle className="size-5" />} label="Активные" value={stats.active_ads} color="green" />
+            <StatCard icon={<Clock className="size-5" />} label="На модерации" value={stats.pending_ads} color="yellow" />
+            <StatCard icon={<TrendingUp className="size-5" />} label="Продано" value={stats.sold_ads} color="blue" />
+          </div>
+        )}
+
+        {/* ─── ЕДИНСТВЕННЫЙ блок с информацией о пользователе ─── */}
         <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-6">
           <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
-            <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
-              Информация о пользователе
-            </h2>
+            <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">Информация о пользователе</h2>
             <button
               onClick={() => setIsEditing(!isEditing)}
               className="shrink-0 flex items-center gap-1.5 text-sm text-(--palm) hover:underline whitespace-nowrap"
@@ -278,10 +301,18 @@ function ProfilePage() {
               onLinkTelegram={handleLinkTelegram}
             />
           ) : (
-            <ProfileInfo profile={profile} onLinkTelegram={handleLinkTelegram} />
+            <ProfileInfo
+              profile={profile}
+              onLinkTelegram={handleLinkTelegram}
+              onVerifyPhone={() => {
+                setPendingPhone(profile.phone)
+                setShowPhoneVerify(true)
+              }}
+            />
           )}
         </div>
 
+        {/* Badges */}
         <div className="flex flex-wrap gap-2">
           {profile.is_moderator && (
             <Badge icon={<Shield className="size-4" />} label="Модератор" color="blue" />
@@ -291,15 +322,11 @@ function ProfilePage() {
           )}
         </div>
 
+        {/* My ads */}
         <div className="rounded-2xl border border-(--line) bg-(--surface-strong) p-6 mb-10">
           <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
-            <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">
-              Мои объявления
-            </h2>
-            <Link
-              to="/create-ad"
-              className="shrink-0 text-sm text-(--palm) hover:underline whitespace-nowrap"
-            >
+            <h2 className="text-xl font-bold text-(--sea-ink) shrink-0">Мои объявления</h2>
+            <Link to="/create-ad" className="shrink-0 text-sm text-(--palm) hover:underline whitespace-nowrap">
               Создать новое
             </Link>
           </div>
@@ -314,19 +341,30 @@ function ProfilePage() {
             <div className="text-center py-8 text-(--sea-ink-soft)">
               <Package className="mx-auto size-12 mb-2 opacity-50" />
               <p>У вас пока нет объявлений</p>
-              <Link
-                to="/create-ad"
-                className="inline-block mt-4 text-(--palm) hover:underline"
-              >
+              <Link to="/create-ad" className="inline-block mt-4 text-(--palm) hover:underline">
                 Создать первое объявление
               </Link>
             </div>
           )}
         </div>
       </div>
+
+      {/* ─── МОДАЛКА ВЕРИФИКАЦИИ ─── */}
+      {showPhoneVerify && (
+        <PhoneVerificationModal
+          token={token!}
+          initialPhone={pendingPhone ?? profile.phone}
+          onClose={() => {
+            setShowPhoneVerify(false)
+            setPendingPhone(null)
+          }}
+        />
+      )}
     </div>
   )
 }
+
+// ─── Остальные компоненты ────────────────────────────────────────────────
 
 function StatCard({
   icon,
@@ -357,21 +395,49 @@ function StatCard({
   )
 }
 
-
-function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLinkTelegram?: () => void }) {
+function ProfileInfo({
+  profile,
+  onLinkTelegram,
+  onVerifyPhone,
+}: {
+  profile: UserProfile
+  onLinkTelegram?: () => void
+  onVerifyPhone?: () => void
+}) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <InfoField
-          icon={<User className="size-4" />}
-          label="Имя"
-          value={profile.first_name || 'Не указано'}
-        />
-        <InfoField
-          icon={<User className="size-4" />}
-          label="Фамилия"
-          value={profile.last_name || 'Не указано'}
-        />
+        <InfoField icon={<User className="size-4" />} label="Имя" value={profile.first_name || 'Не указано'} />
+        <InfoField icon={<User className="size-4" />} label="Фамилия" value={profile.last_name || 'Не указано'} />
+
+        {/* ─── Блок телефона с бейджем верификации ─── */}
+        <div>
+          <InfoField icon={<Phone className="size-4" />} label="Телефон" value={profile.phone || 'Не указан'} />
+          {profile.phone ? (
+            profile.phone_verified ? (
+              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                <ShieldCheck className="size-3" />
+                Подтверждён
+              </span>
+            ) : (
+              <button
+                onClick={onVerifyPhone}
+                className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-0.5 text-xs font-medium text-yellow-800 hover:bg-yellow-100"
+              >
+                Не подтверждён — подтвердить
+              </button>
+            )
+          ) : (
+            <button
+              onClick={onVerifyPhone}
+              className="mt-1.5 text-xs font-medium text-(--palm) hover:underline"
+            >
+              Добавить и подтвердить телефон
+            </button>
+          )}
+        </div>
+
+        {/* Telegram */}
         <div>
           <InfoField
             icon={<MessageCircle className="size-4" />}
@@ -388,38 +454,41 @@ function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLink
             </button>
           )}
         </div>
-        <InfoField
-          icon={<Mail className="size-4" />}
-          label="Email"
-          value={profile.email || 'Не указан'}
-        />
-        {profile.email && !profile.is_email_verified && (
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
-            <div className="text-sm text-yellow-800">
-              <p className="font-medium">Email не подтверждён</p>
-              <p className="text-xs mt-0.5">Проверьте почту {profile.email} и перейдите по ссылке из письма</p>
+
+        {/* Email */}
+        <div>
+          <InfoField icon={<Mail className="size-4" />} label="Email" value={profile.email || 'Не указан'} />
+          {profile.email && !profile.is_email_verified && (
+            <div className="mt-1.5 flex items-center gap-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200">
+              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+              <div className="text-sm text-yellow-800">
+                <p className="font-medium">Email не подтверждён</p>
+                <p className="text-xs mt-0.5">
+                  Проверьте почту {profile.email} и перейдите по ссылке из письма
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-        <InfoField
-          icon={<Phone className="size-4" />}
-          label="Телефон"
-          value={profile.phone || 'Не указан'}
-        />
+          )}
+        </div>
+
+        {/* Preferred contact */}
         <InfoField
           icon={<MessageCircle className="size-4" />}
           label="Предпочтительная связь"
           value={
-            profile.preferred_contact === 'TELEGRAM' ? `Telegram: ${profile.contact_value || 'Не указан'}` :
-            profile.preferred_contact === 'EMAIL' ? `Email: ${profile.contact_value || 'Не указан'}` :
-            profile.preferred_contact === 'PHONE' ? `Телефон: ${profile.contact_value || 'Не указан'}` :
-            profile.preferred_contact === 'MAX' ? `MAX: ${profile.contact_value || 'Не указан'}` :
-            'Не указан'
+            profile.preferred_contact === 'TELEGRAM'
+              ? `Telegram: ${profile.contact_value || 'Не указан'}`
+              : profile.preferred_contact === 'EMAIL'
+                ? `Email: ${profile.contact_value || 'Не указан'}`
+                : profile.preferred_contact === 'PHONE'
+                  ? `Телефон: ${profile.contact_value || 'Не указан'}`
+                  : profile.preferred_contact === 'MAX'
+                    ? `MAX: ${profile.contact_value || 'Не указан'}`
+                    : 'Не указан'
           }
         />
       </div>
-      
+
       <div className="pt-4 border-t border-(--line)">
         <p className="text-sm text-(--sea-ink-soft)">
           Зарегистрирован: {new Date(profile.created_at).toLocaleDateString('ru-RU')}
@@ -432,16 +501,7 @@ function ProfileInfo({ profile, onLinkTelegram }: { profile: UserProfile; onLink
   )
 }
 
-
-function InfoField({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-}) {
+function InfoField({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
       <div className="mt-0.5 text-(--sea-ink-soft)">{icon}</div>
@@ -461,15 +521,16 @@ function EditProfileForm({
   onLinkTelegram,
 }: {
   profile: UserProfile
-  onSave: (data: UserProfileUpdate) => void
+  onSave: (data: ProfileUpdatePayload) => void
   onCancel: () => void
   isPending: boolean
   onLinkTelegram?: () => void
 }) {
+  // Форматируем номер при инициализации (из E.164 в маску)
   const [formData, setFormData] = useState({
     first_name: profile.first_name || '',
     last_name: profile.last_name || '',
-    phone: profile.phone || '',
+    phone: profile.phone ? formatPhone(profile.phone) : '',
     email: profile.email || '',
     preferred_contact: profile.preferred_contact || 'TELEGRAM',
     contact_value: profile.contact_value || '',
@@ -477,7 +538,24 @@ function EditProfileForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+
+    // Определяем, изменился ли номер (сравниваем нормализованные)
+    const oldPhone = profile.phone ? normalizePhone(profile.phone) : ''
+    const newPhone = formData.phone ? normalizePhone(formData.phone) : ''
+    const phoneChanged = oldPhone !== newPhone
+
+    // Нормализуем телефон перед отправкой (E.164)
+    const payload: ProfileUpdatePayload = {
+      first_name: formData.first_name || undefined,
+      last_name: formData.last_name || undefined,
+      phone: newPhone || undefined,
+      email: formData.email || undefined,
+      preferred_contact: formData.preferred_contact,
+      contact_value: formData.contact_value || undefined,
+      phoneChanged, // Служебный флаг для onSuccess
+    }
+
+    onSave(payload)
   }
 
   return (
@@ -517,14 +595,21 @@ function EditProfileForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-(--sea-ink)">Телефон</label>
-          <input
-            type="tel"
+          <PhoneInput
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
-            placeholder="+7 (999) 123-45-67"
+            onChange={(v) => setFormData({ ...formData, phone: v })}
+            label="Телефон"
           />
+          {profile.phone_verified && formData.phone === (profile.phone ? formatPhone(profile.phone) : '') && (
+            <p className="text-xs text-green-700">
+              ✓ Номер подтверждён
+            </p>
+          )}
+          {profile.phone_verified && formData.phone !== (profile.phone ? formatPhone(profile.phone) : '') && formData.phone && (
+            <p className="text-xs text-yellow-700">
+              Номер изменён. После сохранения потребуется повторное подтверждение по SMS.
+            </p>
+          )}
         </div>
       </div>
 
@@ -536,7 +621,7 @@ function EditProfileForm({
             { value: 'EMAIL', label: 'Email' },
             { value: 'PHONE', label: 'Телефон' },
             { value: 'MAX', label: 'MAX' },
-          ].map(opt => (
+          ].map((opt) => (
             <button
               key={opt.value}
               type="button"
@@ -561,24 +646,31 @@ function EditProfileForm({
           {formData.preferred_contact === 'MAX' && 'Контакт в MAX'}
         </label>
         <input
-          type={formData.preferred_contact === 'EMAIL' ? 'email' : formData.preferred_contact === 'PHONE' ? 'tel' : 'text'}
+          type={
+            formData.preferred_contact === 'EMAIL'
+              ? 'email'
+              : formData.preferred_contact === 'PHONE'
+                ? 'tel'
+                : 'text'
+          }
           value={formData.contact_value}
           onChange={(e) => setFormData({ ...formData, contact_value: e.target.value })}
           className="w-full rounded-xl border border-(--line) px-4 py-2.5 text-(--sea-ink) focus:border-(--palm) focus:outline-none"
           placeholder={
-            formData.preferred_contact === 'TELEGRAM' ? '@username или 123456789' :
-            formData.preferred_contact === 'EMAIL' ? 'example@mail.ru' :
-            formData.preferred_contact === 'PHONE' ? '+7 (999) 123-45-67' :
-            'Ваш логин в MAX'
+            formData.preferred_contact === 'TELEGRAM'
+              ? '@username или 123456789'
+              : formData.preferred_contact === 'EMAIL'
+                ? 'example@mail.ru'
+                : formData.preferred_contact === 'PHONE'
+                  ? '+7 (999) 123-45-67'
+                  : 'Ваш логин в MAX'
           }
         />
       </div>
 
       <div className="p-4 bg-(--palm)/5 rounded-xl text-sm">
         <p className="font-medium mb-1 text-(--sea-ink)">Telegram Username</p>
-        <p className="text-(--palm)">
-          {profile.username ? `@${profile.username}` : 'Не указан'}
-        </p>
+        <p className="text-(--palm)">{profile.username ? `@${profile.username}` : 'Не указан'}</p>
         {profile.tg_user_id == null ? (
           <button
             onClick={onLinkTelegram}
@@ -588,9 +680,7 @@ function EditProfileForm({
             Привязать Telegram
           </button>
         ) : (
-          <p className="text-xs text-(--sea-ink-soft) mt-1">
-            Изменяется только через Telegram
-          </p>
+          <p className="text-xs text-(--sea-ink-soft) mt-1">Изменяется только через Telegram</p>
         )}
       </div>
 
@@ -615,28 +705,21 @@ function EditProfileForm({
   )
 }
 
-function Badge({
-  icon,
-  label,
-  color,
-}: {
-  icon: React.ReactNode
-  label: string
-  color: 'blue' | 'green'
-}) {
+function Badge({ icon, label, color }: { icon: React.ReactNode; label: string; color: 'blue' | 'green' }) {
   const colorMap = {
     blue: 'bg-blue-50 text-blue-700 border-blue-200',
     green: 'bg-green-50 text-green-700 border-green-200',
   }
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${colorMap[color]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${colorMap[color]}`}
+    >
       {icon}
       {label}
     </span>
   )
 }
-
 
 function AdCard({ ad }: { ad: MyAd }) {
   const statusConfig = {
@@ -647,7 +730,8 @@ function AdCard({ ad }: { ad: MyAd }) {
     removed: { label: 'Удалено', color: 'bg-gray-100 text-gray-800' },
   }
 
-  const { label, color } = statusConfig[ad.status as keyof typeof statusConfig] || statusConfig.pending
+  const { label, color } =
+    statusConfig[ad.status as keyof typeof statusConfig] || statusConfig.pending
 
   return (
     <Link
@@ -655,20 +739,14 @@ function AdCard({ ad }: { ad: MyAd }) {
       params={{ productId: String(ad.id) }}
       className="flex gap-2 rounded-2xl border border-(--line) p-4 hover:bg-(--link-bg-hover) transition"
     >
-      <div className="flex w-full justify-between items-start"> 
+      <div className="flex w-full justify-between items-start">
         <div className="flex">
           {ad.cover_url && (
-            <img
-              src={ad.cover_url}
-              alt={ad.title}
-              className="h-20 w-20 shrink-0 rounded-xl object-cover"
-            />
+            <img src={ad.cover_url} alt={ad.title} className="h-20 w-20 shrink-0 rounded-xl object-cover" />
           )}
           <div className="flex flex-col px-3 justify-start">
             <h3 className="font-medium text-(--sea-ink) line-clamp-1">{ad.title}</h3>
-            <p className="mt-1 text-lg font-bold text-(--sea-ink)">
-              {ad.price.toLocaleString()} ₽
-            </p>
+            <p className="mt-1 text-lg font-bold text-(--sea-ink)">{ad.price.toLocaleString()} ₽</p>
             <p className="mt-1 text-sm text-(--sea-ink-soft)">
               {ad.city} · {ad.category}
             </p>
@@ -676,9 +754,7 @@ function AdCard({ ad }: { ad: MyAd }) {
         </div>
 
         <div className="flex flex-col gap-2 items-end justify-between h-full min-h-[80px]">
-          <span className={`rounded-full px-2 py-1 text-xs text-center font-medium ${color}`}>
-            {label}
-          </span>
+          <span className={`rounded-full px-2 py-1 text-xs text-center font-medium ${color}`}>{label}</span>
           <span className="text-xs text-(--sea-ink-soft)">
             {new Date(ad.created_at).toLocaleDateString('ru-RU')}
           </span>

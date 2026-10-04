@@ -34,6 +34,7 @@ async def get_my_profile(user: WebUser):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "phone": user.phone,
+            "phone_verified": user.phone_verified,
             "preferred_contact": user.preferred_contact,
             "contact_value": user.contact_value,
             "email": credentials.email if credentials else None,
@@ -57,7 +58,7 @@ async def update_my_profile(
     async with database_service.get_session() as session:
         repository = UserRepository(session)
         
-        # ИСПРАВЛЕНО: Получаем свежий объект user в текущей сессии
+        # Получаем свежий объект user в текущей сессии
         fresh_user = await repository.get_by_id(user.id)
         if not fresh_user:
             raise HTTPException(404, detail="Пользователь не найден")
@@ -68,8 +69,39 @@ async def update_my_profile(
             update_data["first_name"] = data.first_name
         if data.last_name is not None:
             update_data["last_name"] = data.last_name
+        
+        # ─── Обработка телефона с нормализацией и сбросом верификации ───
         if data.phone is not None:
-            update_data["phone"] = data.phone
+            from src.services.phone_verification import normalize_phone
+            
+            # Нормализуем номер в E.164
+            normalized_phone = normalize_phone(data.phone) if data.phone else None
+            
+            # Проверяем, изменился ли номер
+            if normalized_phone != fresh_user.phone:
+                # Номер изменился — проверяем уникальность
+                if normalized_phone:
+                    stmt = select(User).where(
+                        User.phone == normalized_phone,
+                        User.id != fresh_user.id
+                    )
+                    result = await session.execute(stmt)
+                    existing_user = result.scalar_one_or_none()
+                    
+                    if existing_user:
+                        raise HTTPException(
+                            status_code=400,
+                            detail={
+                                "code": "PHONE_ALREADY_USED",
+                                "error": "Этот номер уже привязан к другому аккаунту"
+                            }
+                        )
+                
+                # Обновляем номер и сбрасываем верификацию
+                update_data["phone"] = normalized_phone
+                update_data["phone_verified"] = False
+                update_data["phone_verified_at"] = None
+        
         if hasattr(data, 'preferred_contact') and data.preferred_contact is not None:
             update_data["preferred_contact"] = data.preferred_contact
         if hasattr(data, 'contact_value') and data.contact_value is not None:
@@ -115,7 +147,8 @@ async def update_my_profile(
                 await session.flush()
                 
                 if data.email:
-                    confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={credentials.email_confirm_token}"
+                    # ИСПРАВЛЕНО: используем new_creds вместо credentials
+                    confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={new_creds.email_confirm_token}"
                     html = f"""<html><body style="font-family:Arial;padding:20px">
                         <h2>Подтвердите регистрацию</h2>
                         <p><a href=\"{confirm_url}\" style="display:inline-block;padding:12px 24px;background:#2ecc71;color:white;text-decoration:none;border-radius:8px">Подтвердить email</a></p>
@@ -126,7 +159,6 @@ async def update_my_profile(
         
         # Возвращаем обновленный профиль
         return await get_my_profile(fresh_user)
-
 
 @router.get("/me/stats", response_model=UserStats)
 async def get_my_stats(user: WebUser):

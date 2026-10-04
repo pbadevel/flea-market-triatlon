@@ -6,6 +6,7 @@ export interface UserProfile {
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
+  phone_verified: boolean;
   preferred_contact: string | null;
   contact_value: string | null;
   email: string | null;  // Email

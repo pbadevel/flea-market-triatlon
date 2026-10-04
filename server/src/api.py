@@ -10,6 +10,7 @@ from src.endpoints.client.reviews import router as reviews_router
 from src.endpoints.client.bot_test import router as test_bot_router
 from src.endpoints.client.profile import router as profile_router
 from src.endpoints.client.notifications import router as notifications_router
+from src.endpoints.client.phone_verification import router as phone_verification_router
 
 from src.endpoints.admin.moderators import router as admin_moderator_router
 from src.endpoints.admin.categories import router as admin_categories_router
@@ -33,6 +34,7 @@ router.include_router(filter_router)
 router.include_router(product_router)
 router.include_router(reviews_router)
 router.include_router(notifications_router)
+router.include_router(phone_verification_router)
 
 # ADMIN ROUTERS
 router.include_router(admin_moderator_router)

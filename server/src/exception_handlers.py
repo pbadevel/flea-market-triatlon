@@ -8,8 +8,16 @@ from src.exceptions import (
     Forbidden,
     ResourceNotFound,
     Unauthorized,
+    PhoneVerificationError
 )
 
+
+
+async def phone_verification_error_handler(request: Request, exc: PhoneVerificationError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message, "code": exc.code},
+    )
 
 async def app_exception_handler(_: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
@@ -80,4 +88,8 @@ def add_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(
         Banned,
         banned_exc_handler,  # type: ignore
+    )
+    app.add_exception_handler(
+        PhoneVerificationError,
+        phone_verification_error_handler
     )

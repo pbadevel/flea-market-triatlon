@@ -1,4 +1,3 @@
-// Server-side API proxy – hides backend domain from client
 import { createServerFn } from '@tanstack/react-start'
 
 const API_HOST = 'http://127.0.0.1:8001'
@@ -10,15 +9,28 @@ export class BannedError extends Error {
   }
 }
 
+// ─── НОВЫЙ КЛАСС ────────────────────────────────────────────────────────────
+export class PhoneNotVerifiedError extends Error {
+  constructor(message = 'Требуется подтверждение номера телефона') {
+    super(message)
+    this.name = 'PhoneNotVerifiedError'
+  }
+}
+
 function handleErrorResponse(res: Response, err: any) {
   if (res.status === 403 && err?.code === 'BANNED') {
     throw new BannedError(err.detail)
   }
+  // ─── НОВАЯ ОБРАБОТКА ─────────────────────────────────────────────────────
+  if (res.status === 403 && err?.code === 'PHONE_NOT_VERIFIED') {
+    throw new PhoneNotVerifiedError(err.detail)
+  }
+
   const detail = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)
   throw new Error(detail)
 }
 
-// Generic API proxy for JSON requests
+// serverApi и serverUpload — БЕЗ ИЗМЕНЕНИЙ
 export const serverApi = createServerFn({ method: 'POST' })
   .inputValidator((data: {
     path: string
@@ -28,10 +40,7 @@ export const serverApi = createServerFn({ method: 'POST' })
   }) => data)
   .handler(async ({ data }) => {
     const url = `${API_HOST}/v1${data.path}`
-    console.log({
-      data,
-      url
-    })
+    console.log({ data, url })
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     }
@@ -53,7 +62,6 @@ export const serverApi = createServerFn({ method: 'POST' })
     return await res.json()
   })
 
-// Form-data upload proxy (create/update ad with photos)
 export const serverUpload = createServerFn({ method: 'POST' })
   .inputValidator((data: {
     path: string
@@ -67,7 +75,7 @@ export const serverUpload = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const url = `${API_HOST}/v1${data.path}`
     const formData = new FormData()
-    
+
     for (const [key, vals] of Object.entries(data.fields)) {
       for (const val of vals) {
         formData.append(key, val)

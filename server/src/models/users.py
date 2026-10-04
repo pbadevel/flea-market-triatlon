@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List
-from sqlalchemy import BigInteger, Boolean, String, Enum
+from sqlalchemy import BigInteger, Boolean, String, Enum, DateTime
 from src.enums import UserRole, PreferredContact
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.kit.database.models import RecordModel
@@ -23,7 +23,11 @@ class User(RecordModel):
     
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_trusted_seller: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    
+    phone: Mapped[str | None] = mapped_column(String(20), unique=True, index=True)
+    phone_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    phone_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     preferred_contact: Mapped[str | None] = mapped_column(String, nullable=True)
     contact_value: Mapped[str | None] = mapped_column(String, nullable=True)
     agreed_to_terms: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
