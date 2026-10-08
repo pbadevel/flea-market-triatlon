@@ -6,6 +6,9 @@ import { ArrowLeft, Upload, X, Save, ChevronDown } from 'lucide-react'
 import { createAd } from '@/lib/api/client/ads'
 import { filtersQueryOptions } from '@/lib/queries/ads'
 import { verifySession } from '@/lib/session'
+import { PhoneNotVerifiedError } from '@/lib/api/server-proxy'
+import { PhoneVerificationModal } from '@/components/features/profile/phone-verification-modal'
+import { myProfileQueryOptions } from '@/lib/queries/profile'
 
 export const Route = createFileRoute('/_app/create-ad')({
   loader: async () => {
@@ -42,10 +45,13 @@ function CreateAdPage() {
   const [showSubcategoryDropdown, setShowSubcategoryDropdown] = useState(false)
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
+  const [showPhoneVerify, setShowPhoneVerify] = useState(false)
   const [customCity, setCustomCity] = useState('')
   const [useCustomCity, setUseCustomCity] = useState(false)
 
   const { data: filterConfig } = useQuery(filtersQueryOptions())
+  const { data: profile } = useQuery(myProfileQueryOptions(token!))
+
 
   // Получаем подкатегории для выбранной категории
   const availableSubcategories = useMemo(() => {
@@ -127,7 +133,12 @@ function CreateAdPage() {
       navigate({ to: '/my-ads' })
     },
     onError: (err) => {
-      setError(err.message || 'Ошибка при создании объявления')
+      if (err instanceof PhoneNotVerifiedError) {
+        setError('')
+        setShowPhoneVerify(true)
+        return
+      }
+      setError(err instanceof Error ? err.message : 'Ошибка при создании объявления')
     },
   })
 
@@ -202,6 +213,17 @@ function CreateAdPage() {
           </div>
         </div>
       </header>
+      {showPhoneVerify && (
+        <PhoneVerificationModal
+          token={token!}
+          initialPhone={profile?.phone}
+          onClose={() => {
+            setShowPhoneVerify(false)
+            // После успешной верификации profile обновится автоматически
+            // (модалка инвалидирует ['profile'])
+          }}
+        />
+      )}
 
       <div className="page-wrap py-8">
         <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6">

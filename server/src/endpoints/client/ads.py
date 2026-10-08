@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query, Form, File, Depends, UploadFile, HTTPExcep
 from sqlalchemy import select, func, or_, delete
 from sqlalchemy.orm import joinedload, selectinload
 from src.models import Ad, AdStatus, Review, User, AdPhoto, DetailsLog
-from src.auth.dependencies import WebUser, WebAdmin
+from src.auth.dependencies import WebUser, WebAdmin, VerifiedWebUser
 
 from src.kit.database.service import database_service
 from src.services import ad_service, user_service
@@ -124,12 +124,12 @@ async def list_ads(
 @router.post("", response_model=MyAdOut, status_code=201)
 async def create_ad(
     background_tasks: BackgroundTasks,
-    user: WebUser,
     title: Annotated[str, Form()],
     price: Annotated[int, Form()],
     city: Annotated[str, Form()],
     category: Annotated[str, Form()],
     condition: Annotated[str, Form()],
+    user: VerifiedWebUser,
     contact_method: Annotated[str, Form()] = "telegram",
     ad_type: Annotated[str, Form()] = "Продажа",
     country: Annotated[Optional[str], Form()] = None,
@@ -286,7 +286,7 @@ async def resend_ad(
 @router.get("/{ad_id}", response_model=MyAdOut)
 async def get_ad_for_edit(
     ad_id: int,
-    user: WebUser,
+    user: VerifiedWebUser, 
 ):
     """
     Получить объявление для редактирования

@@ -2,7 +2,8 @@ from src.kit.repository.main import BaseRepository
 from src.kit.repository.mixins import IDRepositoryMixin
 from src.models import User
 
-from sqlalchemy import select, func, or_, and_
+from datetime import datetime, timezone
+from sqlalchemy import select, func, or_, update
 from typing import Optional, List, Tuple
 
 
@@ -83,4 +84,21 @@ class UserRepository(BaseRepository[User], IDRepositoryMixin[User, int]):
         
         # Use paginate with filters
         return await self.paginate(stmt, limit, page, filters)
-    
+
+    async def get_by_phone(self, phone: str) -> User | None:
+        result = await self.session.execute(select(User).where(User.phone == phone))
+        return result.scalar_one_or_none()
+
+
+    async def set_verified_phone(self, user_id: int, phone: str) -> None:
+        await self.session.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(
+                phone=phone,
+                phone_verified=True,
+                phone_verified_at=datetime.now(timezone.utc),
+            )
+        )
+        await self.session.commit()
+        

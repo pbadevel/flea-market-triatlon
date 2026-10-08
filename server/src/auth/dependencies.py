@@ -1,4 +1,5 @@
 from typing import Annotated
+import redis.asyncio as redis
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -10,6 +11,12 @@ from src.exceptions import Banned, Forbidden, Unauthorized
 from src.models import User, UserSession
 from src.postgres import get_db_session
 
+from src.config import settings
+from src.exceptions import PhoneNotVerifiedError
+from src.services.phone_verification import PhoneVerificationService
+from src.repositories import UserRepository
+
+
 from .service import auth as auth_service
 
 user_session_scheme = HTTPBearer(
@@ -18,6 +25,9 @@ user_session_scheme = HTTPBearer(
     description="User session JWT token",
 )
 
+def get_user_repo(session: AsyncSession = Depends(get_db_session)) -> UserRepository:
+    """Получить репозиторий пользователей"""
+    return UserRepository(session)
 
 async def get_user_session(
     credentials: HTTPAuthorizationCredentials | None = Depends(user_session_scheme),
@@ -38,6 +48,34 @@ def get_user(user_session: UserSession | None = Depends(get_user_session)) -> Us
     if user_session.user.is_banned:
         raise Banned(message="Аккаунт заблокирован")
     return user_session.user
+
+
+# ─── Redis клиент для верификации телефона (DB 2) ─────────────────────
+_phone_verification_redis: redis.Redis = redis.from_url(
+    settings.phone_verification_redis_url,
+    decode_responses=True,
+)
+
+
+async def get_phone_verification_redis() -> redis.Redis:
+    """Redis клиент для сервиса верификации телефона"""
+    return _phone_verification_redis
+
+
+async def get_phone_verification_service(
+    redis_client: redis.Redis = Depends(get_phone_verification_redis),
+) -> PhoneVerificationService:
+    """Сервис верификации телефона"""
+    return PhoneVerificationService(redis_client)
+
+
+async def require_verified_phone(
+    user: User = Depends(get_user),
+) -> User:
+    """Гард для действий продавца"""
+    if not user.phone_verified:
+        raise PhoneNotVerifiedError()
+    return user
 
 
 class Authenticator:
@@ -75,3 +113,5 @@ WebAdmin = Annotated[User, Depends(WebAdminAuthenticator)]
 
 WebModeratorAuthenticator = Authenticator(scopes={Scope.web_moderator})
 WebModerator = Annotated[User, Depends(WebModeratorAuthenticator)]
+
+VerifiedWebUser = Annotated[User, Depends(require_verified_phone)]

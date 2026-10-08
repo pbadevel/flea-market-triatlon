@@ -11,12 +11,6 @@ else:
     load_dotenv()
 
 
-"""Токен бота"""
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
-
-"""База данных"""
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
 """Поддержка"""
 LOG_CHAT_ID = os.environ.get('LOG_CHAT_ID')
 SUPPORT_USER_ID = int(os.environ.get('SUPPORT_USER_ID', '0'))

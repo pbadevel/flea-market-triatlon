@@ -1,0 +1,69 @@
+2026-09-28 22:14:59 | SYSTEM     | 🚀 система логирования запущена
+2026-09-28 22:15:22 | SYSTEM     | 🚀 система логирования запущена
+2026-09-28 22:15:23 | SYSTEM     | бот запущен и готов к работе
+2026-09-28 22:15:23 | SYSTEM     | Планировщик поднятий запущен
+2026-09-28 22:15:24 | SYSTEM     | объявление #1303 обновлено: ['next_boost_at']
+2026-09-28 22:15:24 | SYSTEM     | Получено событие от пользователя 1060834219: Текст сообщения - '/start', Данные callback - 'None'
+2026-09-28 22:15:24 | SYSTEM     | Получено событие от пользователя 1060834219: Текст сообщения - '/start', Данные callback - 'None'
+2026-09-28 22:15:24 | SYSTEM     | Получено событие от пользователя 1060834219: Текст сообщения - '/start', Данные callback - 'None'
+2026-09-28 22:15:24 | SYSTEM     | start_command called by user 1060834219
+2026-09-28 22:15:24 | SYSTEM     | start_command called by user 1060834219
+2026-09-28 22:15:24 | SYSTEM     | start_command called by user 1060834219
+2026-09-28 22:15:24 | user:1060834219 | @pbadev (ID: 1060834219) запустил бота
+2026-09-28 22:15:24 | user:1060834219 | @pbadev (ID: 1060834219) запустил бота
+2026-09-28 22:15:24 | user:1060834219 | @pbadev (ID: 1060834219) запустил бота
+2026-09-28 22:15:24 | SYSTEM     | Не удалось отправить напоминание для #1303: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | SYSTEM     | объявление #1329 обновлено: ['next_boost_at']
+2026-09-28 22:15:24 | SYSTEM     | Не удалось отправить напоминание для #1329: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | SYSTEM     | объявление #1111 обновлено: ['next_boost_at']
+2026-09-28 22:15:24 | SYSTEM     | Не удалось отправить напоминание для #1111: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | SYSTEM     | объявление #1328 обновлено: ['next_boost_at']
+2026-09-28 22:15:24 | SYSTEM     | Не удалось отправить напоминание для #1328: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | SYSTEM     | объявление #1336 обновлено: ['next_boost_at']
+2026-09-28 22:15:24 | SYSTEM     | Не удалось удалить сообщение /start: Telegram server says - Bad Request: message to delete not found
+2026-09-28 22:15:25 | SYSTEM     | Не удалось отправить напоминание для #1336: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | SYSTEM     | объявление #1368 обновлено: ['next_boost_at']
+2026-09-28 22:15:25 | SYSTEM     | Не удалось отправить напоминание для #1368: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | SYSTEM     | объявление #1377 обновлено: ['next_boost_at']
+2026-09-28 22:15:25 | SYSTEM     | Не удалось отправить напоминание для #1377: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | SYSTEM     | объявление #1380 обновлено: ['next_boost_at']
+2026-09-28 22:15:25 | SYSTEM     | Не удалось отправить напоминание для #1380: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | SYSTEM     | объявление #1378 обновлено: ['next_boost_at']
+2026-09-28 22:15:25 | SYSTEM     | Не удалось отправить напоминание для #1378: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-09-28 22:15:25 | SYSTEM     | объявление #1350 обновлено: ['next_boost_at']
+2026-09-28 22:15:26 | SYSTEM     | Завершение работы бота, закрытие сессий...
+2026-09-28 22:15:26 | SYSTEM     | Сессия бота успешно закрыта.
+2026-09-28 22:20:04 | SYSTEM     | 🚀 система логирования запущена
+2026-09-28 22:20:04 | SYSTEM     | бот запущен и готов к работе
+2026-09-28 22:20:04 | SYSTEM     | Планировщик поднятий запущен
+2026-09-28 22:20:05 | SYSTEM     | объявление #1350 обновлено: ['next_boost_at']
+2026-09-28 22:20:05 | SYSTEM     | Получено событие от пользователя 195246728: Текст сообщения - '/start item_1425', Данные callback - 'None'
+2026-09-28 22:20:05 | SYSTEM     | Получено событие от пользователя 195246728: Текст сообщения - '/start item_1427', Данные callback - 'None'
+2026-09-28 22:20:05 | SYSTEM     | start_command called by user 195246728
+2026-09-28 22:20:05 | SYSTEM     | start_command called by user 195246728
+2026-09-28 22:20:05 | user:195246728 | @garmintri (ID: 195246728) запустил бота
+2026-09-28 22:20:05 | SYSTEM     | Обработка deep link item_1425 (from_profile=False) для пользователя 195246728
+2026-09-28 22:20:05 | user:195246728 | @garmintri (ID: 195246728) запустил бота
+2026-09-28 22:20:05 | SYSTEM     | Обработка deep link item_1427 (from_profile=False) для пользователя 195246728
+2026-09-28 22:20:05 | SYSTEM     | Объявление 1425 найдено, статус: approved
+2026-09-28 22:20:05 | SYSTEM     | Объявление 1427 не найдено в базе данных
+2026-09-28 22:20:07 | SYSTEM     | Не удалось отправить напоминание для #1350: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:07 | SYSTEM     | объявление #1323 обновлено: ['next_boost_at']
+2026-09-28 22:20:07 | SYSTEM     | show_ad_details: ad_id=1425, ad=Ad(id=1425), status=approved
+2026-09-28 22:20:07 | user:195246728 | @garmintri (ID: 195246728) посмотрел объявление #1425 'ggndknd'
+2026-09-28 22:20:07 | SYSTEM     | show_ad_details: ad_id=1427, ad=None, status=None
+2026-09-28 22:20:07 | SYSTEM     | Объявление с id=1427 не найдено в базе данных
+2026-09-28 22:20:08 | SYSTEM     | Не удалось отправить напоминание для #1323: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:08 | SYSTEM     | объявление #1382 обновлено: ['next_boost_at']
+2026-09-28 22:20:09 | SYSTEM     | Событие от пользователя 195246728 обработано успешно.
+2026-09-28 22:20:09 | SYSTEM     | Событие от пользователя 195246728 обработано успешно.
+2026-09-28 22:20:09 | SYSTEM     | Не удалось отправить напоминание для #1382: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:09 | SYSTEM     | объявление #1352 обновлено: ['next_boost_at']
+2026-09-28 22:20:09 | SYSTEM     | Не удалось отправить напоминание для #1352: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:09 | SYSTEM     | объявление #1379 обновлено: ['next_boost_at']
+2026-09-28 22:20:10 | SYSTEM     | Не удалось отправить напоминание для #1379: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:10 | SYSTEM     | объявление #1355 обновлено: ['next_boost_at']
+2026-09-28 22:20:11 | SYSTEM     | Не удалось отправить напоминание для #1355: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-09-28 22:20:11 | SYSTEM     | объявление #1388 обновлено: ['next_boost_at']
+2026-09-28 22:20:11 | SYSTEM     | Завершение работы бота, закрытие сессий...
+2026-09-28 22:20:11 | SYSTEM     | Сессия бота успешно закрыта.

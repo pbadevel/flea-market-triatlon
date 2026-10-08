@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     DATABASE_POOL_RECYCLE_SECONDS: int = 600  # 10 minutes
     DATABASE_COMMAND_TIMEOUT_SECONDS: float = 30.0
 
+    phone_verification_redis_url: str = "redis://localhost:6379/2"
+
     DEPOSIT_STAR_USD_PRICE: float = 1.0
 
     # TOKENS
@@ -73,6 +75,13 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
 
+    # SMS
+
+    GREENSMS_PASSWORD: SecretStr
+    GREENSMS_USER: SecretStr
+    SMS_PROVIDER: str = 'greensms'
+    SMS_SENDER: str = "Triatlon Baraholka"
+
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100
 
@@ -84,6 +93,15 @@ class Settings(BaseSettings):
         case_sensitive=False,
         env_file=env_file,
     )
+
+
+    @property
+    def greensms_user(self):
+        return self.GREENSMS_USER.get_secret_value()
+
+    @property
+    def greensms_password(self):
+        return self.GREENSMS_PASSWORD.get_secret_value()
 
     
     def get_webhook_secret_token(self) -> str | None:

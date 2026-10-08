@@ -12,6 +12,7 @@ class UserProfileOut(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
+    phone_verified: Optional[bool] = False
     preferred_contact: Optional[str] = None
     contact_value: Optional[str] = None
     email: Optional[str] = None  # Email из credentials

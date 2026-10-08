@@ -94,12 +94,25 @@ async def main():
 
     # Запускаем фоновый планировщик поднятий
     from src.bot.services.scheduler import run_scheduler
-    asyncio.create_task(run_scheduler())
+    scheduler_task = asyncio.create_task(run_scheduler())
     
     logger.info("бот запущен и готов к работе")
 
-    await dp.start_polling(bot)
+    try:
+        # Включаем поллинг
+        await dp.start_polling(bot)
+    finally:
+        # --- ГРАЦЕФУЛЬНОЕ ЗАКРЫТИЕ (Убирает Unclosed client session) ---
+        logger.info("Завершение работы бота, закрытие сессий...")
+        
+        # Закрываем сессию бота aiogram (внутри нее лежит aiohttp ClientSession)
+        await bot.session.close()
+        logger.info("Сессия бота успешно закрыта.")
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.warning("Бот был остановлен пользователем или системным сигналом (SIGINT/SIGTERM).")
+

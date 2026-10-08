@@ -1,0 +1,17 @@
+2026-09-28 22:15:24 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1303: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1329: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1111: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:24 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1328: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1336: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1368: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1377: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1380: Telegram server says - Bad Request: chat not found
+2026-09-28 22:15:25 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1378: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-09-28 22:20:05 | WARNING  | src.bot.handlers.start:start_command:364 | Объявление 1427 не найдено в базе данных
+2026-09-28 22:20:07 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1350: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:07 | WARNING  | src.bot.handlers.catalog.details:show_ad_details:126 | Объявление с id=1427 не найдено в базе данных
+2026-09-28 22:20:08 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1323: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:09 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1382: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:09 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1352: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:10 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1379: Telegram server says - Bad Request: chat not found
+2026-09-28 22:20:11 | WARNING  | src.bot.services.scheduler:_send_reminder:83 | Не удалось отправить напоминание для #1355: HTTP Client says - ServerDisconnectedError: Server disconnected
