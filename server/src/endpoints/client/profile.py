@@ -147,7 +147,6 @@ async def update_my_profile(
                 await session.flush()
                 
                 if data.email:
-                    # ИСПРАВЛЕНО: используем new_creds вместо credentials
                     confirm_url = f"{settings.SITE_URL}/auth/confirm-email?token={new_creds.email_confirm_token}"
                     html = f"""<html><body style="font-family:Arial;padding:20px">
                         <h2>Подтвердите регистрацию</h2>
