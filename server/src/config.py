@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     GREENSMS_PASSWORD: SecretStr
     GREENSMS_USER: SecretStr
     SMS_PROVIDER: str = 'greensms'
-    SMS_SENDER: str = "Triatlon Baraholka"
+    SMS_SENDER: str = "Triatlon"
 
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100
