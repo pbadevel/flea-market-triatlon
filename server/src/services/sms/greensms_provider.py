@@ -52,9 +52,9 @@ class GreenSMSProvider(BaseSMSProvider):
                 if response.status_code == 200:
                     request_id = data.get("request_id")
                     logger.info(
-                        "sms_sent_successfully\n"
-                        f"phone={phone}\n"
-                        f"frequest_id={request_id}\n"
+                        "sms_sent_successfully "
+                        f"phone={phone} "
+                        f"frequest_id={request_id} "
                     )
                     return request_id
 
@@ -77,10 +77,10 @@ class GreenSMSProvider(BaseSMSProvider):
 
                 user_message = error_messages.get(error_code, f"Ошибка отправки SMS: {error_message}")
                 logger.error(
-                    "sms_send_failed\n"
-                    f"phone={phone}\n"
-                    f"error_code={error_code}\n",
-                    f"error_message={error_message}\n"
+                    "sms_send_failed "
+                    f"phone={phone} "
+                    f"error_code={error_code} ",
+                    f"error_message={error_message} "
                     f"status_code={response.status_code}"
                 )
                 raise SMSDeliveryError(user_message)
@@ -115,8 +115,8 @@ class GreenSMSProvider(BaseSMSProvider):
 
                 data = response.json()
                 logger.error(
-                    "sms_status_check_failed\n"
-                    f"request_id={request_id}\n"
+                    "sms_status_check_failed "
+                    f"request_id={request_id} "
                     f'error={data.get("error")}'
                 )
                 return {"status": "Unknown", "status_code": -1}
