@@ -272,10 +272,10 @@ def send_sms_task(self, phone: str, message: str) -> Dict[str, Any]:
     try:
         request_id = run_async(_send())
         logger.info(
-            "SMS sent successfully",
-            phone=phone,
-            request_id=request_id,
-            attempt=self.request.retries + 1,
+            f"SMS sent successfully"
+            f"phone={phone}"
+            f"request_id={request_id}"
+            f"attempt={self.request.retries + 1}"
         )
         return {
             "status": "ok",
@@ -286,10 +286,11 @@ def send_sms_task(self, phone: str, message: str) -> Dict[str, Any]:
         # Ошибка от GreenSMS (недостаточно средств, неверный номер и т.д.)
         # НЕ ретраим такие ошибки — они постоянные
         logger.error(
-            "SMS delivery error (permanent)",
-            phone=phone,
-            error=str(e),
-            attempt=self.request.retries + 1,
+            "SMS delivery error (permanent)"
+            f"phone={phone}"
+            f"request_id={request_id}"
+            f"attempt={self.request.retries + 1}"
+            f"error={str(e)}"
         )
         return {
             "status": "failed",
@@ -300,21 +301,22 @@ def send_sms_task(self, phone: str, message: str) -> Dict[str, Any]:
     except (ConnectionError, TimeoutError, OSError) as e:
         # Сетевые ошибки — ретраим с экспоненциальной задержкой
         logger.warning(
-            "SMS send failed (network error, will retry)",
-            phone=phone,
-            error=str(e),
-            attempt=self.request.retries + 1,
-            max_retries=self.max_retries,
+            "SMS send failed (network error, will retry)"
+            f"phone={phone}"
+            f"request_id={request_id}"
+            f"attempt={self.request.retries + 1}"
+            f"error={str(e)}"
+            f"max_retries={self.max_retries}"
         )
         raise
     except Exception as e:
         # Неизвестные ошибки — логируем, но не ретраим
         logger.error(
-            "SMS send failed (unexpected error)",
-            phone=phone,
-            error=str(e),
-            attempt=self.request.retries + 1,
-            exc_info=True,
+            "SMS send failed (unexpected error)"
+            f"phone={phone}"
+            f"error={str(e)}"
+            f"attempt={self.request.retries + 1}",
+            exc_info=True
         )
         return {
             "status": "failed",
@@ -356,10 +358,10 @@ def check_sms_status(self, phone: str, request_id: str) -> Dict[str, Any]:
     try:
         status = run_async(_check())
         logger.info(
-            "SMS status check",
-            phone=phone,
-            request_id=request_id,
-            status=status,
+            "SMS status check"
+            f"phone={phone}"
+            f"request_id={request_id}"
+            f"status={status}"
         )
         return {
             "status": "ok",
@@ -369,10 +371,10 @@ def check_sms_status(self, phone: str, request_id: str) -> Dict[str, Any]:
         }
     except Exception as e:
         logger.warning(
-            "SMS status check failed",
-            phone=phone,
-            request_id=request_id,
-            error=str(e),
+            "SMS status check failed"
+            f"phone={phone}"
+            f"request_id={request_id}"
+            f"error={str(e)}"
         )
         if self.request.retries < self.max_retries:
             raise self.retry(exc=e, countdown=60)
