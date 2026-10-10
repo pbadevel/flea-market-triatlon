@@ -15,6 +15,7 @@ class GreenSMSProvider(BaseSMSProvider):
     """
 
     BASE_URL = "https://api3.greensms.ru"
+    CODE_PROVIDER = 'telegram' # sms
 
     def __init__(self, user: str, password: str, sender: str = "FleaMarket") -> None:
         self.user = user
@@ -34,7 +35,7 @@ class GreenSMSProvider(BaseSMSProvider):
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
-                    f"{self.BASE_URL}/sms/send",
+                    f"{self.BASE_URL}/{self.CODE_PROVIDER}/send",
                     data={
                         "user": self.user,
                         "pass": self.password,
@@ -100,7 +101,7 @@ class GreenSMSProvider(BaseSMSProvider):
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.BASE_URL}/sms/status",
+                    f"{self.BASE_URL}/{self.CODE_PROVIDER}/status",
                     params={
                         "user": self.user,
                         "pass": self.password,

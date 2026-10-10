@@ -104,7 +104,7 @@ class PhoneVerificationService:
         pipe.set(self._cooldown_key(phone), "1", ex=self.RESEND_COOLDOWN)
         await pipe.execute()
 
-        message = f"Ваш код подтверждения: {code}"
+        message = f"{code}"
 
         # Отправка SMS
         if settings.SMS_PROVIDER == "test":
