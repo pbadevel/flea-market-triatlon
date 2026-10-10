@@ -39,7 +39,7 @@ def _hash_code(code: str) -> str:
 
 class PhoneVerificationService:
     CODE_LENGTH_SMS = 6
-    CODE_LENGTH_TELEGRAM = 4
+    CODE_LENGTH_TELEGRAM = 6
     CODE_TTL = 300
     RESEND_COOLDOWN = 60
     MAX_ATTEMPTS = 5

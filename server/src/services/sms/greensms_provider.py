@@ -26,7 +26,7 @@ class GreenSMSProvider(BaseSMSProvider):
         
         # Валидация для Telegram API
         if self.code_provider == "telegram":
-            if not (4 <= len(message) <= 8):
+            if not (6 <= len(message) <= 8):
                 logger.error(f"message: {message}")
                 raise SMSDeliveryError(
                     f"Telegram требует код 4-8 символов, получено {len(message)}"
