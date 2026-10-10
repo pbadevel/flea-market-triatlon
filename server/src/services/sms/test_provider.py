@@ -1,9 +1,9 @@
 # src/services/sms/test_provider.py
-from structlog import get_logger
+from src.logging import get_logger
 
 from src.services.sms.base import BaseSMSProvider
 
-logger = get_logger(__name__)
+logger = get_logger()
 
 
 class TestSMSProvider(BaseSMSProvider):

@@ -9,13 +9,13 @@ import re
 import secrets
 
 import redis.asyncio as redis
-from structlog import get_logger
+from src.logging import get_logger
 
 from src.config import settings
 from src.exceptions import PhoneVerificationError
 from src.services.sms.factory import get_sms_provider
 
-logger = get_logger(__name__)
+logger = get_logger()
 
 
 def normalize_phone(phone: str) -> str:
@@ -104,7 +104,7 @@ class PhoneVerificationService:
         pipe.set(self._cooldown_key(phone), "1", ex=self.RESEND_COOLDOWN)
         await pipe.execute()
 
-        message = f"{code} — код подтверждения Trisale."
+        message = f"Ваш код подтверждения: {code}"
 
         # Отправка SMS
         if settings.SMS_PROVIDER == "test":
