@@ -288,7 +288,6 @@ def send_sms_task(self, phone: str, message: str) -> Dict[str, Any]:
         logger.error(
             "SMS delivery error (permanent)"
             f"phone={phone}"
-            f"request_id={request_id}"
             f"attempt={self.request.retries + 1}"
             f"error={str(e)}"
         )

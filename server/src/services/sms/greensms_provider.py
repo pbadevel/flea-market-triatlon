@@ -17,7 +17,7 @@ class GreenSMSProvider(BaseSMSProvider):
     BASE_URL = "https://api3.greensms.ru"
     CODE_PROVIDER = 'telegram' # sms
 
-    def __init__(self, user: str, password: str, sender: str = "FleaMarket") -> None:
+    def __init__(self, user: str, password: str, sender: str = "GREENSMS") -> None:
         self.user = user
         self.password = password
         self.sender = sender
@@ -41,7 +41,7 @@ class GreenSMSProvider(BaseSMSProvider):
                         "pass": self.password,
                         "to": phone_normalized,
                         "txt": message,
-                        "from": self.sender,
+                        # "from": self.sender,
                     },
                 )
 
@@ -51,9 +51,9 @@ class GreenSMSProvider(BaseSMSProvider):
                 if response.status_code == 200:
                     request_id = data.get("request_id")
                     logger.info(
-                        "sms_sent_successfully",
-                        phone=phone,
-                        request_id=request_id,
+                        "sms_sent_successfully\n"
+                        f"phone={phone}\n"
+                        f"frequest_id={request_id}\n"
                     )
                     return request_id
 
@@ -76,11 +76,11 @@ class GreenSMSProvider(BaseSMSProvider):
 
                 user_message = error_messages.get(error_code, f"Ошибка отправки SMS: {error_message}")
                 logger.error(
-                    "sms_send_failed",
-                    phone=phone,
-                    error_code=error_code,
-                    error_message=error_message,
-                    status_code=response.status_code,
+                    "sms_send_failed\n"
+                    f"phone={phone}\n"
+                    f"error_code={error_code}\n",
+                    f"error_message={error_message}\n"
+                    f"status_code={response.status_code}"
                 )
                 raise SMSDeliveryError(user_message)
 
@@ -114,9 +114,9 @@ class GreenSMSProvider(BaseSMSProvider):
 
                 data = response.json()
                 logger.error(
-                    "sms_status_check_failed",
-                    request_id=request_id,
-                    error=data.get("error"),
+                    "sms_status_check_failed\n"
+                    f"request_id={request_id}\n"
+                    f'error={data.get("error")}'
                 )
                 return {"status": "Unknown", "status_code": -1}
 
