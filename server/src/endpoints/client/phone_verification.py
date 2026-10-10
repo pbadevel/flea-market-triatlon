@@ -41,7 +41,7 @@ async def verify_code(
 ):
     """Проверка кода и подтверждение номера"""
     phone = await service.verify_code(payload.phone, payload.code)
-
+    phone = phone.replace("+", "")
     # Проверка уникальности номера
     existing = await user_repo.get_by_phone(phone)
     if existing and existing.id != user.id:
