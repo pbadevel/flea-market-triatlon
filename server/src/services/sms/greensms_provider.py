@@ -30,7 +30,8 @@ class GreenSMSProvider(BaseSMSProvider):
             request_id для отслеживания статуса
         """
         # Формат телефона для GreenSMS: без + (79991234567)
-        phone_normalized = phone.lstrip("+")
+        phone = phone.replace("+", "")
+        logger.info(f"sending... {phone}")
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -39,7 +40,7 @@ class GreenSMSProvider(BaseSMSProvider):
                     data={
                         "user": self.user,
                         "pass": self.password,
-                        "to": phone_normalized,
+                        "to": phone,
                         "txt": message,
                         # "from": self.sender,
                     },
