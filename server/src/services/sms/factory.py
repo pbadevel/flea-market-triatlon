@@ -14,6 +14,6 @@ def get_sms_provider() -> BaseSMSProvider:
         return GreenSMSProvider(
             user=settings.greensms_user,
             password=settings.greensms_password,
-            sender=settings.SMS_SENDER or "FleaMarket",
+            sender=settings.SMS_SENDER,
         )
     return TestSMSProvider()

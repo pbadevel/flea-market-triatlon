@@ -81,6 +81,7 @@ class Settings(BaseSettings):
     GREENSMS_USER: SecretStr
     SMS_PROVIDER: str = 'greensms'
     SMS_SENDER: str = "GREENSMS"
+    CODE_PROVIDER: str = 'telegram'
 
     # Application behaviours
     API_PAGINATION_MAX_LIMIT: int = 100

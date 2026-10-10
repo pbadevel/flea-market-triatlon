@@ -39,14 +39,21 @@ def _hash_code(code: str) -> str:
 
 
 class PhoneVerificationService:
-    CODE_LENGTH = 6
-    CODE_TTL = 300            # 5 минут
-    RESEND_COOLDOWN = 60      # 1 минута между отправками
+    CODE_LENGTH_SMS = 6      # Для SMS можно 6 цифр
+    CODE_LENGTH_TELEGRAM = 4  # Для Telegram строго 4-8, берём 4 для надёжности
+    CODE_TTL = 300
+    RESEND_COOLDOWN = 60
     MAX_ATTEMPTS = 5
     MAX_SENDS_PER_HOUR = 3
 
     def __init__(self, redis_client: redis.Redis) -> None:
         self._redis = redis_client
+        
+        self.code_length = (
+            self.CODE_LENGTH_TELEGRAM 
+            if settings.SMS_PROVIDER == "greensms" and settings.CODE_PROVIDER == "telegram"
+            else self.CODE_LENGTH_SMS
+        )
 
     # ── ключи Redis ─────────────────────────────────────────────
     @staticmethod
@@ -69,14 +76,8 @@ class PhoneVerificationService:
     def _request_id_key(phone: str) -> str:
         return f"phone_verify:request_id:{phone}"
 
-    # ── отправка кода ───────────────────────────────────────────
+    # ── отправка кода ──────────────────────────────────────────-
     async def send_code(self, phone: str) -> tuple[str, str]:
-        """
-        Генерирует код, сохраняет в Redis и отправляет SMS
-        
-        Returns:
-            (нормализованный номер, request_id)
-        """
         phone = normalize_phone(phone)
 
         # Cooldown между отправками
@@ -94,8 +95,8 @@ class PhoneVerificationService:
         if sends > self.MAX_SENDS_PER_HOUR:
             raise PhoneVerificationError("Превышен лимит отправок. Попробуйте через час.")
 
-        # Генерация кода
-        code = "".join(str(secrets.randbelow(10)) for _ in range(self.CODE_LENGTH))
+        # Генерация кода с правильной длиной
+        code = "".join(str(secrets.randbelow(10)) for _ in range(self.code_length))
 
         # Сохранение в Redis
         pipe = self._redis.pipeline()
@@ -104,20 +105,19 @@ class PhoneVerificationService:
         pipe.set(self._cooldown_key(phone), "1", ex=self.RESEND_COOLDOWN)
         await pipe.execute()
 
-        message = f"{code}"
+        # ИСПРАВЛЕНО: только код без текста (для Telegram обязательно)
+        message = code
 
-        # Отправка SMS
+        # Отправка
         if settings.SMS_PROVIDER == "test":
-            # Dev: синхронно через TestSMSProvider
             provider = get_sms_provider()
             request_id = await provider.send(phone, message)
         else:
-            # Prod: через Celery с ретраями
             from src.workers.tasks import send_sms_task
             result = send_sms_task.delay(phone, message)
-            request_id = result.id  # Celery task ID
+            request_id = result.id
 
-        # Сохраняем request_id для отслеживания статуса
+        # Сохраняем request_id
         await self._redis.setex(
             self._request_id_key(phone),
             self.CODE_TTL,
@@ -125,13 +125,14 @@ class PhoneVerificationService:
         )
 
         logger.info(
-            "verification_code_sent",
-            phone=phone,
-            request_id=request_id,
+            "verification_code_sent "
+            f"phone={phone} "
+            f"request_id={request_id} "
+            f"code_length={self.code_length} "
         )
         
         return phone, request_id
-
+    
     # ── проверка кода ───────────────────────────────────────────
     async def verify_code(self, phone: str, code: str) -> str:
         """Проверяет код. При успехе очищает состояние."""
@@ -202,3 +203,6 @@ class PhoneVerificationService:
             "attempts_left": self.MAX_ATTEMPTS - int(attempts or 0),
             "sms_status": sms_status,
         }
+
+
+    
