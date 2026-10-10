@@ -1,4 +1,3 @@
-# src/services/phone_verification.py
 """
 Сервис верификации телефона через SMS-код с использованием GreenSMS API v3
 """
@@ -39,8 +38,8 @@ def _hash_code(code: str) -> str:
 
 
 class PhoneVerificationService:
-    CODE_LENGTH_SMS = 6      # Для SMS можно 6 цифр
-    CODE_LENGTH_TELEGRAM = 4  # Для Telegram строго 4-8, берём 4 для надёжности
+    CODE_LENGTH_SMS = 6
+    CODE_LENGTH_TELEGRAM = 4
     CODE_TTL = 300
     RESEND_COOLDOWN = 60
     MAX_ATTEMPTS = 5
@@ -48,11 +47,21 @@ class PhoneVerificationService:
 
     def __init__(self, redis_client: redis.Redis) -> None:
         self._redis = redis_client
+        # Определяем длину кода в зависимости от провайдера
+        code_provider = getattr(settings, 'CODE_PROVIDER', 'sms')
+        sms_provider = getattr(settings, 'SMS_PROVIDER', 'test')
         
         self.code_length = (
             self.CODE_LENGTH_TELEGRAM 
-            if settings.SMS_PROVIDER == "greensms" and settings.CODE_PROVIDER == "telegram"
+            if sms_provider == "greensms" and code_provider == "telegram"
             else self.CODE_LENGTH_SMS
+        )
+        
+        logger.info(
+            "phone_verification_service_init",
+            sms_provider=sms_provider,
+            code_provider=code_provider,
+            code_length=self.code_length,
         )
 
     # ── ключи Redis ─────────────────────────────────────────────
@@ -76,8 +85,14 @@ class PhoneVerificationService:
     def _request_id_key(phone: str) -> str:
         return f"phone_verify:request_id:{phone}"
 
-    # ── отправка кода ──────────────────────────────────────────-
+    # ── отправка кода ───────────────────────────────────────────
     async def send_code(self, phone: str) -> tuple[str, str]:
+        """
+        Генерирует код, сохраняет в Redis и отправляет SMS
+        
+        Returns:
+            (нормализованный номер, request_id)
+        """
         phone = normalize_phone(phone)
 
         # Cooldown между отправками
@@ -105,8 +120,16 @@ class PhoneVerificationService:
         pipe.set(self._cooldown_key(phone), "1", ex=self.RESEND_COOLDOWN)
         await pipe.execute()
 
-        # ИСПРАВЛЕНО: только код без текста (для Telegram обязательно)
+        # ИСПРАВЛЕНО: ТОЛЬКО КОД, БЕЗ ТЕКСТА!
+        # Telegram API требует 4-8 символов, SMS тоже лучше короткий
         message = code
+
+        logger.info(
+            "generated_code",
+            phone=phone,
+            code_length=len(code),
+            message_length=len(message),
+        )
 
         # Отправка
         if settings.SMS_PROVIDER == "test":
@@ -125,14 +148,15 @@ class PhoneVerificationService:
         )
 
         logger.info(
-            "verification_code_sent "
-            f"phone={phone} "
-            f"request_id={request_id} "
-            f"code_length={self.code_length} "
+            "verification_code_sent",
+            phone=phone,
+            request_id=request_id,
+            code_length=self.code_length,
+            message_length=len(message),
         )
         
         return phone, request_id
-    
+
     # ── проверка кода ───────────────────────────────────────────
     async def verify_code(self, phone: str, code: str) -> str:
         """Проверяет код. При успехе очищает состояние."""
@@ -168,12 +192,7 @@ class PhoneVerificationService:
 
     # ── проверка статуса доставки SMS ───────────────────────────
     async def get_sms_status(self, phone: str) -> dict | None:
-        """
-        Проверяет статус доставки SMS через GreenSMS API
-        
-        Returns:
-            dict с status, status_code, time или None
-        """
+        """Проверяет статус доставки SMS через GreenSMS API"""
         phone = normalize_phone(phone)
         request_id = await self._redis.get(self._request_id_key(phone))
         
@@ -193,7 +212,6 @@ class PhoneVerificationService:
         cooldown_ttl = await self._redis.ttl(self._cooldown_key(phone))
         attempts = await self._redis.get(self._attempts_key(phone))
 
-        # Проверяем статус доставки SMS
         sms_status = await self.get_sms_status(phone)
 
         return {
@@ -203,6 +221,3 @@ class PhoneVerificationService:
             "attempts_left": self.MAX_ATTEMPTS - int(attempts or 0),
             "sms_status": sms_status,
         }
-
-
-    
