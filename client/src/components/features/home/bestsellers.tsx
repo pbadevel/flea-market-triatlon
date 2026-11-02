@@ -1,11 +1,11 @@
 // src/components/features/home/bestsellers.tsx
-import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Filters } from "./filters";
-import { adsQueryOptions, filtersQueryOptions } from "@/lib/queries/ads";
-import { AdFilters } from "@/types/ad";
+import { Link } from '@tanstack/react-router'
+import { ChevronLeft, ChevronRight, Filter, MapPin, Tag } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { Filters } from './filters'
+import { adsQueryOptions, filtersQueryOptions } from '@/lib/queries/ads'
+import { AdFilters } from '@/types/ad'
 
 // --- Компонент пагинации ---
 function Pagination({
@@ -13,17 +13,17 @@ function Pagination({
   totalPages,
   onPageChange,
 }: {
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  page: number
+  totalPages: number
+  onPageChange: (page: number) => void
 }) {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) return null
 
   const handlePageClick = (p: number) => {
-    onPageChange(p);
+    onPageChange(p)
     // Плавная прокрутка наверх при смене страницы
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const renderPageButton = (p: number) => (
     <button
@@ -37,32 +37,32 @@ function Pagination({
     >
       {p}
     </button>
-  );
+  )
 
   const renderEllipsis = (key: string) => (
     <span key={key} className="px-2 text-(--sea-ink-soft)">
       ...
     </span>
-  );
+  )
 
-  const pages: (number | string)[] = [];
-  const maxVisible = 5;
-  
+  const pages: (number | string)[] = []
+  const maxVisible = 5
+
   if (totalPages <= maxVisible) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
+    for (let i = 1; i <= totalPages; i++) pages.push(i)
   } else {
-    pages.push(1);
-    if (page > 3) pages.push('ellipsis-start');
-    
-    const start = Math.max(2, page - 1);
-    const end = Math.min(totalPages - 1, page + 1);
-    
+    pages.push(1)
+    if (page > 3) pages.push('ellipsis-start')
+
+    const start = Math.max(2, page - 1)
+    const end = Math.min(totalPages - 1, page + 1)
+
     for (let i = start; i <= end; i++) {
-      pages.push(i);
+      pages.push(i)
     }
-    
-    if (page < totalPages - 2) pages.push('ellipsis-end');
-    pages.push(totalPages);
+
+    if (page < totalPages - 2) pages.push('ellipsis-end')
+    pages.push(totalPages)
   }
 
   return (
@@ -77,7 +77,7 @@ function Pagination({
       </button>
 
       {pages.map((p) =>
-        typeof p === 'string' ? renderEllipsis(p) : renderPageButton(p)
+        typeof p === 'string' ? renderEllipsis(p) : renderPageButton(p),
       )}
 
       <button
@@ -89,53 +89,71 @@ function Pagination({
         <ChevronRight className="size-4" />
       </button>
     </div>
-  );
+  )
 }
 // ---------------------------
 
-export function Bestsellers() {
+export function Bestsellers({
+  categoriesOverride,
+}: { categoriesOverride?: string[] } = {}) {
   const [filters, setFilters] = useState<AdFilters>({
     page: 1,
     limit: 20,
     sort: 'created_at_desc',
-  });
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  })
 
-  const { data: adsData, isLoading, isError, error } = useQuery(
-    adsQueryOptions(filters)
-  );
+  // Синхронизация с плитками категорий на главной (HeroHome)
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      categories: categoriesOverride?.length ? categoriesOverride : undefined,
+      page: 1,
+    }))
+  }, [categoriesOverride])
 
-  const { data: filterConfig } = useQuery(filtersQueryOptions());
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
 
-  const totalPages = Math.ceil((adsData?.total || 0) / (filters.limit || 20));
-  const ads = adsData?.data || [];
+  const {
+    data: adsData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery(adsQueryOptions(filters))
+
+  const { data: filterConfig } = useQuery(filtersQueryOptions())
+
+  const totalPages = Math.ceil((adsData?.total || 0) / (filters.limit || 20))
+  const ads = adsData?.data || []
 
   const handlePageChange = (newPage: number) => {
-    setFilters((prev) => ({ ...prev, page: newPage }));
-  };
+    setFilters((prev) => ({ ...prev, page: newPage }))
+  }
 
   const handleFilterChange = (newFilters: Partial<AdFilters>) => {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
       page: 1, // Сброс на первую страницу при изменении фильтров
-    }));
-  };
+    }))
+  }
 
   const handleCategoryClick = (categoryKey: string) => {
-    const current = filters.categories ?? [];
+    const current = filters.categories ?? []
     const next = current.includes(categoryKey)
-      ? current.filter(c => c !== categoryKey)
-      : [...current, categoryKey];
-    handleFilterChange({ categories: next.length ? next : undefined, subcategories: undefined });
-  };
+      ? current.filter((c) => c !== categoryKey)
+      : [...current, categoryKey]
+    handleFilterChange({
+      categories: next.length ? next : undefined,
+      subcategories: undefined,
+    })
+  }
 
   if (isError) {
     return (
       <div className="py-8 text-center text-red-500">
         Ошибка: {error?.message}
       </div>
-    );
+    )
   }
 
   return (
@@ -144,9 +162,12 @@ export function Bestsellers() {
       {filterConfig && (
         <div className="mb-4 overflow-x-auto scrollbar-none">
           <div className="page-wrap">
-            <div className="flex gap-2 pb-1" style={{ minWidth: 'max-content' }}>
+            <div
+              className="flex gap-2 pb-1"
+              style={{ minWidth: 'max-content' }}
+            >
               {filterConfig.categories.map((cat) => {
-                const isActive = filters.categories?.includes(cat.key);
+                const isActive = filters.categories?.includes(cat.key)
                 return (
                   <button
                     key={cat.key}
@@ -159,7 +180,7 @@ export function Bestsellers() {
                   >
                     {cat.label}
                   </button>
-                );
+                )
               })}
             </div>
           </div>
@@ -187,8 +208,8 @@ export function Bestsellers() {
                 (filters.condition ? 1 : 0) +
                 (filters.ad_type ? 1 : 0) +
                 (filters.minPrice !== undefined ? 1 : 0) +
-                (filters.maxPrice !== undefined ? 1 : 0);
-              return n > 0 ? ` (${n})` : '';
+                (filters.maxPrice !== undefined ? 1 : 0)
+              return n > 0 ? ` (${n})` : ''
             })()}
           </button>
         </div>
@@ -212,7 +233,7 @@ export function Bestsellers() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Responsive Header with Page Info */}
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 hidden items-center justify-between lg:flex">
               <h2 className="text-lg font-semibold text-(--sea-ink)">
                 Товары {adsData?.total ? `(${adsData.total})` : ''}
               </h2>
@@ -224,12 +245,20 @@ export function Bestsellers() {
             </div>
 
             {isLoading ? (
-              <div className="text-center py-8 text-(--sea-ink-soft)">Загрузка...</div>
+              <div className="text-center py-8 text-(--sea-ink-soft)">
+                Загрузка...
+              </div>
             ) : ads.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-(--sea-ink-soft)">Товары не найдены</p>
                 <button
-                  onClick={() => setFilters({ page: 1, limit: 20, sort: filters.sort || 'created_at_desc' })}
+                  onClick={() =>
+                    setFilters({
+                      page: 1,
+                      limit: 20,
+                      sort: filters.sort || 'created_at_desc',
+                    })
+                  }
                   className="mt-4 text-sm text-(--palm) hover:underline"
                 >
                   Сбросить фильтры
@@ -237,52 +266,64 @@ export function Bestsellers() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {ads.map((product) => (
                     <Link
                       key={product.id}
                       to="/product/$productId"
                       params={{ productId: String(product.id) }}
-                      className="group rounded-2xl border border-(--line) bg-(--surface-strong) p-2 hover:bg-(--foam)"
+                      className="group overflow-hidden rounded-2xl border border-(--line) bg-(--surface-strong) transition hover:shadow-md"
                     >
-                      <div className="relative mb-2 aspect-square overflow-hidden rounded bg-gray-50">
+                      <div className="relative aspect-[4/3] overflow-hidden bg-(--surface) dark:bg-(--chip-bg)">
                         {product.discount && (
-                          <span className="absolute left-1.5 top-1.5 rounded bg-red-500 px-1 py-0.5 text-[9px] font-semibold text-white">
+                          <span className="absolute left-2 top-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-semibold text-white">
                             -{product.discount}%
                           </span>
                         )}
-                        <img
-                          src={product.cover_url}
-                          alt={product.title}
-                          className="h-full w-full object-cover transition group-hover:scale-105"
-                        />
+                        {product.cover_url ||
+                        (Array.isArray(product.photos) &&
+                          product.photos.length > 0) ? (
+                          <img
+                            src={product.cover_url ?? product.photos[0]}
+                            alt={product.title}
+                            loading="lazy"
+                            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-(--sea-ink-soft)/40">
+                            <Tag className="size-7" strokeWidth={1.5} />
+                          </span>
+                        )}
                       </div>
-                      <h3 className="line-clamp-2 text-[11px] font-medium text-(--sea-ink) leading-tight">
-                        {product.title}
-                      </h3>
-                      <div className="mt-1 flex items-baseline gap-1">
-                        <span className="text-xs font-semibold text-(--sea-ink)">
-                          {product.price.toLocaleString()} ₽
+                      <div className="p-2.5">
+                        <span className="text-sm font-bold text-(--sea-ink)">
+                          {Number(product.price ?? 0).toLocaleString('ru-RU')} ₽
                         </span>
                         {product.old_price && (
-                          <span className="text-[10px] text-(--sea-ink-soft) line-through">
-                            {product.old_price.toLocaleString()} ₽
+                          <span className="ml-1 text-[10px] text-(--sea-ink-soft) line-through">
+                            {Number(product.old_price).toLocaleString('ru-RU')} ₽
                           </span>
                         )}
-                      </div>
-                      <div className="mt-1 flex items-center gap-2 text-[10px] text-(--sea-ink-soft)">
-                        {product.city && <span>{product.city}</span>}
-                        {product.condition && (
-                          <span className="rounded bg-gray-100 px-1 py-0.5">
-                            {product.condition === 'new' ? 'Новое' :
-                             product.condition === 'used' ? 'Б/У' : 'Не указано'}
+                        <h3 className="mt-0.5 line-clamp-1 text-xs text-(--sea-ink)">
+                          {product.title}
+                        </h3>
+                        <div className="mt-1.5 flex items-center justify-between text-[11px] text-(--sea-ink-soft)">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="size-3.5" /> {product.city || '—'}
                           </span>
-                        )}
+                          <span>
+                            {product.condition === 'new'
+                              ? 'Новое'
+                              : product.condition === 'like_new'
+                                ? 'Как нов.'
+                                : 'Б/У'}
+                          </span>
+                        </div>
                       </div>
                     </Link>
                   ))}
                 </div>
-                
+
                 {/* Полноценная пагинация внизу списка (видна на всех устройствах) */}
                 <Pagination
                   page={filters.page || 1}
@@ -305,7 +346,9 @@ export function Bestsellers() {
           <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-full bg-(--surface-strong) shadow-xl lg:hidden">
             <div className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-(--line) px-4 py-3">
-                <h3 className="text-base font-semibold text-(--sea-ink)">Фильтры</h3>
+                <h3 className="text-base font-semibold text-(--sea-ink)">
+                  Фильтры
+                </h3>
                 <button
                   onClick={() => setIsMobileFilterOpen(false)}
                   className="rounded p-1 text-(--sea-ink-soft) hover:bg-(--link-bg-hover)"
@@ -325,5 +368,5 @@ export function Bestsellers() {
         </>
       )}
     </section>
-  );
+  )
 }
