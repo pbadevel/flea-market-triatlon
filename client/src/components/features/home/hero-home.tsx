@@ -64,7 +64,7 @@ export function HeroHome({
 }) {
   const { data: filterConfig } = useQuery(filtersQueryOptions())
   const { data: adsData } = useQuery(
-    adsQueryOptions({ page: 1, limit: 12, sort: 'created_at_desc' }),
+    adsQueryOptions({ page: 1, limit: 60, sort: 'created_at_desc' }),
   )
   // Значок лайка убран
   // const [liked, setLiked] = useState<Set<number>>(new Set())
@@ -73,6 +73,14 @@ export function HeroHome({
     const cats: { key: string; label: string }[] =
       filterConfig?.categories ?? []
     const ads: any[] = adsData?.data ?? []
+    // Все ключи подкатегорий, которые относятся к каждой категории
+    const subsOf = (c: any): string[] => {
+      const items: { key: string }[] = [...(c.items ?? [])]
+      for (const g of c.groups ?? []) items.push(...(g.items ?? []))
+      return items.map((i) => String(i.key))
+    }
+    const subIndex = new Map<string, string>() // subKey -> category key
+    for (const c of cats) for (const sk of subsOf(c)) subIndex.set(sk, c.key)
     return cats.slice(0, 6).map((c, i) => {
       const s = {
         ...(TILE_FALLBACKS[i % TILE_FALLBACKS.length] as {
@@ -82,9 +90,13 @@ export function HeroHome({
         ...tileStyleFor(c.label, i),
       }
       // Первая попавшаяся фотка товара из этой категории — фон плитки
-      const withCover = ads.find(
-        (a) => a.category === c.key || a.subcategory === c.key,
-      )
+      const withCover = ads.find((a) => {
+        if (a.category === c.key || a.category === c.label) return true
+        if (a.subcategory === c.key) return true
+        // Подкатегория может принадлежать этой категории (bikes_road -> bike)
+        const owner = subIndex.get(String(a.subcategory ?? ''))
+        return owner === c.key
+      })
       const coverFromPhotos =
         withCover?.cover_url ??
         (Array.isArray(withCover?.photos) ? withCover.photos?.[0] : undefined)
