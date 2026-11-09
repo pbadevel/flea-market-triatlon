@@ -137,17 +137,6 @@ export function Bestsellers({
     }))
   }
 
-  const handleCategoryClick = (categoryKey: string) => {
-    const current = filters.categories ?? []
-    const next = current.includes(categoryKey)
-      ? current.filter((c) => c !== categoryKey)
-      : [...current, categoryKey]
-    handleFilterChange({
-      categories: next.length ? next : undefined,
-      subcategories: undefined,
-    })
-  }
-
   if (isError) {
     return (
       <div className="py-8 text-center text-red-500">
@@ -158,35 +147,7 @@ export function Bestsellers({
 
   return (
     <section className="py-4">
-      {/* Category Tabs */}
-      {filterConfig && (
-        <div className="mb-4 overflow-x-auto scrollbar-none">
-          <div className="page-wrap">
-            <div
-              className="flex gap-2 pb-1"
-              style={{ minWidth: 'max-content' }}
-            >
-              {filterConfig.categories.map((cat) => {
-                const isActive = filters.categories?.includes(cat.key)
-                return (
-                  <button
-                    key={cat.key}
-                    onClick={() => handleCategoryClick(cat.key)}
-                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                      isActive
-                        ? 'bg-(--palm) text-white shadow-sm'
-                        : 'bg-(--surface-strong) border border-(--line) text-(--sea-ink-soft) hover:border-(--palm)/30 hover:text-(--sea-ink)'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Категории выбираются плитками на главной (HeroHome) — чипы убраны, чтобы не дублировать */}
       <div className="page-wrap">
         {/* Mobile Filter Header */}
         <div className="lg:hidden mb-4 flex items-center justify-between">

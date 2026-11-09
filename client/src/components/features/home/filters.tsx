@@ -51,13 +51,16 @@ const defaultClass =
   'text-(--sea-ink-soft) hover:bg-(--link-bg-hover)';
 
 export function Filters({ filters, activeFilters, onFilterChange }: FiltersProps) {
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => ({
+    // Страны свёрнуты по умолчанию, но раскрыты, если уже выбраны
     category: true,
-    location: true,
+    location:
+      (activeFilters.countries?.length ?? 0) > 0 ||
+      (activeFilters.cities?.length ?? 0) > 0,
     condition: true,
     price: false,
     sort: true,
-  });
+  }));
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [citySearch, setCitySearch] = useState('');
 
