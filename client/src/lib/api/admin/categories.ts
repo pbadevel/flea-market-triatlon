@@ -12,7 +12,7 @@ export const updateCategory = (token: string, key: string, data: { name?: string
 export const deleteCategory = (token: string, key: string) =>
   serverApi({ data: { path: `/admin/categories/${key}`, method: 'DELETE', token } })
 
-export const createSubcategory = (token: string, data: { category_key: string; name: string; key: string }) =>
+export const createSubcategory = (token: string, data: { category_key: string; name: string; key: string; group_key?: string | null }) =>
   serverApi({ data: { path: '/admin/categories/subcategories', method: 'POST', token, body: data } })
 
 export const updateSubcategory = (

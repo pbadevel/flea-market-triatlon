@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Plus, Edit, Trash2, Layers, X, ChevronDown, ChevronRight } from 'lucide-react'
 import { verifySession } from '@/lib/session'
 import { fetchCategories, createCategory, updateCategory, deleteCategory, createSubcategory, updateSubcategory, deleteSubcategory } from '@/lib/api/admin/categories'
-import type { Category, CategoryCreate, SubcategoryCreate } from '@/types/admin'
+import type { CategoryCreate, SubcategoryCreate, SubcategoryGroupOut, SubcategoryOut } from '@/types/admin'
 
 export const Route = createFileRoute('/_admin/admin/categories/')({
   component: CategoriesPage,
@@ -99,7 +99,7 @@ function CategoriesPage() {
 
       {isLoading ? <p className="text-sm text-gray-500">Загрузка...</p> : !cats?.length ? <p className="text-sm text-gray-500">Нет категорий</p> : (
         <div className="space-y-3">
-          {cats.map(cat => (
+          {cats.map((cat: any) => (
             <div key={cat.key} className="rounded-lg border bg-white">
               {/* Category header */}
               <div className="p-4 border-b border-gray-100">
@@ -142,12 +142,16 @@ function CategoriesPage() {
                     <div className="rounded border p-3 bg-gray-50 space-y-1.5">
                       <input placeholder="key" value={subForm.key} onChange={e => setSubForm(f => ({ ...f, key: e.target.value }))} className="w-full rounded border px-2 py-1 text-xs" />
                       <input placeholder="Название" value={subForm.name} onChange={e => setSubForm(f => ({ ...f, name: e.target.value }))} className="w-full rounded border px-2 py-1 text-xs" />
+                      <select value={subForm.group_key} onChange={e => setSubForm(f => ({ ...f, group_key: e.target.value }))} className="w-full rounded border px-2 py-1 text-xs">
+                        <option value="">Без группы</option>
+                        {cat.groups.map((g: SubcategoryGroupOut) => <option key={g.key} value={g.key}>🏷 {g.name}</option>)}
+                      </select>
                       <div className="flex items-center gap-3">
                         <input placeholder="Порядок" type="number" value={subForm.display_order} onChange={e => setSubForm(f => ({ ...f, display_order: +e.target.value }))} className="w-20 rounded border px-2 py-1 text-xs" />
                         <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={subForm.requires_size} onChange={e => setSubForm(f => ({ ...f, requires_size: e.target.checked }))} /> Размер</label>
                       </div>
                       <div className="flex gap-1.5">
-                        <button onClick={() => createSubMut.mutate({ key: subForm.key, name: subForm.name, category_key: cat.key, display_order: subForm.display_order, requires_size: subForm.requires_size })}
+                        <button onClick={() => createSubMut.mutate({ key: subForm.key, name: subForm.name, category_key: cat.key, display_order: subForm.display_order, requires_size: subForm.requires_size, group_key: subForm.group_key || undefined })}
                           disabled={!subForm.key || !subForm.name}
                           className="rounded bg-green-500 px-2 py-1 text-xs text-white disabled:opacity-50">Создать</button>
                         <button onClick={() => setNewSub(null)} className="rounded border px-2 py-1 text-xs">Отмена</button>
@@ -155,7 +159,45 @@ function CategoriesPage() {
                     </div>
                   )}
 
-                  {cat.subcategories.map((sub) => {
+                  {cat.groups.map((group: SubcategoryGroupOut) => (
+                    <div key={group.key} className="rounded border bg-(--surface) px-3 py-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-gray-500">🏷 {group.name} <span className="font-normal text-gray-400">({group.key}) order:{group.display_order}</span></span>
+                      </div>
+                      {group.subcategories.map((sub: SubcategoryOut) => {
+                        const pairKey = `${cat.key}:${sub.key}`
+                        const isEditMode = editSub === pairKey
+                        return (
+                          <div key={pairKey} className="flex items-center justify-between rounded border bg-white px-3 py-2 mt-1">
+                            {isEditMode ? (
+                              <div className="flex-1 flex items-center gap-2">
+                                <input defaultValue={sub.name} onChange={e => setSubForm(f => ({ ...f, name: e.target.value }))} className="w-40 rounded border px-2 py-1 text-xs" />
+                                <input defaultValue={sub.display_order} type="number" onChange={e => setSubForm(f => ({ ...f, display_order: +e.target.value }))} className="w-16 rounded border px-2 py-1 text-xs" />
+                                <label className="flex items-center gap-1 text-xs"><input type="checkbox" defaultChecked={sub.requires_size} onChange={e => setSubForm(f => ({ ...f, requires_size: e.target.checked }))} /> Размер</label>
+                                <button onClick={() => updateSubMut.mutate({ key: sub.key, categoryKey: cat.key, data: { name: subForm.name, display_order: subForm.display_order, requires_size: subForm.requires_size } })} className="rounded bg-(--palm) px-2 py-1 text-xs text-white">Ок</button>
+                                <button onClick={() => setEditSub(null)} className="rounded border px-2 py-1 text-xs">✕</button>
+                              </div>
+                            ) : (
+                              <>
+                                <span className="text-sm">{sub.name} <span className="text-xs text-gray-400">({sub.key}) order:{sub.display_order}{sub.requires_size ? ' 📏' : ''}</span></span>
+                                <div className="flex gap-1">
+                                  <button onClick={() => { setEditSub(pairKey); setSubForm({ name: sub.name, key: sub.key, display_order: sub.display_order, requires_size: sub.requires_size, group_key: sub.group_key || '' }) }}
+                                    className="rounded p-1 hover:bg-gray-100"><Edit className="size-3.5" /></button>
+                                  <button onClick={() => { if (confirm(`Удалить ${sub.name}?`)) deleteSubMut.mutate({ key: sub.key, categoryKey: cat.key }) }} className="rounded p-1 hover:bg-red-50 text-red-500"><Trash2 className="size-3.5" /></button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )
+                      })}
+                      {group.subcategories.length === 0 && <p className="text-xs text-gray-400 italic">Нет подкатегорий</p>}
+                    </div>
+                  ))}
+
+                  {cat.subcategories.length > 0 && (
+                    <p className="text-xs font-bold text-gray-500">Прочее (без группы)</p>
+                  )}
+                  {cat.subcategories.map((sub: SubcategoryOut) => {
                     const pairKey = `${cat.key}:${sub.key}`
                     const isEditMode = editSub === pairKey
                     return (
