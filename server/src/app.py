@@ -59,6 +59,14 @@ async def lifespan(_: FastAPI) -> AsyncIterator[State]:
     scheduler.start()
     log.info("Scheduler started")
 
+    # Категории бота — из БД (единый источник правды)
+    from src.bot.settings.db_categories import hydrate_categories_from_db
+    try:
+        await hydrate_categories_from_db()
+        log.info("Bot categories hydrated from DB")
+    except Exception as e:
+        log.error("Failed to hydrate bot categories", exc_info=e)
+
      # Initialize Telegram bot
     # try:
         # await setup_bot()

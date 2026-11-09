@@ -2,7 +2,7 @@
 import os
 
 from fastapi import APIRouter, Query, Form, File, Depends, UploadFile, HTTPException, BackgroundTasks
-from sqlalchemy import select, func, or_, delete
+from sqlalchemy import select, func, or_, and_, delete
 from sqlalchemy.orm import joinedload, selectinload
 from src.models import Ad, AdStatus, Review, User, AdPhoto, DetailsLog
 from src.auth.dependencies import WebUser, WebAdmin, VerifiedWebUser
@@ -74,7 +74,6 @@ async def list_ads(
         # Plain subcategory values apply globally (legacy clients).
         # Category filter is AND-combined (tiles / explicit categories).
         if subcategory or category:
-            from sqlalchemy import or_, and_
             clauses = []
             for s in subcategory or []:
                 if ':' in s:
