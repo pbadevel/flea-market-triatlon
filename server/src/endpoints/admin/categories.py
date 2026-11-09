@@ -213,6 +213,16 @@ async def create_subcategory(data: SubcategoryCreate, admin: WebAdmin):
         if not cat_result.scalar_one_or_none():
             raise HTTPException(404, "Category not found")
 
+        # Ключ подкатегории должен быть уникален в рамках категории
+        existing = await session.execute(
+            __import__("sqlalchemy").select(SubcategoryModel).where(
+                SubcategoryModel.key == data.key,
+                SubcategoryModel.category_key == data.category_key,
+            )
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(400, f"Subcategory '{data.key}' already exists in category '{data.category_key}'")
+
         sub = SubcategoryModel(
             key=data.key, name=data.name, icon=data.icon,
             display_order=data.display_order, requires_size=data.requires_size,
@@ -230,13 +240,20 @@ async def create_subcategory(data: SubcategoryCreate, admin: WebAdmin):
 
 
 @router.put("/subcategories/{subcategory_key}", response_model=SubcategoryOut)
-async def update_subcategory(subcategory_key: str, data: SubcategoryUpdate, admin: WebAdmin):
-    """Update a subcategory."""
+async def update_subcategory(
+    subcategory_key: str,
+    data: SubcategoryUpdate,
+    admin: WebAdmin,
+    category_key: str | None = None,
+):
+    """Update a subcategory. Scoped by category_key when subcategory keys are not unique."""
     async with database_service.get_session() as session:
-        result = await session.execute(
-            __import__("sqlalchemy").select(SubcategoryModel).where(SubcategoryModel.key == subcategory_key)
+        query = __import__("sqlalchemy").select(SubcategoryModel).where(
+            SubcategoryModel.key == subcategory_key
         )
-        sub = result.scalar_one_or_none()
+        if category_key:
+            query = query.where(SubcategoryModel.category_key == category_key)
+        sub = (await session.execute(query)).scalars().first()
         if not sub:
             raise HTTPException(404, "Subcategory not found")
 
@@ -254,13 +271,19 @@ async def update_subcategory(subcategory_key: str, data: SubcategoryUpdate, admi
 
 
 @router.delete("/subcategories/{subcategory_key}")
-async def delete_subcategory(subcategory_key: str, admin: WebAdmin):
-    """Delete a subcategory."""
+async def delete_subcategory(
+    subcategory_key: str,
+    admin: WebAdmin,
+    category_key: str | None = None,
+):
+    """Delete a subcategory. Scoped by category_key when subcategory keys are not unique."""
     async with database_service.get_session() as session:
-        result = await session.execute(
-            __import__("sqlalchemy").select(SubcategoryModel).where(SubcategoryModel.key == subcategory_key)
+        query = __import__("sqlalchemy").select(SubcategoryModel).where(
+            SubcategoryModel.key == subcategory_key
         )
-        sub = result.scalar_one_or_none()
+        if category_key:
+            query = query.where(SubcategoryModel.category_key == category_key)
+        sub = (await session.execute(query)).scalars().first()
         if not sub:
             raise HTTPException(404, "Subcategory not found")
 

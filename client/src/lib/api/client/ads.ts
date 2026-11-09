@@ -31,30 +31,18 @@ export const fetchAds = (filters: AdFilters = {}) => {
   if (filters.page) params.set('page', String(filters.page))
   if (filters.limit) params.set('limit', String(filters.limit))
   
-  // Extract categories from composite subcategory keys (category:subcategory)
-  const compositeSubs = filters.subcategories ?? []
-  const extractedCategories = new Set<string>()
-  const extractedSubcategories: string[] = []
-  
-  for (const s of compositeSubs) {
-    if (s.includes(':')) {
-      const [catKey, subKey] = s.split(':')
-      extractedCategories.add(catKey)
-      extractedSubcategories.push(subKey)
-    } else {
-      extractedSubcategories.push(s)
-    }
+  // Composite subcategory keys "category:subcategory" sent as-is —
+  // backend scopes each pair (identical subkeys live in different categories)
+  const subs = filters.subcategories ?? []
+
+  // Send categories (explicit selection = tiles/sidebar)
+  const cats = new Set([...(filters.categories ?? [])])
+  if (cats.size > 0) {
+    cats.forEach((c) => params.append('category', c))
   }
-  
-  // Send categories (from explicit selection + extracted from subcategories)
-  const allCategories = new Set([...(filters.categories ?? []), ...extractedCategories])
-  if (allCategories.size > 0) {
-    allCategories.forEach(c => params.append('category', c))
-  }
-  
-  // Send subcategories (actual keys, not composite)
-  if (extractedSubcategories.length > 0) {
-    extractedSubcategories.forEach(s => params.append('subcategory', s))
+
+  if (subs.length > 0) {
+    subs.forEach((s) => params.append('subcategory', s))
   }
   
   if (filters.countries?.length) filters.countries.forEach(c => params.append('country', c))

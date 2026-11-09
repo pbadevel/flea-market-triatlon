@@ -69,9 +69,23 @@ async def list_ads(
             joinedload(Ad.seller).selectinload(User.credentials),
         )
         
-        # Filters: subcategory is more specific than category, so use AND
-        if subcategory:
-            stmt = stmt.where(Ad.subcategory.in_(subcategory))
+        # Filters: subcategories can be scoped to a category via composite
+        # "category:subcategory" keys (identical subkeys in different categories).
+        # Plain subcategory values apply globally (legacy clients).
+        # Category filter is AND-combined (tiles / explicit categories).
+        if subcategory or category:
+            from sqlalchemy import or_, and_
+            clauses = []
+            for s in subcategory or []:
+                if ':' in s:
+                    cat, sub = s.split(':', 1)
+                    clauses.append(and_(Ad.category == cat, Ad.subcategory == sub))
+                else:
+                    clauses.append(Ad.subcategory == s)
+            if category:
+                stmt = stmt.where(Ad.category.in_(category))
+            if clauses:
+                stmt = stmt.where(or_(*clauses))
         elif category:
             stmt = stmt.where(Ad.category.in_(category))
 
