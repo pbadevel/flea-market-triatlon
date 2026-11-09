@@ -89,12 +89,27 @@ async def list_ads(
         elif category:
             stmt = stmt.where(Ad.category.in_(category))
 
-        # City is matched exactly as stored in DB. When cities are chosen, they
-        # take precedence — many legacy ads have city set but country empty.
+        # Country filter: frontend sends geo keys ("russia"), DB may store the
+        # human-readable name ("Россия"), and many legacy ads have empty
+        # country but a valid city. Resolve keys → names and also accept any
+        # ad whose city belongs to the selected country.
         if city:
             stmt = stmt.where(Ad.city.in_(city))
         elif country:
-            stmt = stmt.where(Ad.country.in_(country))
+            from src.services.filters import GEO_COUNTRIES
+            geo = {c['key']: c for c in GEO_COUNTRIES}
+            names, cities = [], []
+            for k in country:
+                g = geo.get(k)
+                if g:
+                    names.append(g['name'])
+                    cities.extend(g['cities'])
+                else:
+                    names.append(k)
+            conds = [Ad.country.in_(names)]
+            if cities:
+                conds.append(Ad.city.in_(cities))
+            stmt = stmt.where(or_(*conds))
         if condition:
             stmt = stmt.where(Ad.condition == condition)
         if ad_type:
