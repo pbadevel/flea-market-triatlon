@@ -32,17 +32,18 @@ function countActiveFilters(f: AdFilters): number {
 }
 
 function findSubcategoryLabel(config: FilterConfig, key: string): string {
-  // Handle composite keys (category:subcategory)
-  const actualKey = key.includes(':') ? key.split(':').pop()! : key;
+  // Composite keys (category:subcategory) — подкатегория привязана к своей категории
+  const [catKey, subKey] = key.includes(':') ? key.split(':') : [undefined, key];
   for (const cat of config.categories) {
+    if (catKey && cat.key !== catKey) continue;
     for (const group of cat.groups ?? []) {
-      const item = group.items?.find((i) => i.key === actualKey);
-      if (item) return item.label;
+      const item = group.items?.find((i) => i.key === subKey);
+      if (item) return catKey ? `${cat.label} · ${item.label}` : item.label;
     }
-    const item = cat.items?.find((i) => i.key === actualKey);
-    if (item) return item.label;
+    const item = cat.items?.find((i) => i.key === subKey);
+    if (item) return catKey ? `${cat.label} · ${item.label}` : item.label;
   }
-  return actualKey;
+  return key;
 }
 
 const selectedClass =

@@ -57,12 +57,14 @@ function CategoriesPage() {
   })
 
   const updateSubMut = useMutation({
-    mutationFn: (d: { key: string; data: Partial<SubcategoryCreate> }) => updateSubcategory(token!, d.key, d.data),
+    mutationFn: (d: { key: string; categoryKey: string; data: Partial<SubcategoryCreate> }) =>
+      updateSubcategory(token!, d.key, d.data, d.categoryKey),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-categories'] }); setEditSub(null) },
   })
 
   const deleteSubMut = useMutation({
-    mutationFn: (key: string) => deleteSubcategory(token!, key),
+    mutationFn: (d: { key: string; categoryKey: string }) =>
+      deleteSubcategory(token!, d.key, d.categoryKey),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-categories'] }),
   })
 
@@ -153,28 +155,32 @@ function CategoriesPage() {
                     </div>
                   )}
 
-                  {cat.subcategories.map((sub, i) => (
-                    <div key={sub.key} className="flex items-center justify-between rounded border bg-white px-3 py-2">
-                      {editSub === sub.key ? (
+                  {cat.subcategories.map((sub) => {
+                    const pairKey = `${cat.key}:${sub.key}`
+                    const isEditMode = editSub === pairKey
+                    return (
+                    <div key={pairKey} className="flex items-center justify-between rounded border bg-white px-3 py-2">
+                      {isEditMode ? (
                         <div className="flex-1 flex items-center gap-2">
                           <input defaultValue={sub.name} onChange={e => setSubForm(f => ({ ...f, name: e.target.value }))} className="w-40 rounded border px-2 py-1 text-xs" />
                           <input defaultValue={sub.display_order} type="number" onChange={e => setSubForm(f => ({ ...f, display_order: +e.target.value }))} className="w-16 rounded border px-2 py-1 text-xs" />
                           <label className="flex items-center gap-1 text-xs"><input type="checkbox" defaultChecked={sub.requires_size} onChange={e => setSubForm(f => ({ ...f, requires_size: e.target.checked }))} /> Размер</label>
-                          <button onClick={() => updateSubMut.mutate({ key: sub.key, data: { name: subForm.name, display_order: subForm.display_order, requires_size: subForm.requires_size } })} className="rounded bg-(--palm) px-2 py-1 text-xs text-white">Ок</button>
+                          <button onClick={() => updateSubMut.mutate({ key: sub.key, categoryKey: cat.key, data: { name: subForm.name, display_order: subForm.display_order, requires_size: subForm.requires_size } })} className="rounded bg-(--palm) px-2 py-1 text-xs text-white">Ок</button>
                           <button onClick={() => setEditSub(null)} className="rounded border px-2 py-1 text-xs">✕</button>
                         </div>
                       ) : (
                         <>
                           <span className="text-sm">{sub.name} <span className="text-xs text-gray-400">({sub.key}) order:{sub.display_order}{sub.requires_size ? ' 📏' : ''}</span></span>
                           <div className="flex gap-1">
-                            <button onClick={() => { setEditSub(sub.key); setSubForm({ name: sub.name, key: sub.key, display_order: sub.display_order, requires_size: sub.requires_size, group_key: sub.group_key || '' }) }}
+                            <button onClick={() => { setEditSub(pairKey); setSubForm({ name: sub.name, key: sub.key, display_order: sub.display_order, requires_size: sub.requires_size, group_key: sub.group_key || '' }) }}
                               className="rounded p-1 hover:bg-gray-100"><Edit className="size-3.5" /></button>
-                            <button onClick={() => { if (confirm(`Удалить ${sub.name}?`)) deleteSubMut.mutate(sub.key) }} className="rounded p-1 hover:bg-red-50 text-red-500"><Trash2 className="size-3.5" /></button>
+                            <button onClick={() => { if (confirm(`Удалить ${sub.name}?`)) deleteSubMut.mutate({ key: sub.key, categoryKey: cat.key }) }} className="rounded p-1 hover:bg-red-50 text-red-500"><Trash2 className="size-3.5" /></button>
                           </div>
                         </>
                       )}
                     </div>
-                  ))}
+                    )
+                  })}
                   {cat.subcategories.length === 0 && <p className="text-xs text-gray-400 italic">Нет подкатегорий</p>}
                 </div>
               )}
