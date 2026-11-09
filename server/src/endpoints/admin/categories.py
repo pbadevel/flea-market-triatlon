@@ -153,8 +153,8 @@ async def create_category(data: CategoryCreate, admin: WebAdmin):
         session.add(cat)
         await session.commit()
         await session.refresh(cat)
-    from src.bot.settings.db_categories import hydrate_categories_bg
-    await hydrate_categories_bg()
+        from src.bot.settings.db_categories import hydrate_categories_bg
+        await hydrate_categories_bg()
 
         return CategoryOut(
             key=cat.key, name=cat.name, icon=cat.icon,
@@ -237,8 +237,8 @@ async def create_subcategory(data: SubcategoryCreate, admin: WebAdmin):
         session.add(sub)
         await session.commit()
         await session.refresh(sub)
-    from src.bot.settings.db_categories import hydrate_categories_bg
-    await hydrate_categories_bg()
+        from src.bot.settings.db_categories import hydrate_categories_bg
+        await hydrate_categories_bg()
 
         return SubcategoryOut(
             key=sub.key, name=sub.name, icon=sub.icon,
@@ -270,8 +270,8 @@ async def update_subcategory(
             setattr(sub, field, value)
 
         await session.commit()
-    from src.bot.settings.db_categories import hydrate_categories_bg
-    await hydrate_categories_bg()
+        from src.bot.settings.db_categories import hydrate_categories_bg
+        await hydrate_categories_bg()
 
         return SubcategoryOut(
             key=sub.key, name=sub.name, icon=sub.icon,
@@ -299,7 +299,7 @@ async def delete_subcategory(
 
         await session.delete(sub)
         await session.commit()
-    from src.bot.settings.db_categories import hydrate_categories_bg
-    await hydrate_categories_bg()
+        from src.bot.settings.db_categories import hydrate_categories_bg
+        await hydrate_categories_bg()
 
         return {"status": "ok", "message": f"Subcategory '{subcategory_key}' deleted"}
